@@ -1438,7 +1438,7 @@ function fallbackCoverUrl(item) {
 
 function studentAvatar(item, className = "") {
   if (item?.photo_url) {
-    return `<span class="${className} has-photo"><img src="${escapeAttribute(item.photo_url)}" alt="Foto de ${escapeAttribute(item.full_name || "aluno")}" loading="lazy"></span>`;
+    return `<span class="${className} has-photo"><img src="${escapeAttribute(item.photo_url)}" alt="Foto de ${escapeAttribute(item.full_name || "aluno")}" loading="lazy" referrerpolicy="no-referrer"></span>`;
   }
   return `<span class="${className}">${initialsFromName(item?.full_name || "Aluno")}</span>`;
 }
