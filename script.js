@@ -1471,13 +1471,14 @@ function isValidStoredCover(url) {
   const value = String(url || "").trim();
 
   return (
+    value.startsWith("assets/") ||
     value.startsWith("data:image/jpeg") ||
     value.startsWith("data:image/png") ||
     value.startsWith("data:image/webp") ||
+    (value.startsWith("data:image/svg+xml") && !value.includes("BOOKSHARE%20%E2%80%A2%20ACERVO%20ESCOLAR")) ||
     (
       /^https:\/\//i.test(value) &&
-      !value.includes("/api/public/book-cover") &&
-      !value.includes("data:image/svg+xml")
+      !value.includes("/api/public/book-cover")
     )
   );
 }
@@ -1486,7 +1487,7 @@ function remoteBookCoverUrl(title, author = "") {
   const query = new URLSearchParams({
     title: String(title || "").trim(),
     author: String(author || "").trim(),
-    v: "15"
+    v: "16"
   });
 
   return `${CONFIG.API_BASE_URL}/public/book-cover?${query.toString()}`;
@@ -1506,7 +1507,13 @@ function bookCoverUrl(item) {
   return remoteBookCoverUrl(title, author);
 }
 
-function fallbackCoverUrl() {
+function fallbackCoverUrl(item = {}) {
+  const title = item?.title || item?.book_title || "";
+  const author = item?.author || item?.book_author || "";
+  if (title) {
+    const query = new URLSearchParams({ title, author, v: "16", retry: "1" });
+    return `${CONFIG.API_BASE_URL}/public/book-cover?${query.toString()}`;
+  }
   return BOOK_COVER_PLACEHOLDER;
 }
 
