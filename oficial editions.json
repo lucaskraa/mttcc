@@ -1,0 +1,714 @@
+[
+  {
+    "isbn": "BOOKSHARE-001",
+    "title": "Dom Casmurro",
+    "author": "Machado de Assis",
+    "google_volume_id": "qmE0EQAAQBAJ",
+    "isbn13": null,
+    "edition_strategy": "google_volume_id"
+  },
+  {
+    "isbn": "BOOKSHARE-002",
+    "title": "Memórias Póstumas de Brás Cubas",
+    "author": "Machado de Assis",
+    "google_volume_id": "qnyeEAAAQBAJ",
+    "isbn13": null,
+    "edition_strategy": "google_volume_id"
+  },
+  {
+    "isbn": "BOOKSHARE-003",
+    "title": "O Cortiço",
+    "author": "Aluísio Azevedo",
+    "google_volume_id": "vQMREQAAQBAJ",
+    "isbn13": null,
+    "edition_strategy": "google_volume_id"
+  },
+  {
+    "isbn": "BOOKSHARE-004",
+    "title": "Vidas Secas",
+    "author": "Graciliano Ramos",
+    "google_volume_id": "OiNgEQAAQBAJ",
+    "isbn13": null,
+    "edition_strategy": "google_volume_id"
+  },
+  {
+    "isbn": "BOOKSHARE-005",
+    "title": "Capitães da Areia",
+    "author": "Jorge Amado",
+    "google_volume_id": "FDJ1_r4MCIEC",
+    "isbn13": null,
+    "edition_strategy": "google_volume_id"
+  },
+  {
+    "isbn": "BOOKSHARE-006",
+    "title": "Crime e Castigo",
+    "author": "Fiódor Dostoiévski",
+    "google_volume_id": "nO2MDwAAQBAJ",
+    "isbn13": null,
+    "edition_strategy": "google_volume_id"
+  },
+  {
+    "isbn": "BOOKSHARE-007",
+    "title": "Os Irmãos Karamázov",
+    "author": "Fiódor Dostoiévski",
+    "google_volume_id": "8PIuEAAAQBAJ",
+    "isbn13": null,
+    "edition_strategy": "google_volume_id"
+  },
+  {
+    "isbn": "BOOKSHARE-008",
+    "title": "Guerra e Paz",
+    "author": "Liev Tolstói",
+    "google_volume_id": "P1Q6DwAAQBAJ",
+    "isbn13": null,
+    "edition_strategy": "google_volume_id"
+  },
+  {
+    "isbn": "BOOKSHARE-009",
+    "title": "Anna Kariênina",
+    "author": "Liev Tolstói",
+    "google_volume_id": "vitqBgAAQBAJ",
+    "isbn13": null,
+    "edition_strategy": "google_volume_id"
+  },
+  {
+    "isbn": "BOOKSHARE-010",
+    "title": "O Mestre e Margarida",
+    "author": "Mikhail Bulgákov",
+    "google_volume_id": "XU5HEQAAQBAJ",
+    "isbn13": null,
+    "edition_strategy": "google_volume_id"
+  },
+  {
+    "isbn": "BOOKSHARE-011",
+    "title": "O Pequeno Príncipe",
+    "author": "Antoine de Saint-Exupéry",
+    "google_volume_id": "_NTSEAAAQBAJ",
+    "isbn13": null,
+    "edition_strategy": "google_volume_id"
+  },
+  {
+    "isbn": "BOOKSHARE-012",
+    "title": "Alice no País das Maravilhas",
+    "author": "Lewis Carroll",
+    "google_volume_id": "X5K1EAAAQBAJ",
+    "isbn13": null,
+    "edition_strategy": "google_volume_id"
+  },
+  {
+    "isbn": "BOOKSHARE-013",
+    "title": "As Aventuras de Tom Sawyer",
+    "author": "Mark Twain",
+    "google_volume_id": "nBg5EAAAQBAJ",
+    "isbn13": null,
+    "edition_strategy": "google_volume_id"
+  },
+  {
+    "isbn": "BOOKSHARE-014",
+    "title": "O Mágico de Oz",
+    "author": "L. Frank Baum",
+    "google_volume_id": "59IJ34ms1HQC",
+    "isbn13": null,
+    "edition_strategy": "google_volume_id"
+  },
+  {
+    "isbn": "BOOKSHARE-015",
+    "title": "A Ilha do Tesouro",
+    "author": "Robert Louis Stevenson",
+    "google_volume_id": "B9wXEAAAQBAJ",
+    "isbn13": null,
+    "edition_strategy": "google_volume_id"
+  },
+  {
+    "isbn": "BOOKSHARE-016",
+    "title": "Alguma Poesia",
+    "author": "Carlos Drummond de Andrade",
+    "google_volume_id": null,
+    "isbn13": "9786555874617",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-017",
+    "title": "Mensagem",
+    "author": "Fernando Pessoa",
+    "google_volume_id": "0yyBEQAAQBAJ",
+    "isbn13": null,
+    "edition_strategy": "google_volume_id"
+  },
+  {
+    "isbn": "BOOKSHARE-018",
+    "title": "Antologia Poética",
+    "author": "Vinicius de Moraes",
+    "google_volume_id": "0BFXAAAAYAAJ",
+    "isbn13": null,
+    "edition_strategy": "google_volume_id"
+  },
+  {
+    "isbn": "BOOKSHARE-019",
+    "title": "Romanceiro da Inconfidência",
+    "author": "Cecília Meireles",
+    "google_volume_id": "POGGDwAAQBAJ",
+    "isbn13": null,
+    "edition_strategy": "google_volume_id"
+  },
+  {
+    "isbn": "BOOKSHARE-020",
+    "title": "Os Lusíadas",
+    "author": "Luís de Camões",
+    "google_volume_id": "19JjCAAAQBAJ",
+    "isbn13": null,
+    "edition_strategy": "google_volume_id"
+  },
+  {
+    "isbn": "BOOKSHARE-021",
+    "title": "Laços de Família",
+    "author": "Clarice Lispector",
+    "google_volume_id": "ZxlOA83HZM0C",
+    "isbn13": null,
+    "edition_strategy": "google_volume_id"
+  },
+  {
+    "isbn": "BOOKSHARE-022",
+    "title": "Morangos Mofados",
+    "author": "Caio Fernando Abreu",
+    "google_volume_id": "BwyvDwAAQBAJ",
+    "isbn13": null,
+    "edition_strategy": "google_volume_id"
+  },
+  {
+    "isbn": "BOOKSHARE-023",
+    "title": "Contos Novos",
+    "author": "Mário de Andrade",
+    "google_volume_id": "kxD9EAAAQBAJ",
+    "isbn13": null,
+    "edition_strategy": "google_volume_id"
+  },
+  {
+    "isbn": "BOOKSHARE-024",
+    "title": "Primeiras Estórias",
+    "author": "João Guimarães Rosa",
+    "google_volume_id": "ZH5rDQAAQBAJ",
+    "isbn13": null,
+    "edition_strategy": "google_volume_id"
+  },
+  {
+    "isbn": "BOOKSHARE-025",
+    "title": "O Alienista",
+    "author": "Machado de Assis",
+    "google_volume_id": "TTUFEQAAQBAJ",
+    "isbn13": null,
+    "edition_strategy": "google_volume_id"
+  },
+  {
+    "isbn": "BOOKSHARE-026",
+    "title": "Cosmos",
+    "author": "Carl Sagan",
+    "google_volume_id": "Cl06FjKX6doC",
+    "isbn13": null,
+    "edition_strategy": "google_volume_id"
+  },
+  {
+    "isbn": "BOOKSHARE-027",
+    "title": "O Mundo Assombrado pelos Demônios",
+    "author": "Carl Sagan",
+    "google_volume_id": "D-tKAgAACAAJ",
+    "isbn13": null,
+    "edition_strategy": "google_volume_id"
+  },
+  {
+    "isbn": "BOOKSHARE-028",
+    "title": "A Origem das Espécies",
+    "author": "Charles Darwin",
+    "google_volume_id": "a4cgEQAAQBAJ",
+    "isbn13": null,
+    "edition_strategy": "google_volume_id"
+  },
+  {
+    "isbn": "BOOKSHARE-029",
+    "title": "Primavera Silenciosa",
+    "author": "Rachel Carson",
+    "google_volume_id": "PV3pDAAAQBAJ",
+    "isbn13": null,
+    "edition_strategy": "google_volume_id"
+  },
+  {
+    "isbn": "BOOKSHARE-030",
+    "title": "Breves Respostas para Grandes Questões",
+    "author": "Stephen Hawking",
+    "google_volume_id": "tI9yDwAAQBAJ",
+    "isbn13": null,
+    "edition_strategy": "google_volume_id"
+  },
+  {
+    "isbn": "BOOKSHARE-031",
+    "title": "O Gene Egoísta",
+    "author": "Richard Dawkins",
+    "google_volume_id": "GA0v1URr4_QC",
+    "isbn13": null,
+    "edition_strategy": "google_volume_id"
+  },
+  {
+    "isbn": "BOOKSHARE-032",
+    "title": "A Dupla Hélice",
+    "author": "James D. Watson",
+    "google_volume_id": null,
+    "isbn13": "9788537811740",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-033",
+    "title": "O Imperador de Todos os Males",
+    "author": "Siddhartha Mukherjee",
+    "google_volume_id": null,
+    "isbn13": "9788535920062",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-034",
+    "title": "A Vida Maravilhosa",
+    "author": "Stephen Jay Gould",
+    "google_volume_id": null,
+    "isbn13": "9788571641419",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-035",
+    "title": "A Canção da Célula",
+    "author": "Siddhartha Mukherjee",
+    "google_volume_id": null,
+    "isbn13": "9788535934724",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-036",
+    "title": "Uma Breve História do Tempo",
+    "author": "Stephen Hawking",
+    "google_volume_id": "igLOOwAACAAJ",
+    "isbn13": null,
+    "edition_strategy": "google_volume_id"
+  },
+  {
+    "isbn": "BOOKSHARE-037",
+    "title": "Seis Peças Fáceis",
+    "author": "Richard Feynman",
+    "google_volume_id": null,
+    "isbn13": "9788500004797",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-038",
+    "title": "O Universo Numa Casca de Noz",
+    "author": "Stephen Hawking",
+    "google_volume_id": "NXxVCwAAQBAJ",
+    "isbn13": null,
+    "edition_strategy": "google_volume_id"
+  },
+  {
+    "isbn": "BOOKSHARE-039",
+    "title": "Sete Breves Lições de Física",
+    "author": "Carlo Rovelli",
+    "google_volume_id": "BD0qDwAAQBAJ",
+    "isbn13": null,
+    "edition_strategy": "google_volume_id"
+  },
+  {
+    "isbn": "BOOKSHARE-040",
+    "title": "Física do Impossível",
+    "author": "Michio Kaku",
+    "google_volume_id": null,
+    "isbn13": "9788532525598",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-041",
+    "title": "A Colher que Desaparece",
+    "author": "Sam Kean",
+    "google_volume_id": null,
+    "isbn13": "9788537806937",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-042",
+    "title": "Tio Tungstênio",
+    "author": "Oliver Sacks",
+    "google_volume_id": null,
+    "isbn13": "9788535919820",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-043",
+    "title": "Os Botões de Napoleão",
+    "author": "Penny Le Couteur e Jay Burreson",
+    "google_volume_id": null,
+    "isbn13": "9788571109247",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-044",
+    "title": "A Tabela Periódica",
+    "author": "Primo Levi",
+    "google_volume_id": null,
+    "isbn13": "9788535941975",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-046",
+    "title": "O Homem que Calculava",
+    "author": "Malba Tahan",
+    "google_volume_id": null,
+    "isbn13": "9786555875911",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-047",
+    "title": "O Último Teorema de Fermat",
+    "author": "Simon Singh",
+    "google_volume_id": null,
+    "isbn13": "9788501923790",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-048",
+    "title": "O Diabo dos Números",
+    "author": "Hans Magnus Enzensberger",
+    "google_volume_id": null,
+    "isbn13": "9788571647183",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-049",
+    "title": "Alex no País dos Números",
+    "author": "Alex Bellos",
+    "google_volume_id": null,
+    "isbn13": "9788535918380",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-050",
+    "title": "A Música dos Números Primos",
+    "author": "Marcus du Sautoy",
+    "google_volume_id": null,
+    "isbn13": "9788537800379",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-051",
+    "title": "1808",
+    "author": "Laurentino Gomes",
+    "google_volume_id": null,
+    "isbn13": "9788576653202",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-052",
+    "title": "1822",
+    "author": "Laurentino Gomes",
+    "google_volume_id": null,
+    "isbn13": "9788525060648",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-053",
+    "title": "Brasil: Uma Biografia",
+    "author": "Lilia Schwarcz e Heloisa Starling",
+    "google_volume_id": null,
+    "isbn13": "9788535925661",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-054",
+    "title": "Sapiens",
+    "author": "Yuval Noah Harari",
+    "google_volume_id": null,
+    "isbn13": "9786559213016",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-055",
+    "title": "A Era dos Extremos",
+    "author": "Eric Hobsbawm",
+    "google_volume_id": null,
+    "isbn13": "9788571644687",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-056",
+    "title": "Por uma Outra Globalização",
+    "author": "Milton Santos",
+    "google_volume_id": null,
+    "isbn13": "9786555871869",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-057",
+    "title": "Geografia da Fome",
+    "author": "Josué de Castro",
+    "google_volume_id": null,
+    "isbn13": "9786556923390",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-058",
+    "title": "Prisioneiros da Geografia",
+    "author": "Tim Marshall",
+    "google_volume_id": null,
+    "isbn13": "9788537817575",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-059",
+    "title": "Armas, Germes e Aço",
+    "author": "Jared Diamond",
+    "google_volume_id": null,
+    "isbn13": "9788501110015",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-060",
+    "title": "O Poder da Geografia",
+    "author": "Tim Marshall",
+    "google_volume_id": null,
+    "isbn13": "9786559790678",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-061",
+    "title": "A República",
+    "author": "Platão",
+    "google_volume_id": "38n-zwEACAAJ",
+    "isbn13": null,
+    "edition_strategy": "google_volume_id"
+  },
+  {
+    "isbn": "BOOKSHARE-062",
+    "title": "Ética a Nicômaco",
+    "author": "Aristóteles",
+    "google_volume_id": null,
+    "isbn13": "9788572838818",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-063",
+    "title": "Discurso do Método",
+    "author": "René Descartes",
+    "google_volume_id": null,
+    "isbn13": "9788525410979",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-064",
+    "title": "O Mundo de Sofia",
+    "author": "Jostein Gaarder",
+    "google_volume_id": null,
+    "isbn13": "9788535921892",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-065",
+    "title": "Assim Falou Zaratustra",
+    "author": "Friedrich Nietzsche",
+    "google_volume_id": null,
+    "isbn13": "9788535930481",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-066",
+    "title": "A Ética Protestante e o Espírito do Capitalismo",
+    "author": "Max Weber",
+    "google_volume_id": null,
+    "isbn13": "9788572329750",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-067",
+    "title": "As Regras do Método Sociológico",
+    "author": "Émile Durkheim",
+    "google_volume_id": null,
+    "isbn13": "9788572838061",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-068",
+    "title": "Casa-Grande & Senzala",
+    "author": "Gilberto Freyre",
+    "google_volume_id": null,
+    "isbn13": "9788526008694",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-069",
+    "title": "Modernidade Líquida",
+    "author": "Zygmunt Bauman",
+    "google_volume_id": null,
+    "isbn13": "9788571105980",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-070",
+    "title": "O Manifesto Comunista",
+    "author": "Karl Marx e Friedrich Engels",
+    "google_volume_id": null,
+    "isbn13": "9788563560360",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-071",
+    "title": "A História da Arte",
+    "author": "E. H. Gombrich",
+    "google_volume_id": null,
+    "isbn13": "9788521611851",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-072",
+    "title": "Modos de Ver",
+    "author": "John Berger",
+    "google_volume_id": null,
+    "isbn13": "9786589733997",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-073",
+    "title": "O Que É Arte?",
+    "author": "Jorge Coli",
+    "google_volume_id": null,
+    "isbn13": "9788511010466",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-074",
+    "title": "Poética",
+    "author": "Aristóteles",
+    "google_volume_id": null,
+    "isbn13": "9788573266054",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-075",
+    "title": "A Câmara Clara",
+    "author": "Roland Barthes",
+    "google_volume_id": null,
+    "isbn13": "9788520942680",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-076",
+    "title": "Os Inovadores",
+    "author": "Walter Isaacson",
+    "google_volume_id": null,
+    "isbn13": "9786555601367",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-077",
+    "title": "Código",
+    "author": "Charles Petzold",
+    "google_volume_id": null,
+    "isbn13": "9788582606315",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-078",
+    "title": "Código Limpo",
+    "author": "Robert C. Martin",
+    "google_volume_id": null,
+    "isbn13": "9788576082675",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-079",
+    "title": "Algoritmos",
+    "author": "Thomas Cormen e colaboradores",
+    "google_volume_id": null,
+    "isbn13": "9788535236996",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-080",
+    "title": "Inteligência Artificial: Uma Abordagem Moderna",
+    "author": "Stuart Russell e Peter Norvig",
+    "google_volume_id": null,
+    "isbn13": "9788595158870",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-081",
+    "title": "O Diário de Anne Frank",
+    "author": "Anne Frank",
+    "google_volume_id": null,
+    "isbn13": "9788501044457",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-082",
+    "title": "Longa Caminhada até a Liberdade",
+    "author": "Nelson Mandela",
+    "google_volume_id": null,
+    "isbn13": "9786555200737",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-083",
+    "title": "Steve Jobs",
+    "author": "Walter Isaacson",
+    "google_volume_id": null,
+    "isbn13": "9788535919714",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-084",
+    "title": "Minha História",
+    "author": "Michelle Obama",
+    "google_volume_id": null,
+    "isbn13": "9788547000646",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-085",
+    "title": "Eu Sou Malala",
+    "author": "Malala Yousafzai",
+    "google_volume_id": null,
+    "isbn13": "9788535923438",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-086",
+    "title": "Maus",
+    "author": "Art Spiegelman",
+    "google_volume_id": null,
+    "isbn13": "9788535906288",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-087",
+    "title": "Persépolis",
+    "author": "Marjane Satrapi",
+    "google_volume_id": null,
+    "isbn13": "9788535911626",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-088",
+    "title": "Watchmen",
+    "author": "Alan Moore e Dave Gibbons",
+    "google_volume_id": "QkK2oAEACAAJ",
+    "isbn13": null,
+    "edition_strategy": "google_volume_id"
+  },
+  {
+    "isbn": "BOOKSHARE-089",
+    "title": "Turma da Mônica: Laços",
+    "author": "Vitor e Lu Cafaggi",
+    "google_volume_id": null,
+    "isbn13": "9788565484572",
+    "edition_strategy": "isbn13"
+  },
+  {
+    "isbn": "BOOKSHARE-090",
+    "title": "Daytripper",
+    "author": "Fábio Moon e Gabriel Bá",
+    "google_volume_id": null,
+    "isbn13": "9788573517712",
+    "edition_strategy": "isbn13"
+  }
+]
