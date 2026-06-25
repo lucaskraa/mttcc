@@ -2053,4 +2053,13 @@ SET avatar_url = 'https://randomuser.me/api/portraits/women/44.jpg',
 WHERE email = 'biblioteca@bookshare.com';
 
 
+
+
+-- Capas reais incluídas no pacote do front-end.
+UPDATE books SET cover_url = 'assets/covers/dom-casmurro.jpg', updated_at = NOW() WHERE title = 'Dom Casmurro';
+UPDATE books SET cover_url = 'assets/covers/crime-e-castigo.jpg', updated_at = NOW() WHERE title = 'Crime e Castigo';
+UPDATE books SET cover_url = 'assets/covers/vidas-secas.webp', updated_at = NOW() WHERE title = 'Vidas Secas';
+UPDATE books SET cover_url = 'assets/covers/turma-da-monica-lacos.jpg', updated_at = NOW() WHERE title = 'Turma da Mônica: Laços';
+UPDATE books SET cover_url = 'assets/covers/watchmen.jpg', updated_at = NOW() WHERE title = 'Watchmen';
+
 COMMIT;
