@@ -1442,13 +1442,13 @@ function bookCoverUrl(item) {
 
   const title = encodeURIComponent(item?.title || item?.book_title || "Livro");
   const author = encodeURIComponent(item?.author || item?.book_author || "");
-  return `${CONFIG.API_BASE_URL}/public/book-cover?title=${title}&author=${author}&v=9`;
+  return `${CONFIG.API_BASE_URL}/public/book-cover?title=${title}&author=${author}&v=10`;
 }
 
 function fallbackCoverUrl(item) {
   const title = encodeURIComponent(item?.title || item?.book_title || "Livro");
   const author = encodeURIComponent(item?.author || item?.book_author || "Acervo BookShare");
-  return `${CONFIG.API_BASE_URL}/public/book-cover?title=${title}&author=${author}&fallback=1&v=9`;
+  return `${CONFIG.API_BASE_URL}/public/book-cover?title=${title}&author=${author}&fallback=1&v=10`;
 }
 
 function studentAvatar(item, className = "") {
