@@ -92,6 +92,16 @@ app.use("/api", rateLimit({
   message: { message: "Muitas requisições. Aguarde um momento." }
 }));
 
+
+function normalizeSearchText(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
 function asyncRoute(handler) {
   return (req, res, next) => Promise.resolve(handler(req, res, next)).catch(next);
 }
@@ -339,7 +349,7 @@ async function ensureInitialUsers() {
 app.get("/", (_req, res) => {
   res.json({
     name: "BookShare API",
-    version: "2.2.0",
+    version: "2.3.0",
     status: "online",
     timestamp: new Date().toISOString()
   });
@@ -353,76 +363,103 @@ app.get("/api/public/book-cover", asyncRoute(async (req, res) => {
   if (!title) throw httpError(400, "Título não informado.");
 
   const cacheKey = `${title.toLowerCase()}::${String(author || "").toLowerCase()}`;
-  if (bookCoverCache.has(cacheKey)) {
-    return res.redirect(302, bookCoverCache.get(cacheKey));
+  const cached = bookCoverCache.get(cacheKey);
+  if (cached?.buffer && cached?.contentType) {
+    res.set("Cache-Control", "public, max-age=604800, immutable");
+    res.type(cached.contentType).send(cached.buffer);
+    return;
+  }
+
+  async function downloadImage(url) {
+    const imageResponse = await fetch(url, {
+      headers: {
+        "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+        "User-Agent": "Mozilla/5.0 BookShare/2.3"
+      },
+      signal: AbortSignal.timeout(12000)
+    });
+
+    if (!imageResponse.ok) throw new Error(`Imagem respondeu ${imageResponse.status}.`);
+    const contentType = imageResponse.headers.get("content-type") || "image/jpeg";
+    if (!contentType.startsWith("image/")) throw new Error("O endereço não retornou uma imagem.");
+
+    const buffer = Buffer.from(await imageResponse.arrayBuffer());
+    if (!buffer.length) throw new Error("Imagem vazia.");
+    return { buffer, contentType };
+  }
+
+  async function sendImage(image) {
+    if (bookCoverCache.size > 220) bookCoverCache.clear();
+    bookCoverCache.set(cacheKey, image);
+    res.set("Cache-Control", "public, max-age=604800, immutable");
+    res.type(image.contentType).send(image.buffer);
   }
 
   try {
-    const searchTerms = [`intitle:${title}`];
-    if (author) searchTerms.push(`inauthor:${author}`);
-
-    const query = new URLSearchParams({
-      q: searchTerms.join(" "),
-      maxResults: "8",
-      projection: "lite",
-      printType: "books",
-      orderBy: "relevance"
-    });
-
-    const response = await fetch(`https://www.googleapis.com/books/v1/volumes?${query.toString()}`, {
-      headers: {
-        "Accept": "application/json",
-        "User-Agent": "BookShare-School-Library/2.0"
-      },
-      signal: AbortSignal.timeout(10000)
+    const terms = [`intitle:${title}`];
+    if (author) terms.push(`inauthor:${author}`);
+    const query = new URLSearchParams({ q: terms.join(" "), maxResults: "10", printType: "books" });
+    const response = await fetch(`https://www.googleapis.com/books/v1/volumes?${query}`, {
+      headers: { "Accept": "application/json", "User-Agent": "BookShare-School-Library/2.3" },
+      signal: AbortSignal.timeout(12000)
     });
 
     if (response.ok) {
       const data = await response.json();
       const items = Array.isArray(data.items) ? data.items : [];
+      const normalizedTitle = normalizeSearchText(title);
+      const normalizedAuthor = normalizeSearchText(author || "");
 
-      const normalizedTitle = title
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .toLowerCase();
+      const ranked = items
+        .filter(item => item.volumeInfo?.imageLinks)
+        .map(item => {
+          const info = item.volumeInfo || {};
+          const itemTitle = normalizeSearchText(info.title || "");
+          const itemAuthors = normalizeSearchText((info.authors || []).join(" "));
+          let score = 0;
+          if (itemTitle === normalizedTitle) score += 10;
+          else if (itemTitle.includes(normalizedTitle) || normalizedTitle.includes(itemTitle)) score += 5;
+          if (normalizedAuthor && itemAuthors.includes(normalizedAuthor.split(" ")[0])) score += 4;
+          if (info.language === "pt") score += 2;
+          return { item, score };
+        })
+        .sort((a, b) => b.score - a.score);
 
-      const bestItem =
-        items.find(item => {
-          const itemTitle = String(item.volumeInfo?.title || "")
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "")
-            .toLowerCase();
-
-          return itemTitle === normalizedTitle && item.volumeInfo?.imageLinks;
-        }) ||
-        items.find(item => item.volumeInfo?.imageLinks);
-
-      const links = bestItem?.volumeInfo?.imageLinks;
-      let coverUrl =
-        links?.extraLarge ||
-        links?.large ||
-        links?.medium ||
-        links?.small ||
-        links?.thumbnail ||
-        links?.smallThumbnail;
-
-      if (coverUrl) {
-        coverUrl = String(coverUrl)
-          .replace(/^http:/i, "https:")
-          .replace("zoom=1", "zoom=2")
-          .replace("&edge=curl", "");
-
-        bookCoverCache.set(cacheKey, coverUrl);
-        return res.redirect(302, coverUrl);
+      const links = ranked[0]?.item?.volumeInfo?.imageLinks;
+      const googleUrl = links?.extraLarge || links?.large || links?.medium || links?.small || links?.thumbnail || links?.smallThumbnail;
+      if (googleUrl) {
+        const image = await downloadImage(String(googleUrl).replace(/^http:/i, "https:").replace("zoom=1", "zoom=2").replace("&edge=curl", ""));
+        await sendImage(image);
+        return;
       }
     }
   } catch (error) {
-    console.warn("Falha ao buscar capa no Google Books:", error.message);
+    console.warn(`Google Books sem capa para ${title}:`, error.message);
   }
 
-  const escapedTitle = title.replace(/[<>&\"']/g, "").slice(0, 36);
+  try {
+    const query = new URLSearchParams({ title, author: author || "", limit: "10", fields: "cover_i,title,author_name" });
+    const response = await fetch(`https://openlibrary.org/search.json?${query}`, {
+      headers: { "Accept": "application/json", "User-Agent": "BookShare-School-Library/2.3" },
+      signal: AbortSignal.timeout(12000)
+    });
+    if (response.ok) {
+      const data = await response.json();
+      const document = (data.docs || []).find(item => item.cover_i);
+      if (document?.cover_i) {
+        const image = await downloadImage(`https://covers.openlibrary.org/b/id/${document.cover_i}-L.jpg?default=false`);
+        await sendImage(image);
+        return;
+      }
+    }
+  } catch (error) {
+    console.warn(`Open Library sem capa para ${title}:`, error.message);
+  }
+
+  const escapedTitle = title.replace(/[<>&\"']/g, "").slice(0, 38);
   const escapedAuthor = String(author || "Acervo BookShare").replace(/[<>&\"']/g, "").slice(0, 34);
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="420" height="640" viewBox="0 0 420 640"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#123f39"/><stop offset="1" stop-color="#c79b56"/></linearGradient></defs><rect width="420" height="640" rx="24" fill="url(#g)"/><rect x="26" y="26" width="368" height="588" rx="16" fill="none" stroke="white" stroke-opacity=".28"/><text x="42" y="76" fill="white" fill-opacity=".7" font-family="Arial" font-size="17" letter-spacing="3">BOOKSHARE</text><text x="42" y="265" fill="white" font-family="Georgia" font-size="35" font-weight="700">${escapedTitle}</text><text x="42" y="535" fill="white" font-family="Arial" font-size="21">${escapedAuthor}</text></svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="420" height="640" viewBox="0 0 420 640"><rect width="420" height="640" rx="18" fill="#153f39"/><rect x="24" y="24" width="372" height="592" rx="12" fill="none" stroke="#d7b56d" stroke-width="3"/><text x="42" y="78" fill="#d7b56d" font-family="Arial" font-size="17" letter-spacing="3">BOOKSHARE</text><text x="42" y="275" fill="white" font-family="Georgia" font-size="34" font-weight="700">${escapedTitle}</text><text x="42" y="540" fill="white" font-family="Arial" font-size="21">${escapedAuthor}</text></svg>`;
+  res.set("Cache-Control", "public, max-age=86400");
   res.type("image/svg+xml").send(svg);
 }));
 
