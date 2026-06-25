@@ -73,7 +73,7 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
-app.use(express.json({ limit: "1mb" }));
+app.use(express.json({ limit: "3mb" }));
 
 app.use("/api/auth/login", rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -183,7 +183,7 @@ async function authenticate(req, res, next) {
     });
 
     const result = await pool.query(
-      `SELECT id, name, email, role, active, last_login_at
+      `SELECT id, name, email, role, active, last_login_at, avatar_url
        FROM users
        WHERE id = $1`,
       [payload.sub]
@@ -361,7 +361,7 @@ app.post("/api/auth/login", asyncRoute(async (req, res) => {
   if (!password) throw httpError(400, "Informe a senha.");
 
   const result = await pool.query(
-    `SELECT id, name, email, password_hash, role, active
+    `SELECT id, name, email, password_hash, role, active, avatar_url
      FROM users
      WHERE email = $1`,
     [email]
@@ -386,13 +386,44 @@ app.post("/api/auth/login", asyncRoute(async (req, res) => {
       id: user.id,
       name: user.name,
       email: user.email,
-      role: user.role
+      role: user.role,
+      avatar_url: user.avatar_url || null
     }
   });
 }));
 
 app.get("/api/auth/me", authenticate, asyncRoute(async (req, res) => {
   res.json({ user: req.user });
+}));
+
+app.put("/api/auth/profile", authenticate, asyncRoute(async (req, res) => {
+  const name = requiredText(req.body.name, "o nome", 120);
+  const avatarUrl = cleanText(req.body.avatar_url);
+
+  if (avatarUrl && (!avatarUrl.startsWith("data:image/") || avatarUrl.length > 2200000)) {
+    throw httpError(400, "A foto enviada é inválida ou muito grande.");
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const result = await client.query(`
+      UPDATE users
+      SET name = $1,
+          avatar_url = $2,
+          updated_at = NOW()
+      WHERE id = $3
+      RETURNING id, name, email, role, active, avatar_url, last_login_at
+    `, [name, avatarUrl, req.user.id]);
+    await audit(client, req, "update", "user", req.user.id, { self_profile: true, name });
+    await client.query("COMMIT");
+    res.json({ user: result.rows[0] });
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
 }));
 
 app.put("/api/auth/change-password", authenticate, asyncRoute(async (req, res) => {
@@ -925,7 +956,7 @@ app.get("/api/categories", authenticate, asyncRoute(async (_req, res) => {
   res.json({ categories: result.rows });
 }));
 
-app.post("/api/categories", authenticate, asyncRoute(async (req, res) => {
+app.post("/api/categories", authenticate, requireRole("admin"), asyncRoute(async (req, res) => {
   const name = requiredText(req.body.name, "o nome da categoria", 90);
   const result = await pool.query(
     `INSERT INTO categories (name)
@@ -1017,7 +1048,7 @@ app.get("/api/books/:id", authenticate, asyncRoute(async (req, res) => {
   res.json({ book, copies: copies.rows, recent_loans: recentLoans.rows });
 }));
 
-app.post("/api/books", authenticate, asyncRoute(async (req, res) => {
+app.post("/api/books", authenticate, requireRole("admin"), asyncRoute(async (req, res) => {
   const title = requiredText(req.body.title, "o título", 180);
   const author = requiredText(req.body.author, "o autor", 160);
   const quantity = cleanInteger(req.body.quantity, { min: 1, max: 999, nullable: false });
@@ -1054,7 +1085,7 @@ app.post("/api/books", authenticate, asyncRoute(async (req, res) => {
   }
 }));
 
-app.put("/api/books/:id", authenticate, asyncRoute(async (req, res) => {
+app.put("/api/books/:id", authenticate, requireRole("admin"), asyncRoute(async (req, res) => {
   const title = requiredText(req.body.title, "o título", 180);
   const author = requiredText(req.body.author, "o autor", 160);
   const requestedQuantity = cleanInteger(req.body.quantity, { min: 1, max: 999, nullable: false });
@@ -1185,7 +1216,7 @@ app.get("/api/copies", authenticate, asyncRoute(async (_req, res) => {
   res.json({ copies: result.rows });
 }));
 
-app.post("/api/copies", authenticate, asyncRoute(async (req, res) => {
+app.post("/api/copies", authenticate, requireRole("admin"), asyncRoute(async (req, res) => {
   const bookId = requiredText(req.body.book_id, "o livro");
   const quantity = cleanInteger(req.body.quantity, { min: 1, max: 100, nullable: false });
   const acquiredAt = cleanDate(req.body.acquired_at, "a data de aquisição");
@@ -1210,7 +1241,7 @@ app.post("/api/copies", authenticate, asyncRoute(async (req, res) => {
   }
 }));
 
-app.put("/api/copies/:id/status", authenticate, asyncRoute(async (req, res) => {
+app.put("/api/copies/:id/status", authenticate, requireRole("admin"), asyncRoute(async (req, res) => {
   const status = requiredText(req.body.status, "a situação do exemplar");
   const notes = cleanText(req.body.condition_notes);
   const allowed = ["available", "maintenance", "damaged", "lost"];
@@ -1933,6 +1964,7 @@ app.get("/api/users", authenticate, requireRole("admin"), asyncRoute(async (_req
       u.last_login_at,
       u.created_at,
       u.updated_at,
+      u.avatar_url,
       COUNT(a.id)::INT AS action_count
     FROM users u
     LEFT JOIN audit_logs a ON a.user_id = u.id
