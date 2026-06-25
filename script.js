@@ -148,9 +148,10 @@ function bindApplicationEvents() {
   $("#refresh-button").addEventListener("click", refreshCurrentRoute);
   $("#notifications-button").addEventListener("click", toggleNotificationPanel);
   $("#notification-panel-close").addEventListener("click", closeNotificationPanel);
-  $("#topbar-profile").addEventListener("click", () => navigate("configuracoes"));
-  $("#sidebar-profile-button").addEventListener("click", () => navigate("configuracoes"));
+  $("#topbar-profile").addEventListener("click", openOwnProfile);
+  $("#sidebar-profile-button").addEventListener("click", openOwnProfile);
   $("#mobile-more-button").addEventListener("click", openSidebar);
+  $("#librarian-profile-shortcut")?.addEventListener("click", openOwnProfile);
 
   document.addEventListener("click", handleDelegatedClick);
   document.addEventListener("keydown", handleGlobalKeyboardShortcuts);
@@ -627,7 +628,6 @@ function renderDashboard() {
 
   renderDashboardAlerts(dashboard);
   renderDashboardDueList(dashboard.due_today || []);
-  renderDashboardRecentLoans(dashboard.recent_loans || []);
   renderDashboardPopularBooks(dashboard.popular_books || []);
   drawCirculationChart(dashboard.circulation || []);
   updateNavigationCounters();
@@ -709,7 +709,7 @@ function renderDashboardRecentLoans(items) {
     rows: items.slice(0, 7).map(item => `
       <tr>
         <td>${personCell(item.student_name, `${item.class_name || "Sem turma"} · ${item.registration_number || ""}`)}</td>
-        <td>${bookCell(item.book_title, item.book_author, item.cover_url)}</td>
+        <td>${bookCell(item.book_title, item.book_author, bookCoverUrl({ title: item.book_title, author: item.book_author, cover_url: item.cover_url }))}</td>
         <td>${formatDate(item.loan_date)}</td>
         <td>${formatDate(item.due_date)}</td>
         <td>${loanBadge(item)}</td>
@@ -1144,7 +1144,7 @@ async function openStudentDetails(id) {
             headers: ["Livro", "Retirada", "Prazo", "Situação", ""],
             rows: activeLoans.map(item => `
               <tr>
-                <td>${bookCell(item.book_title, item.book_author, item.cover_url)}</td>
+                <td>${bookCell(item.book_title, item.book_author, bookCoverUrl({ title: item.book_title, author: item.book_author, cover_url: item.cover_url }))}</td>
                 <td>${formatDate(item.loan_date)}</td>
                 <td>${formatDate(item.due_date)}</td>
                 <td>${loanBadge(item)}</td>
@@ -1163,7 +1163,7 @@ async function openStudentDetails(id) {
             headers: ["Livro", "Retirada", "Prazo", "Finalização", "Situação"],
             rows: history.slice(0, 25).map(item => `
               <tr>
-                <td>${bookCell(item.book_title, item.book_author, item.cover_url)}</td>
+                <td>${bookCell(item.book_title, item.book_author, bookCoverUrl({ title: item.book_title, author: item.book_author, cover_url: item.cover_url }))}</td>
                 <td>${formatDate(item.loan_date)}</td>
                 <td>${formatDate(item.due_date)}</td>
                 <td>${item.returned_at ? formatDateTime(item.returned_at) : "—"}</td>
@@ -1353,7 +1353,7 @@ async function openBookDetails(id) {
       content: `
         <div class="detail-header-card">
           <span class="table-book__cover" style="width:64px;height:88px;border-radius:11px">
-            ${book.cover_url ? `<img src="${escapeAttribute(book.cover_url)}" alt="">` : "BS"}
+            <img src="${escapeAttribute(bookCoverUrl(book))}" alt="Capa de ${escapeAttribute(book.title)}" loading="lazy">
           </span>
           <div>
             <strong>${escapeHTML(book.title)}</strong>
@@ -1428,26 +1428,27 @@ function prepareReservationForBook(id) {
 
 
 function bookCoverUrl(item) {
-  const originalCoverMap = {
-    "dom casmurro": "assets/covers/dom-casmurro.jpg",
-    "crime e castigo": "assets/covers/crime-e-castigo.jpg",
-    "vidas secas": "assets/covers/vidas-secas.webp",
-    "turma da monica: lacos": "assets/covers/turma-da-monica-lacos.jpg",
-    "watchmen": "assets/covers/watchmen.jpg"
-  };
-  const normalizedTitle = normalize(item?.title || "");
-  if (originalCoverMap[normalizedTitle]) return originalCoverMap[normalizedTitle];
-  const stored = String(item?.cover_url || "");
-  if (stored && !stored.startsWith("data:image/svg+xml")) return stored;
-  const title = encodeURIComponent(item?.title || "Livro");
-  const author = encodeURIComponent(item?.author || "");
-  return `${CONFIG.API_BASE_URL}/public/book-cover?title=${title}&author=${author}`;
+  const stored = String(item?.cover_url || "").trim();
+
+  const isUploadedRaster = stored.startsWith("data:image/jpeg") ||
+    stored.startsWith("data:image/png") ||
+    stored.startsWith("data:image/webp");
+  const isExternalRaster = /^https?:\/\//i.test(stored) &&
+    !stored.includes("/assets/covers/") &&
+    !stored.includes("openlibrary.org") &&
+    !stored.includes("books.google.com/books/content");
+
+  if (isUploadedRaster || isExternalRaster) return stored;
+
+  const title = encodeURIComponent(item?.title || item?.book_title || "Livro");
+  const author = encodeURIComponent(item?.author || item?.book_author || "");
+  return `${CONFIG.API_BASE_URL}/public/book-cover?title=${title}&author=${author}&v=9`;
 }
 
 function fallbackCoverUrl(item) {
-  const title = encodeURIComponent(item?.title || "Livro");
-  const author = encodeURIComponent(item?.author || "Acervo BookShare");
-  return `${CONFIG.API_BASE_URL}/public/book-cover?title=${title}&author=${author}`;
+  const title = encodeURIComponent(item?.title || item?.book_title || "Livro");
+  const author = encodeURIComponent(item?.author || item?.book_author || "Acervo BookShare");
+  return `${CONFIG.API_BASE_URL}/public/book-cover?title=${title}&author=${author}&fallback=1&v=9`;
 }
 
 function studentAvatar(item, className = "") {
@@ -1570,7 +1571,7 @@ function renderCopies() {
     rows: items.map(item => `
       <tr>
         <td><span class="table-primary">${escapeHTML(item.inventory_code)}</span><span class="table-secondary">${escapeHTML(item.id.slice(0, 8))}</span></td>
-        <td>${bookCell(item.book_title, item.book_author, item.cover_url)}</td>
+        <td>${bookCell(item.book_title, item.book_author, bookCoverUrl({ title: item.book_title, author: item.book_author, cover_url: item.cover_url }))}</td>
         <td>${copyBadge(item.status)}</td>
         <td>${formatDate(item.acquired_at)}</td>
         <td>${escapeHTML(item.condition_notes || "—")}</td>
@@ -1676,7 +1677,7 @@ function renderLoans() {
     rows: items.map(item => `
       <tr>
         <td>${personCell(item.student_name, `${item.class_name || "Sem turma"} · ${item.registration_number || ""}`)}</td>
-        <td>${bookCell(item.book_title, item.inventory_code, item.cover_url)}</td>
+        <td>${bookCell(item.book_title, item.inventory_code, bookCoverUrl({ title: item.book_title, author: item.book_author, cover_url: item.cover_url }))}</td>
         <td>${formatDate(item.loan_date)}</td>
         <td>${formatDate(item.due_date)}</td>
         <td>${loanBadge(item)}</td>
@@ -2426,6 +2427,14 @@ async function handleChangeOwnPassword() {
   }
 }
 
+async function openOwnProfile() {
+  await navigate("configuracoes");
+  switchSettingsTab("account");
+  $("#page-eyebrow").textContent = "Conta pessoal";
+  $("#page-title").textContent = "Meu perfil";
+  setTimeout(() => $("#profile-name-input")?.focus(), 80);
+}
+
 function switchSettingsTab(tab) {
   $$("[data-settings-tab]").forEach(button => button.classList.toggle("is-active", button.dataset.settingsTab === tab));
   $$(".settings-section").forEach(section => section.classList.add("is-hidden"));
@@ -2486,7 +2495,7 @@ function renderReportPopularBooks(items) {
     rows: items.map((item, index) => `
       <tr>
         <td><strong>${String(index + 1).padStart(2, "0")}</strong></td>
-        <td>${bookCell(item.title, item.author, item.cover_url)}</td>
+        <td>${bookCell(item.title, item.author, bookCoverUrl(item))}</td>
         <td>${escapeHTML(item.category_name || "Sem categoria")}</td>
         <td><strong>${item.loan_count}</strong></td>
       </tr>
@@ -2512,7 +2521,7 @@ function renderReportLosses(items) {
     headers: ["Livro", "Patrimônio", "Situação", "Observação"],
     rows: items.map(item => `
       <tr>
-        <td>${bookCell(item.title, item.author, item.cover_url)}</td>
+        <td>${bookCell(item.title, item.author, bookCoverUrl(item))}</td>
         <td>${escapeHTML(item.inventory_code)}</td>
         <td>${copyBadge(item.status)}</td>
         <td>${escapeHTML(item.condition_notes || "—")}</td>
@@ -3216,7 +3225,7 @@ function personCell(name, subtitle, photoUrl = "") {
 function bookCell(title, subtitle, coverUrl, extra = "") {
   return `
     <span class="table-book">
-      <span class="table-book__cover">${coverUrl ? `<img src="${escapeAttribute(coverUrl)}" alt="" loading="lazy">` : "BS"}</span>
+      <span class="table-book__cover">${coverUrl ? `<img src="${escapeAttribute(coverUrl)}" alt="" loading="lazy" onerror="this.closest('.table-book__cover').textContent='BS'">` : "BS"}</span>
       <span>
         <span class="table-primary">${escapeHTML(title)}</span>
         <span class="table-secondary">${escapeHTML([subtitle, extra].filter(Boolean).join(" · "))}</span>
