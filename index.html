@@ -185,7 +185,7 @@
       <div class="sidebar__quick">
         <button class="sidebar-quick-button" data-open-modal="loan-modal" type="button">
           <span>＋</span>
-          Novo empréstimo
+          Registrar empréstimo
         </button>
       </div>
 
@@ -193,11 +193,11 @@
         <p class="nav-group-label">Visão geral</p>
         <button class="nav-item is-active" data-route="dashboard" type="button">
           <span class="nav-item__icon">⌂</span>
-          <span>Dashboard</span>
+          <span>Início</span>
         </button>
         <button class="nav-item" data-route="atendimento" type="button">
           <span class="nav-item__icon">⌁</span>
-          <span>Atendimento</span>
+          <span>Balcão rápido</span>
         </button>
 
         <p class="nav-group-label">Biblioteca</p>
@@ -348,14 +348,25 @@
           </section>
 
           <section class="admin-home admin-only">
-            <div>
-              <span class="admin-home__badge">ADMINISTRAÇÃO</span>
-              <h2 id="admin-welcome-title">Painel administrativo</h2>
-              <p id="admin-welcome-message">Gerencie o acervo, as contas, os relatórios e as regras da biblioteca.</p>
+            <div class="admin-command__identity">
+              <span id="admin-hero-avatar" class="admin-command__avatar">A</span>
+              <div>
+                <span class="admin-home__badge">ADMINISTRAÇÃO DO SISTEMA</span>
+                <h2 id="admin-welcome-title">Central administrativa</h2>
+                <p id="admin-welcome-message">Controle o acervo, as permissões, os relatórios e a segurança do BookShare.</p>
+              </div>
             </div>
-            <div class="admin-home__actions">
-              <button class="button button--light" data-open-modal="book-modal" type="button">＋ Cadastrar livro</button>
-              <button class="button button--transparent" data-route="usuarios" type="button">Gerenciar usuários</button>
+            <div class="admin-command__actions">
+              <button class="button button--gold" data-open-modal="book-modal" type="button">＋ Novo livro</button>
+              <button class="button button--transparent" data-route="usuarios" type="button">Usuários e permissões</button>
+            </div>
+            <div class="admin-command-grid">
+              <button data-route="livros" type="button"><span>▤</span><strong>Livros e acervo</strong><small>Títulos, capas e categorias</small></button>
+              <button data-route="exemplares" type="button"><span>▥</span><strong>Exemplares</strong><small>Patrimônio e conservação</small></button>
+              <button data-route="usuarios" type="button"><span>♟</span><strong>Equipe</strong><small>Contas e permissões</small></button>
+              <button data-route="relatorios" type="button"><span>▧</span><strong>Relatórios</strong><small>Indicadores e exportação</small></button>
+              <button data-route="atividades" type="button"><span>↻</span><strong>Auditoria</strong><small>Histórico de ações</small></button>
+              <button data-route="configuracoes" type="button"><span>⚙</span><strong>Configurações</strong><small>Regras e meu perfil</small></button>
             </div>
           </section>
 
@@ -476,15 +487,15 @@
                   <strong>Novo livro</strong>
                   <small>Adicionar título e exemplares</small>
                 </button>
-                <button class="quick-action-card" data-open-modal="student-modal" type="button">
+                <button class="quick-action-card" data-route="alunos" type="button">
                   <span class="quick-action-card__icon">♙</span>
-                  <strong>Novo aluno</strong>
-                  <small>Cadastrar matrícula e turma</small>
+                  <strong>Consultar aluno</strong>
+                  <small>Ver perfil, turma e histórico</small>
                 </button>
-                <button class="quick-action-card" data-open-modal="reservation-modal" type="button">
-                  <span class="quick-action-card__icon">◇</span>
-                  <strong>Nova reserva</strong>
-                  <small>Guardar lugar para um aluno</small>
+                <button class="quick-action-card" data-route="livros" type="button">
+                  <span class="quick-action-card__icon">▤</span>
+                  <strong>Pesquisar livro</strong>
+                  <small>Consultar disponibilidade e detalhes</small>
                 </button>
               </div>
             </article>
@@ -726,7 +737,7 @@
             <div>
               <p class="page-description">Organize alunos por série, turma, turno e ano letivo.</p>
             </div>
-            <button class="button button--primary" data-open-modal="class-modal" type="button">＋ Cadastrar turma</button>
+            <button class="button button--primary admin-only" data-open-modal="class-modal" type="button">＋ Cadastrar turma</button>
           </div>
 
           <div class="filter-bar">
@@ -1170,11 +1181,13 @@
       <div class="modal-card__body">
         <div class="book-form-layout">
           <div class="cover-uploader">
+            <input id="book-cover-file" type="file" accept="image/png,image/jpeg,image/webp" hidden>
             <div id="book-cover-preview" class="cover-uploader__preview">
               <span>▤</span>
               <strong>Prévia da capa</strong>
-              <small>Cole uma URL ao lado</small>
+              <small>Envie a imagem autorizada ou use uma URL.</small>
             </div>
+            <button id="book-cover-file-button" class="button button--secondary button--compact" type="button">Enviar capa</button>
           </div>
 
           <div class="form-grid">
@@ -1211,7 +1224,7 @@
               <input name="quantity" type="number" min="1" max="999" value="1" required>
             </label>
             <label class="field field--full">
-              <span class="field__label">URL da capa</span>
+              <span class="field__label">URL da capa (opcional)</span>
               <input id="book-cover-url" name="cover_url" type="url" placeholder="https://...">
             </label>
             <label class="field field--full">
@@ -1277,7 +1290,15 @@
         <button class="icon-button" data-close-modal type="button">×</button>
       </header>
       <div class="modal-card__body">
-        <div class="form-grid">
+        <div class="student-form-layout">
+          <div class="student-photo-uploader">
+            <input id="student-photo-url" name="photo_url" type="hidden">
+            <input id="student-photo-file" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+            <div id="student-photo-preview" class="student-photo-uploader__preview">A</div>
+            <button id="student-photo-button" class="button button--secondary button--compact" type="button">Escolher foto</button>
+            <small>Use somente uma foto autorizada. Ela será reduzida antes de salvar.</small>
+          </div>
+          <div class="form-grid">
           <label class="field field--full">
             <span class="field__label">Nome completo</span>
             <input name="full_name" type="text" maxlength="160" required>
@@ -1302,6 +1323,7 @@
             <span class="field__label">Observações</span>
             <textarea name="notes" rows="4"></textarea>
           </label>
+          </div>
         </div>
       </div>
       <footer class="modal-card__footer">
