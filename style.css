@@ -5077,3 +5077,269 @@ p {
   .librarian-task { min-height: 86px; border-right: 0; border-bottom: 1px solid rgba(255,255,255,.12); }
   .librarian-task:last-child { border-bottom: 0; }
 }
+
+
+/* ============================================================
+   BOOKSHARE V6 — visual refinado, perfis e imagens reais
+   ============================================================ */
+:root {
+  --v6-cream: #fbf8f1;
+  --v6-paper: #fffdf8;
+  --v6-green: #0f5f50;
+  --v6-green-deep: #0a4038;
+  --v6-gold: #c39a52;
+  --v6-slate: #173b4b;
+}
+
+.role-librarian .sidebar {
+  color: #173c36;
+  background:
+    radial-gradient(circle at 18% 92%, rgba(195,154,82,.12), transparent 28%),
+    linear-gradient(180deg, #fffdf8 0%, #f5f0e6 100%);
+  border-right: 1px solid rgba(25,78,69,.1);
+  box-shadow: 18px 0 45px rgba(22,58,52,.06);
+}
+.role-librarian .sidebar .sidebar__brand strong,
+.role-librarian .sidebar .nav-item,
+.role-librarian .sidebar .profile-summary { color: #173c36; }
+.role-librarian .sidebar .sidebar__brand small,
+.role-librarian .sidebar .nav-group-label,
+.role-librarian .sidebar .profile-summary small { color: #71827e; }
+.role-librarian .sidebar .nav-item:hover,
+.role-librarian .sidebar .nav-item.is-active {
+  color: white;
+  background: linear-gradient(135deg, var(--v6-green), #177664);
+  box-shadow: 0 10px 24px rgba(15,95,80,.18);
+}
+.role-librarian .sidebar .icon-button--light { color: #46635e; }
+.role-librarian .sidebar-quick-button {
+  background: linear-gradient(135deg, var(--v6-green), #177664);
+  box-shadow: 0 12px 25px rgba(15,95,80,.18);
+}
+
+.topbar {
+  background: rgba(255,253,248,.92);
+  border-bottom-color: rgba(31,74,67,.09);
+  backdrop-filter: blur(22px);
+}
+.global-search {
+  min-height: 50px;
+  border-color: rgba(27,72,64,.14);
+  box-shadow: 0 8px 25px rgba(29,61,56,.07);
+}
+.global-search-results {
+  margin-top: 10px;
+  border-radius: 22px;
+  border: 1px solid rgba(24,68,60,.12);
+  box-shadow: 0 28px 70px rgba(24,56,51,.18);
+}
+.search-result-item { min-height: 66px; border-radius: 14px; }
+.search-result-item:hover { background: #f2f8f5; }
+.search-result-item__icon {
+  width: 46px;
+  height: 50px;
+  overflow: hidden;
+  border-radius: 11px;
+}
+.search-result-item__icon--photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.topbar-profile {
+  min-width: 180px;
+  padding: 7px 10px 7px 7px;
+  border: 1px solid transparent;
+  border-radius: 18px;
+  transition: .2s ease;
+}
+.topbar-profile:hover {
+  background: white;
+  border-color: rgba(24,68,60,.12);
+  box-shadow: 0 10px 26px rgba(21,55,50,.1);
+}
+.avatar,
+.avatar--small { overflow: hidden; border-radius: 50%; }
+.avatar img,
+.profile-photo-preview img,
+.admin-command__avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Catálogo */
+#view-livros .page-actions {
+  margin-bottom: 20px;
+  padding: 20px 22px;
+  background: linear-gradient(135deg, #fffdf9, #f2f7f3);
+  border: 1px solid rgba(30,77,68,.09);
+  border-radius: 22px;
+  box-shadow: 0 12px 35px rgba(29,59,54,.06);
+}
+#view-livros .filter-bar { border-radius: 22px; }
+.book-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 18px; }
+.book-card {
+  overflow: hidden;
+  border-radius: 22px;
+  border: 1px solid rgba(26,73,64,.1);
+  box-shadow: 0 14px 35px rgba(22,57,51,.09);
+  transition: transform .22s ease, box-shadow .22s ease;
+}
+.book-card:hover { transform: translateY(-5px); box-shadow: 0 24px 48px rgba(22,57,51,.14); }
+.book-card__cover { height: 330px; background: #e9efe9; }
+.book-card__cover > img { width: 100%; height: 100%; object-fit: cover; }
+.book-card__status { top: 14px; right: 14px; }
+.book-card__body { padding: 17px; }
+.book-card__body h3 { min-height: 48px; font-size: 1.06rem; }
+.book-card__actions { display: grid; grid-template-columns: .85fr 1.15fr; gap: 9px; }
+.book-card__actions .button { min-width: 0; }
+
+/* Pessoas e alunos */
+.card-identity__avatar,
+.mobile-person__avatar,
+.table-person__initials {
+  overflow: hidden;
+  border-radius: 50%;
+}
+.card-identity__avatar.has-photo img,
+.mobile-person__avatar.has-photo img {
+  width: 100%; height: 100%; object-fit: cover;
+}
+.student-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+.student-card {
+  border-radius: 22px;
+  border: 1px solid rgba(27,72,64,.1);
+  box-shadow: 0 13px 34px rgba(25,58,53,.07);
+}
+.student-card__header .card-identity__avatar { width: 58px; height: 58px; }
+.table-person { display: inline-flex; align-items: center; gap: 10px; }
+.table-person > img,
+.table-person__initials {
+  width: 38px; height: 38px; display: grid; place-items: center;
+  object-fit: cover; background: #dff0e9; color: var(--v6-green); font-weight: 900;
+}
+.mobile-person { display: inline-flex; align-items: center; gap: 10px; }
+.mobile-person__avatar { width: 42px; height: 42px; display: grid; place-items: center; background: #dff0e9; }
+
+.student-form-layout {
+  display: grid;
+  grid-template-columns: 190px minmax(0,1fr);
+  gap: 24px;
+  align-items: start;
+}
+.student-photo-uploader {
+  padding: 16px;
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  background: #f7faf8;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  text-align: center;
+}
+.student-photo-uploader__preview {
+  width: 136px; height: 136px; display: grid; place-items: center;
+  overflow: hidden; border-radius: 50%; color: white;
+  background: linear-gradient(145deg, var(--v6-green), #2d8c78);
+  font-size: 2rem; font-weight: 900;
+  box-shadow: 0 16px 30px rgba(15,95,80,.2);
+}
+.student-photo-uploader__preview img { width: 100%; height: 100%; object-fit: cover; }
+.student-photo-uploader small { color: var(--muted); line-height: 1.45; }
+.cover-uploader { gap: 12px; }
+.cover-uploader__preview { min-height: 330px; }
+.cover-uploader__preview img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+
+/* Turmas simplificadas */
+.class-grid { grid-template-columns: repeat(3, minmax(0,1fr)); gap: 18px; }
+.class-card { border-radius: 22px; border: 1px solid rgba(26,73,64,.1); box-shadow: 0 14px 36px rgba(25,58,53,.07); }
+.role-librarian .class-card .card-footer-actions { grid-template-columns: 1fr; }
+
+/* Dashboard da bibliotecária */
+.librarian-home__intro {
+  background:
+    radial-gradient(circle at 92% 30%, rgba(255,255,255,.12), transparent 28%),
+    linear-gradient(135deg, #0e4f45, #17725f);
+  border-radius: 28px;
+  box-shadow: 0 20px 55px rgba(12,73,63,.2);
+}
+.librarian-task-grid { grid-template-columns: repeat(3, minmax(0,1fr)); gap: 14px; }
+.role-librarian .dashboard-layout { grid-template-columns: 1.15fr .85fr; }
+.role-librarian .panel--recent { grid-column: 1 / -1; }
+.role-librarian .panel--quick-actions { grid-column: 1 / -1; }
+.role-librarian .quick-action-grid { grid-template-columns: repeat(4, minmax(0,1fr)); }
+
+/* Admin claramente separado */
+.role-admin {
+  --primary: #173b4b;
+  --primary-dark: #102b38;
+  --primary-soft: #e8eff2;
+}
+.role-admin .sidebar {
+  background:
+    radial-gradient(circle at 15% 0%, rgba(211,171,91,.16), transparent 28%),
+    linear-gradient(180deg, #0e2936 0%, #153f50 100%);
+}
+.role-admin .topbar { background: rgba(246,249,250,.93); }
+.role-admin .workspace { background: linear-gradient(180deg, #f4f7f8, #edf3f4); }
+.admin-home {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  gap: 20px;
+  padding: 28px;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 88% 15%, rgba(224,187,106,.19), transparent 28%),
+    linear-gradient(135deg, #102f3d, #1a5365);
+  box-shadow: 0 22px 55px rgba(16,47,61,.2);
+}
+.admin-command__identity { display: flex; align-items: center; gap: 18px; }
+.admin-command__avatar {
+  width: 84px; height: 84px; display: grid; place-items: center; overflow: hidden;
+  border-radius: 24px; color: #17364a; background: linear-gradient(145deg,#f0d78d,#c69a46);
+  font-size: 1.7rem; font-weight: 900; box-shadow: 0 16px 35px rgba(0,0,0,.18);
+}
+.admin-home h2 { margin: 8px 0; color: white; }
+.admin-home p { max-width: 760px; }
+.admin-command__actions { display: flex; align-items: flex-start; gap: 10px; }
+.button--gold { color: #17364a; background: linear-gradient(135deg,#f2d98f,#cfa04d); box-shadow: 0 10px 25px rgba(207,160,77,.25); }
+.admin-command-grid {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(6,minmax(0,1fr));
+  gap: 12px;
+  margin-top: 5px;
+}
+.admin-command-grid button {
+  min-height: 118px; padding: 16px; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-end;
+  color: white; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12); border-radius: 18px;
+  cursor: pointer; text-align: left; transition: .2s ease;
+}
+.admin-command-grid button:hover { transform: translateY(-3px); background: rgba(255,255,255,.14); }
+.admin-command-grid button > span { width: 38px; height: 38px; margin-bottom: 16px; display: grid; place-items: center; border-radius: 12px; color: #17364a; background: #efd487; font-weight: 900; }
+.admin-command-grid strong { margin-bottom: 5px; }
+.admin-command-grid small { color: rgba(255,255,255,.68); line-height: 1.35; }
+.role-admin .metric-card { border-top: 3px solid rgba(195,154,82,.65); }
+.role-admin .profile-role-card { background: linear-gradient(135deg,#edf3f5,#fffaf0); border-color: rgba(195,154,82,.25); }
+
+@media (max-width: 1350px) {
+  .book-grid { grid-template-columns: repeat(4,minmax(0,1fr)); }
+  .student-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .admin-command-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
+}
+@media (max-width: 1050px) {
+  .book-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .student-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .class-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .role-librarian .dashboard-layout { grid-template-columns: 1fr; }
+  .role-librarian .quick-action-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+@media (max-width: 760px) {
+  .book-grid, .student-grid, .class-grid { grid-template-columns: 1fr; }
+  .book-card { display: grid; grid-template-columns: 126px minmax(0,1fr); }
+  .book-card__cover { height: 100%; min-height: 270px; }
+  .student-form-layout { grid-template-columns: 1fr; }
+  .student-photo-uploader { max-width: 240px; margin-inline: auto; }
+  .admin-home { grid-template-columns: 1fr; }
+  .admin-command__actions { flex-wrap: wrap; }
+  .admin-command-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .librarian-task-grid { grid-template-columns: 1fr; }
+}
