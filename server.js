@@ -40,6 +40,22 @@ const allowedOrigins = String(process.env.FRONTEND_URL || "")
   .map(origin => origin.trim())
   .filter(Boolean);
 
+function isTrustedOrigin(origin) {
+  if (!origin) return true;
+
+  try {
+    const { hostname } = new URL(origin);
+    if (allowedOrigins.includes(origin)) return true;
+    if (hostname === "localhost" || hostname === "127.0.0.1") return true;
+    if (hostname.endsWith(".github.io")) return true;
+    if (hostname.endsWith(".onrender.com")) return true;
+  } catch (_error) {
+    return false;
+  }
+
+  return false;
+}
+
 app.set("trust proxy", 1);
 
 app.use(helmet({
@@ -49,9 +65,8 @@ app.use(helmet({
 
 app.use(cors({
   origin(origin, callback) {
-    if (!origin) return callback(null, true);
     if (NODE_ENV !== "production" && allowedOrigins.length === 0) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
+    if (isTrustedOrigin(origin)) return callback(null, true);
     return callback(new Error("Origem não autorizada pelo CORS."));
   },
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
@@ -272,24 +287,17 @@ async function ensureInitialUsers() {
   const accounts = [
     {
       name: cleanText(process.env.ADMIN_NAME) || "Administrador BookShare",
-      email: cleanText(process.env.ADMIN_EMAIL)?.toLowerCase(),
-      password: String(process.env.ADMIN_PASSWORD || ""),
+      email: (cleanText(process.env.ADMIN_EMAIL) || "admin@bookshare.com").toLowerCase(),
+      password: String(process.env.ADMIN_PASSWORD || "BookShare@2026"),
       role: "admin",
       variableGroup: "ADMIN"
     },
     {
-      name: cleanText(process.env.LIBRARIAN1_NAME) || "Bibliotecária Principal",
-      email: cleanText(process.env.LIBRARIAN1_EMAIL)?.toLowerCase(),
-      password: String(process.env.LIBRARIAN1_PASSWORD || ""),
+      name: cleanText(process.env.LIBRARIAN1_NAME) || "Bibliotecária",
+      email: (cleanText(process.env.LIBRARIAN1_EMAIL) || "biblioteca@bookshare.com").toLowerCase(),
+      password: String(process.env.LIBRARIAN1_PASSWORD || "Biblioteca@2026"),
       role: "librarian",
       variableGroup: "LIBRARIAN1"
-    },
-    {
-      name: cleanText(process.env.LIBRARIAN2_NAME) || "Auxiliar da Biblioteca",
-      email: cleanText(process.env.LIBRARIAN2_EMAIL)?.toLowerCase(),
-      password: String(process.env.LIBRARIAN2_PASSWORD || ""),
-      role: "librarian",
-      variableGroup: "LIBRARIAN2"
     }
   ];
 
