@@ -379,17 +379,35 @@ async function ensureInitialUsers() {
 }
 
 
-function isUsableCoverUrl(value) {
-  const url = String(value || "").trim();
-  if (!url) return false;
-  if (url.startsWith("data:image/svg+xml") && url.includes("BOOKSHARE")) return false;
-  if (url.includes("book-placeholder")) return false;
-  if (url.includes("/api/public/book-cover")) return false;
-  return url.startsWith("https://") || url.startsWith("data:image/") || url.startsWith("assets/");
+function isMissingCoverUrl(value) {
+  const url = String(value || "").trim().toLowerCase();
+
+  return (
+    !url ||
+    url.includes("no_cover") ||
+    url.includes("no-cover") ||
+    url.includes("nocover") ||
+    url.includes("image_not_available") ||
+    url.includes("image-not-available") ||
+    url.includes("googlebooks/images/no_cover") ||
+    url.includes("book-placeholder") ||
+    url.includes("/api/public/book-cover") ||
+    (url.startsWith("data:image/svg+xml") && url.includes("bookshare"))
+  );
 }
 
-function googleContentUrl(volumeId) {
-  return `https://books.google.com/books/content?id=${encodeURIComponent(volumeId)}&printsec=frontcover&img=1&zoom=2&source=gbs_api`;
+function isUsableCoverUrl(value) {
+  const url = String(value || "").trim();
+
+  if (isMissingCoverUrl(url)) return false;
+
+  return (
+    url.startsWith("https://") ||
+    url.startsWith("data:image/jpeg") ||
+    url.startsWith("data:image/png") ||
+    url.startsWith("data:image/webp") ||
+    url.startsWith("assets/")
+  );
 }
 
 function delay(milliseconds) {
@@ -404,124 +422,291 @@ function rankCandidate(candidate, title, author) {
   const authorWords = wantedAuthor.split(" ").filter(word => word.length > 2);
 
   let score = 0;
-  if (foundTitle === wantedTitle) score += 100;
-  else if (foundTitle.startsWith(wantedTitle)) score += 65;
-  else if (foundTitle.includes(wantedTitle)) score += 48;
-  else if (wantedTitle.includes(foundTitle)) score += 25;
+
+  if (foundTitle === wantedTitle) score += 120;
+  else if (foundTitle.startsWith(wantedTitle)) score += 75;
+  else if (foundTitle.includes(wantedTitle)) score += 55;
+  else if (wantedTitle.includes(foundTitle)) score += 28;
 
   const matches = authorWords.filter(word => foundAuthor.includes(word)).length;
-  score += matches * 16;
-  if (authorWords.length && matches === authorWords.length) score += 30;
+  score += matches * 18;
+
+  if (authorWords.length && matches === authorWords.length) score += 38;
+
   return score;
 }
 
-async function resolveFromGoogleBooks(title, author) {
-  const staticId = STATIC_GOOGLE_VOLUME_IDS.get(normalizeSearchText(title));
-  if (staticId) return { url: googleContentUrl(staticId), source: "Google Books fixed" };
+async function validateCoverUrl(url) {
+  const normalizedUrl = String(url || "").replace(/^http:/i, "https:");
 
+  if (isMissingCoverUrl(normalizedUrl)) return null;
+
+  try {
+    const response = await fetch(normalizedUrl, {
+      headers: {
+        "Accept": "image/avif,image/webp,image/apng,image/jpeg,image/png,image/*,*/*;q=0.8",
+        "User-Agent": "Mozilla/5.0 BookShare-Cover-Validator/3.0"
+      },
+      redirect: "follow",
+      signal: AbortSignal.timeout(12000)
+    });
+
+    if (!response.ok) return null;
+
+    const finalUrl = String(response.url || normalizedUrl);
+    const contentType = String(response.headers.get("content-type") || "").toLowerCase();
+
+    if (isMissingCoverUrl(finalUrl)) return null;
+    if (!contentType.startsWith("image/")) return null;
+
+    // O fallback "image not available" do Google costuma ser GIF.
+    if (contentType.includes("gif")) return null;
+
+    const buffer = Buffer.from(await response.arrayBuffer());
+
+    // Capas verdadeiras normalmente passam facilmente desse tamanho.
+    if (buffer.length < 4500) return null;
+
+    return {
+      url: finalUrl,
+      contentType,
+      bytes: buffer.length
+    };
+  } catch (_error) {
+    return null;
+  }
+}
+
+async function resolveFromOpenLibrary(title, author) {
+  try {
+    const params = new URLSearchParams({
+      title,
+      author: author || "",
+      limit: "30",
+      fields: "cover_i,title,author_name"
+    });
+
+    const response = await fetch(`https://openlibrary.org/search.json?${params.toString()}`, {
+      headers: {
+        "Accept": "application/json",
+        "User-Agent": "BookShare-School-Library/3.0"
+      },
+      signal: AbortSignal.timeout(12000)
+    });
+
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    const candidates = (Array.isArray(data.docs) ? data.docs : [])
+      .filter(item => item.cover_i)
+      .map(item => ({
+        score: rankCandidate(
+          {
+            title: item.title,
+            author: (item.author_name || []).join(" ")
+          },
+          title,
+          author
+        ),
+        url: `https://covers.openlibrary.org/b/id/${item.cover_i}-L.jpg?default=false`
+      }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 8);
+
+    for (const candidate of candidates) {
+      if (candidate.score < 30) continue;
+
+      const validated = await validateCoverUrl(candidate.url);
+      if (validated) {
+        return {
+          url: validated.url,
+          source: "Open Library",
+          score: candidate.score
+        };
+      }
+    }
+  } catch (error) {
+    console.warn(`Open Library cover lookup failed for ${title}:`, error.message);
+  }
+
+  return null;
+}
+
+async function resolveFromGoogleBooks(title, author) {
   const searches = [
     `intitle:"${title}"${author ? ` inauthor:"${author}"` : ""}`,
-    `"${title}"${author ? ` ${author}` : ""}`
+    `"${title}"${author ? ` ${author}` : ""}`,
+    `${title}${author ? ` ${author}` : ""}`
   ];
 
   for (const searchText of searches) {
     try {
       const params = new URLSearchParams({
         q: searchText,
-        maxResults: "20",
+        maxResults: "30",
         printType: "books",
         projection: "full",
         orderBy: "relevance"
       });
-      if (GOOGLE_BOOKS_API_KEY) params.set("key", GOOGLE_BOOKS_API_KEY);
+
+      if (GOOGLE_BOOKS_API_KEY) {
+        params.set("key", GOOGLE_BOOKS_API_KEY);
+      }
 
       const response = await fetch(`https://www.googleapis.com/books/v1/volumes?${params.toString()}`, {
-        headers: { Accept: "application/json", "User-Agent": "BookShare-School-Library/2.6" },
+        headers: {
+          "Accept": "application/json",
+          "User-Agent": "BookShare-School-Library/3.0"
+        },
         signal: AbortSignal.timeout(12000)
       });
+
       if (!response.ok) continue;
 
       const data = await response.json();
+
       const candidates = (Array.isArray(data.items) ? data.items : [])
         .map(item => {
           const info = item.volumeInfo || {};
           const links = info.imageLinks || {};
-          const direct = links.extraLarge || links.large || links.medium || links.small || links.thumbnail || links.smallThumbnail;
-          if (!direct && !item.id) return null;
+
+          // Só aceita resultados que realmente informam uma imagem.
+          const directUrl =
+            links.extraLarge ||
+            links.large ||
+            links.medium ||
+            links.small ||
+            links.thumbnail ||
+            links.smallThumbnail;
+
+          if (!directUrl) return null;
+
+          const score =
+            rankCandidate(
+              {
+                title: info.title,
+                author: (info.authors || []).join(" ")
+              },
+              title,
+              author
+            ) +
+            (info.language === "pt" ? 10 : 0) +
+            (links.large || links.extraLarge ? 8 : 0);
+
           return {
-            score: rankCandidate({ title: info.title, author: (info.authors || []).join(" ") }, title, author) + (info.language === "pt" ? 8 : 0),
-            url: item.id ? googleContentUrl(item.id) : String(direct).replace(/^http:/i, "https:").replace("&edge=curl", "")
+            score,
+            url: String(directUrl)
+              .replace(/^http:/i, "https:")
+              .replace("&edge=curl", "")
+              .replace("zoom=1", "zoom=2")
           };
         })
         .filter(Boolean)
-        .sort((a, b) => b.score - a.score);
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 10);
 
-      if (candidates[0]?.url && candidates[0].score >= 40) {
-        return { url: candidates[0].url, source: "Google Books search" };
+      for (const candidate of candidates) {
+        if (candidate.score < 42) continue;
+
+        const validated = await validateCoverUrl(candidate.url);
+        if (validated) {
+          return {
+            url: validated.url,
+            source: "Google Books",
+            score: candidate.score
+          };
+        }
       }
     } catch (error) {
       console.warn(`Google Books cover lookup failed for ${title}:`, error.message);
     }
   }
-  return null;
-}
 
-async function resolveFromOpenLibrary(title, author) {
-  try {
-    const params = new URLSearchParams({ title, author: author || "", limit: "20", fields: "cover_i,title,author_name" });
-    const response = await fetch(`https://openlibrary.org/search.json?${params.toString()}`, {
-      headers: { Accept: "application/json", "User-Agent": "BookShare-School-Library/2.6 (school library app)" },
-      signal: AbortSignal.timeout(12000)
-    });
-    if (!response.ok) return null;
-    const data = await response.json();
-    const candidates = (Array.isArray(data.docs) ? data.docs : [])
-      .filter(item => item.cover_i)
-      .map(item => ({
-        score: rankCandidate({ title: item.title, author: (item.author_name || []).join(" ") }, title, author),
-        url: `https://covers.openlibrary.org/b/id/${item.cover_i}-L.jpg?default=false`
-      }))
-      .sort((a, b) => b.score - a.score);
-    return candidates[0]?.score >= 30 ? { url: candidates[0].url, source: "Open Library" } : null;
-  } catch (error) {
-    console.warn(`Open Library cover lookup failed for ${title}:`, error.message);
-    return null;
-  }
+  return null;
 }
 
 async function resolveFromLongitood(title, author) {
   try {
-    const params = new URLSearchParams({ book_title: title, author_name: author || "", image_size: "large" });
+    const params = new URLSearchParams({
+      book_title: title,
+      author_name: author || "",
+      image_size: "large"
+    });
+
     const response = await fetch(`https://bookcover.longitood.com/bookcover?${params.toString()}`, {
-      headers: { Accept: "application/json", "User-Agent": "BookShare-School-Library/2.6" },
+      headers: {
+        "Accept": "application/json",
+        "User-Agent": "BookShare-School-Library/3.0"
+      },
       signal: AbortSignal.timeout(12000)
     });
+
     if (!response.ok) return null;
+
     const data = await response.json();
-    const url = String(data.url || "").replace(/^http:/i, "https:");
-    return url.startsWith("https://") ? { url, source: "BookCover/Goodreads" } : null;
+    const candidateUrl = String(data.url || "").replace(/^http:/i, "https:");
+
+    const validated = await validateCoverUrl(candidateUrl);
+
+    if (validated) {
+      return {
+        url: validated.url,
+        source: "BookCover",
+        score: 45
+      };
+    }
   } catch (error) {
     console.warn(`BookCover lookup failed for ${title}:`, error.message);
-    return null;
   }
+
+  return null;
 }
 
 async function resolveBookCover(title, author) {
   const cacheKey = `${normalizeSearchText(title)}::${normalizeSearchText(author || "")}`;
   const cached = bookCoverCache.get(cacheKey);
-  if (cached) return cached;
 
+  if (cached && !isMissingCoverUrl(cached.url)) return cached;
+
+  // Open Library costuma retornar 404 quando não há capa, evitando placeholders falsos.
   const result =
-    await resolveFromGoogleBooks(title, author) ||
     await resolveFromOpenLibrary(title, author) ||
+    await resolveFromGoogleBooks(title, author) ||
     await resolveFromLongitood(title, author);
 
-  if (result) bookCoverCache.set(cacheKey, result);
+  if (result) {
+    bookCoverCache.set(cacheKey, result);
+  }
+
   return result;
+}
+
+async function repairBrokenCoverUrls() {
+  const result = await pool.query(`
+    UPDATE books
+    SET cover_url = NULL,
+        updated_at = NOW()
+    WHERE cover_url IS NOT NULL
+      AND (
+        LOWER(cover_url) LIKE '%no_cover%'
+        OR LOWER(cover_url) LIKE '%no-cover%'
+        OR LOWER(cover_url) LIKE '%nocover%'
+        OR LOWER(cover_url) LIKE '%image_not_available%'
+        OR LOWER(cover_url) LIKE '%image-not-available%'
+        OR LOWER(cover_url) LIKE '%googlebooks/images/no_cover%'
+        OR LOWER(cover_url) LIKE '%/api/public/book-cover%'
+        OR LOWER(cover_url) LIKE '%book-placeholder%'
+        OR LOWER(cover_url) LIKE 'https://books.google.com/books/content?id=%'
+      )
+    RETURNING id
+  `);
+
+  console.log(`Links de capa quebrados limpos: ${result.rowCount}.`);
 }
 
 async function syncBookCovers({ force = false } = {}) {
   if (bookCoverSyncState.running) return bookCoverSyncState;
+
   bookCoverSyncState.running = true;
   bookCoverSyncState.processed = 0;
   bookCoverSyncState.updated = 0;
@@ -536,7 +721,23 @@ async function syncBookCovers({ force = false } = {}) {
       WHERE active = TRUE
       ORDER BY title ASC
     `);
-    const targets = result.rows.filter(book => force || !isUsableCoverUrl(book.cover_url));
+
+    const targets = result.rows.filter(book => {
+      const current = String(book.cover_url || "");
+
+      // Preserva fotos enviadas manualmente e arquivos locais.
+      if (
+        current.startsWith("data:image/jpeg") ||
+        current.startsWith("data:image/png") ||
+        current.startsWith("data:image/webp") ||
+        current.startsWith("assets/")
+      ) {
+        return false;
+      }
+
+      return force || !isUsableCoverUrl(current);
+    });
+
     bookCoverSyncState.total = targets.length;
 
     for (const book of targets) {
@@ -545,11 +746,32 @@ async function syncBookCovers({ force = false } = {}) {
           bookCoverSyncState.processed += 1;
           continue;
         }
+
         const resolved = await resolveBookCover(book.title, book.author);
+
         if (resolved?.url) {
-          await pool.query(`UPDATE books SET cover_url = $1, updated_at = NOW() WHERE id = $2`, [resolved.url, book.id]);
+          await pool.query(
+            `UPDATE books
+             SET cover_url = $1,
+                 cover_source = $2,
+                 cover_checked_at = NOW(),
+                 updated_at = NOW()
+             WHERE id = $3`,
+            [resolved.url, resolved.source, book.id]
+          );
+
           bookCoverSyncState.updated += 1;
         } else {
+          await pool.query(
+            `UPDATE books
+             SET cover_url = NULL,
+                 cover_source = 'not-found',
+                 cover_checked_at = NOW(),
+                 updated_at = NOW()
+             WHERE id = $1`,
+            [book.id]
+          );
+
           bookCoverSyncState.failed += 1;
         }
       } catch (error) {
@@ -558,20 +780,22 @@ async function syncBookCovers({ force = false } = {}) {
       } finally {
         bookCoverSyncState.processed += 1;
       }
-      await delay(180);
+
+      await delay(120);
     }
   } finally {
     bookCoverSyncState.running = false;
     bookCoverSyncState.finishedAt = new Date().toISOString();
     console.log("Book cover sync finished:", bookCoverSyncState);
   }
+
   return bookCoverSyncState;
 }
 
 app.get("/", (_req, res) => {
   res.json({
     name: "BookShare API",
-    version: "2.7.0",
+    version: "3.0.0",
     status: "online",
     timestamp: new Date().toISOString()
   });
@@ -591,23 +815,84 @@ app.get("/api/public/book-cover", asyncRoute(async (req, res) => {
   `, [title, author]);
 
   const book = databaseBook.rows[0];
-  if (book && isUsableCoverUrl(book.cover_url)) {
+
+  async function sendValidatedImage(imageUrl, sourceName) {
+    const validated = await validateCoverUrl(imageUrl);
+    if (!validated) return false;
+
+    const response = await fetch(validated.url, {
+      headers: {
+        "Accept": "image/avif,image/webp,image/jpeg,image/png,image/*,*/*;q=0.8",
+        "User-Agent": "Mozilla/5.0 BookShare-Image-Proxy/3.0"
+      },
+      signal: AbortSignal.timeout(12000)
+    });
+
+    if (!response.ok) return false;
+
+    const contentType = response.headers.get("content-type") || "image/jpeg";
+    const buffer = Buffer.from(await response.arrayBuffer());
+
+    if (buffer.length < 4500) return false;
+
+    res.set("Content-Type", contentType);
     res.set("Cache-Control", "public, max-age=604800, stale-while-revalidate=86400");
-    return res.redirect(302, book.cover_url);
+    res.set("X-Book-Cover-Source", sourceName);
+    res.set("Access-Control-Allow-Origin", "*");
+    res.send(buffer);
+    return true;
+  }
+
+  if (book && isUsableCoverUrl(book.cover_url)) {
+    const sent = await sendValidatedImage(book.cover_url, "database");
+
+    if (sent) return;
+
+    await pool.query(
+      `UPDATE books
+       SET cover_url = NULL,
+           cover_source = 'broken',
+           cover_checked_at = NOW(),
+           updated_at = NOW()
+       WHERE id = $1`,
+      [book.id]
+    );
   }
 
   const resolved = await resolveBookCover(book?.title || title, book?.author || author);
+
   if (resolved?.url) {
     if (book?.id) {
-      await pool.query(`UPDATE books SET cover_url = $1, updated_at = NOW() WHERE id = $2`, [resolved.url, book.id]);
+      await pool.query(
+        `UPDATE books
+         SET cover_url = $1,
+             cover_source = $2,
+             cover_checked_at = NOW(),
+             updated_at = NOW()
+         WHERE id = $3`,
+        [resolved.url, resolved.source, book.id]
+      );
     }
-    res.set("X-Book-Cover-Source", resolved.source);
-    res.set("Cache-Control", "public, max-age=604800, stale-while-revalidate=86400");
-    return res.redirect(302, resolved.url);
+
+    const sent = await sendValidatedImage(resolved.url, resolved.source);
+    if (sent) return;
   }
 
+  // Placeholder próprio, sem “image not available”.
+  res.set("Content-Type", "image/svg+xml; charset=utf-8");
   res.set("Cache-Control", "public, max-age=3600");
-  return res.redirect(302, "https://books.google.com/googlebooks/images/no_cover_thumb.gif");
+  res.send(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="420" height="640" viewBox="0 0 420 640">
+      <rect width="420" height="640" rx="28" fill="#f2efe7"/>
+      <rect x="62" y="72" width="296" height="496" rx="22" fill="#ffffff" stroke="#d7d2c7" stroke-width="5"/>
+      <path d="M132 204c40-22 78-19 78-19v246s-38-4-78 18V204Zm156 0c-40-22-78-19-78-19v246s38-4 78 18V204Z"
+            fill="#dcebe6" stroke="#176b63" stroke-width="8" stroke-linejoin="round"/>
+      <path d="M210 186v246" stroke="#176b63" stroke-width="8" stroke-linecap="round"/>
+      <text x="210" y="520" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" fill="#66736f">
+        Capa não encontrada
+      </text>
+    </svg>
+  `);
 }));
 
 app.get("/api/public/book-covers/status", (_req, res) => {
@@ -2443,10 +2728,14 @@ async function start() {
     await pool.query("SELECT 1");
     await ensureRuntimeSchema();
     await ensureInitialUsers();
+    await repairBrokenCoverUrls();
+
     app.listen(PORT, () => {
-      console.log(`BookShare API 2.7 online na porta ${PORT}.`);
+      console.log(`BookShare API 3.0 online na porta ${PORT}.`);
+
       setTimeout(() => {
-        syncBookCovers().catch(error => console.error("Initial cover sync failed:", error));
+        syncBookCovers({ force: true })
+          .catch(error => console.error("Initial validated cover sync failed:", error));
       }, 2500);
     });
   } catch (error) {
