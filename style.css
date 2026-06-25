@@ -5633,3 +5633,64 @@ body { background: #f2f1ed; color: var(--v8-ink); }
 .role-librarian #view-configuracoes .settings-menu { display:none; }
 .role-librarian #settings-form { border-radius:28px; padding:28px; }
 .role-librarian #settings-account { display:block !important; }
+
+
+/* V10 — mosaico apenas com capas, sem cartão informativo */
+.real-cover-collage {
+  grid-template-columns: 1.28fr .88fr .88fr;
+  grid-template-rows: 1fr 1fr;
+}
+
+.real-cover--feature {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+}
+
+.real-cover--crime {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.real-cover--vidas {
+  grid-column: 3;
+  grid-row: 1;
+}
+
+.real-cover--watchmen {
+  grid-column: 2 / span 2;
+  grid-row: 2;
+}
+
+.real-cover--watchmen img {
+  object-position: center 26%;
+}
+
+.real-cover-collage__note {
+  display: none !important;
+}
+
+@media (max-width: 760px) {
+  .real-cover-collage {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 210px 150px;
+  }
+
+  .real-cover--feature {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+  }
+
+  .real-cover--crime {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .real-cover--vidas {
+    display: none;
+  }
+
+  .real-cover--watchmen {
+    grid-column: 2;
+    grid-row: 2;
+  }
+}
