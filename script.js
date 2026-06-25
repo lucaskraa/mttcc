@@ -32,7 +32,7 @@ const state = {
 };
 
 const routeMeta = {
-  dashboard: ["Visão geral", "Dashboard"],
+  dashboard: ["Biblioteca", "Início"],
   atendimento: ["Balcão da biblioteca", "Atendimento"],
   emprestimos: ["Circulação", "Empréstimos"],
   reservas: ["Fila de espera", "Reservas"],
@@ -217,6 +217,10 @@ function bindFilters() {
 function bindSpecialControls() {
   $("#loan-student").addEventListener("change", updateLoanStudentPreview);
   $("#book-cover-url").addEventListener("input", updateBookCoverPreview);
+  $("#book-cover-file-button").addEventListener("click", () => $("#book-cover-file").click());
+  $("#book-cover-file").addEventListener("change", handleBookCoverFileSelection);
+  $("#student-photo-button").addEventListener("click", () => $("#student-photo-file").click());
+  $("#student-photo-file").addEventListener("change", handleStudentPhotoSelection);
   $("#copy-notice-from-modal").addEventListener("click", copyCurrentNoticeMessage);
   $("#loan-filter-clear").addEventListener("click", clearLoanFilters);
   $("#export-loans-button").addEventListener("click", exportLoansCsv);
@@ -476,6 +480,8 @@ function configureUserInterface() {
   setAvatarElement($("#sidebar-avatar"), state.user);
   setAvatarElement($("#topbar-avatar"), state.user);
   setAvatarElement($("#profile-photo-preview"), state.user);
+  if ($("#admin-hero-avatar")) setAvatarElement($("#admin-hero-avatar"), state.user);
+  if ($("#admin-welcome-title") && isAdmin) $("#admin-welcome-title").textContent = `Central de ${firstName(state.user.name)}`;
 
   $("#sidebar-user-name").textContent = state.user.name;
   $("#topbar-user-name").textContent = state.user.name;
@@ -720,7 +726,7 @@ function renderDashboardPopularBooks(items) {
     <div class="popular-item">
       <span class="popular-item__position">${String(index + 1).padStart(2, "0")}</span>
       <span class="popular-item__cover">
-        ${item.cover_url ? `<img src="${escapeAttribute(item.cover_url)}" alt="">` : "BS"}
+        ${`<img src="${escapeAttribute(bookCoverUrl(item))}" alt="" loading="lazy">`}
       </span>
       <span class="popular-item__copy">
         <strong>${escapeHTML(item.title)}</strong>
@@ -860,8 +866,10 @@ function renderClasses() {
       </div>
       <div class="card-footer-actions">
         <button class="button button--secondary button--compact" data-action="view-class" data-id="${item.id}" type="button">Ver alunos</button>
-        <button class="button button--secondary button--compact" data-action="edit-class" data-id="${item.id}" type="button">Editar</button>
-        <button class="button button--ghost button--compact" data-action="toggle-class" data-id="${item.id}" data-active="${item.active}" type="button">${item.active ? "Arquivar" : "Reativar"}</button>
+        ${state.user?.role === "admin" ? `
+          <button class="button button--secondary button--compact" data-action="edit-class" data-id="${item.id}" type="button">Editar</button>
+          <button class="button button--ghost button--compact" data-action="toggle-class" data-id="${item.id}" data-active="${item.active}" type="button">${item.active ? "Arquivar" : "Reativar"}</button>
+        ` : ""}
       </div>
     </article>
   `).join("");
@@ -995,7 +1003,7 @@ function renderStudents() {
     <article class="student-card">
       <div class="student-card__header">
         <div class="card-identity">
-          <span class="card-identity__avatar">${initialsFromName(item.full_name)}</span>
+          ${studentAvatar(item, "card-identity__avatar")}
           <span class="card-identity__copy">
             <strong>${escapeHTML(item.full_name)}</strong>
             <span>${escapeHTML(item.class_name || "Sem turma")} · ${escapeHTML(item.registration_number)}</span>
@@ -1016,12 +1024,12 @@ function renderStudents() {
       </div>
       <div class="card-footer-actions">
         <button class="button button--secondary button--compact" data-action="view-student" data-id="${item.id}" type="button">Ver perfil</button>
-        ${item.active ? `
+        ${state.user?.role === "admin" ? (item.active ? `
           <button class="button button--secondary button--compact" data-action="edit-student" data-id="${item.id}" type="button">Editar</button>
           <button class="button button--ghost button--compact" data-action="archive-student" data-id="${item.id}" type="button">Arquivar</button>
         ` : `
           <button class="button button--secondary button--compact" data-action="reactivate-student" data-id="${item.id}" type="button">Reativar</button>
-        `}
+        `) : ""}
       </div>
     </article>
   `).join("");
@@ -1059,6 +1067,7 @@ function editStudent(id) {
   const form = $("#student-form");
   form.reset();
   fillForm(form, item);
+  updateStudentPhotoPreview(item.photo_url, item.full_name);
   $("#student-modal-title").textContent = "Editar aluno";
   openModal("student-modal");
 }
@@ -1221,7 +1230,7 @@ function renderBooks() {
       headers: ["Livro", "Categoria", "Localização", "Disponibilidade", "Conservação", ""],
       rows: items.map(item => `
         <tr>
-          <td>${bookCell(item.title, item.author, item.cover_url, item.isbn)}</td>
+          <td>${bookCell(item.title, item.author, bookCoverUrl(item), item.isbn)}</td>
           <td>${escapeHTML(item.category_name || "Sem categoria")}</td>
           <td>${escapeHTML(item.shelf || "Não informada")}</td>
           <td><strong>${item.available_copies}</strong> de ${item.total_copies}</td>
@@ -1241,9 +1250,7 @@ function renderBooks() {
   container.innerHTML = items.map(item => `
     <article class="book-card">
       <div class="book-card__cover">
-        ${item.cover_url
-          ? `<img src="${escapeAttribute(item.cover_url)}" alt="Capa de ${escapeAttribute(item.title)}" onerror="this.remove()">`
-          : `<div class="book-card__placeholder">${escapeHTML(item.title)}</div>`}
+        <img loading="lazy" src="${escapeAttribute(bookCoverUrl(item))}" alt="Capa de ${escapeAttribute(item.title)}" onerror="this.onerror=null;this.src='${escapeAttribute(fallbackCoverUrl(item))}'">
         <span class="book-card__status">${Number(item.available_copies) > 0 ? statusBadge("Disponível", "success") : statusBadge("Indisponível", "danger")}</span>
       </div>
       <div class="book-card__body">
@@ -1412,6 +1419,95 @@ function prepareReservationForBook(id) {
   closeModal("detail-modal");
   openModal("reservation-modal");
   $("#reservation-book").value = id;
+}
+
+
+function bookCoverUrl(item) {
+  const stored = String(item?.cover_url || "");
+  if (stored && !stored.startsWith("data:image/svg+xml")) return stored;
+  const title = encodeURIComponent(item?.title || "Livro");
+  const author = encodeURIComponent(item?.author || "");
+  return `${CONFIG.API_BASE_URL}/public/book-cover?title=${title}&author=${author}`;
+}
+
+function fallbackCoverUrl(item) {
+  const title = encodeURIComponent(item?.title || "Livro");
+  const author = encodeURIComponent(item?.author || "Acervo BookShare");
+  return `${CONFIG.API_BASE_URL}/public/book-cover?title=${title}&author=${author}`;
+}
+
+function studentAvatar(item, className = "") {
+  if (item?.photo_url) {
+    return `<span class="${className} has-photo"><img src="${escapeAttribute(item.photo_url)}" alt="Foto de ${escapeAttribute(item.full_name || "aluno")}" loading="lazy"></span>`;
+  }
+  return `<span class="${className}">${initialsFromName(item?.full_name || "Aluno")}</span>`;
+}
+
+async function resizeImageFile(file, maxWidth, maxHeight, quality = 0.8) {
+  if (!file || !file.type.startsWith("image/")) throw new Error("Selecione uma imagem válida.");
+  if (file.size > 12 * 1024 * 1024) throw new Error("A imagem deve ter no máximo 12 MB.");
+
+  const objectUrl = URL.createObjectURL(file);
+  try {
+    const image = await new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error("Não foi possível abrir a imagem."));
+      img.src = objectUrl;
+    });
+
+    const ratio = Math.min(maxWidth / image.width, maxHeight / image.height, 1);
+    const width = Math.max(1, Math.round(image.width * ratio));
+    const height = Math.max(1, Math.round(image.height * ratio));
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext("2d");
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = "high";
+    context.drawImage(image, 0, 0, width, height);
+    return canvas.toDataURL("image/jpeg", quality);
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+}
+
+async function handleBookCoverFileSelection(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  try {
+    const dataUrl = await resizeImageFile(file, 720, 1080, 0.82);
+    $("#book-cover-url").value = dataUrl;
+    updateBookCoverPreview();
+    toast("Capa preparada", "A imagem será salva junto ao livro.");
+  } catch (error) {
+    toast("Não foi possível usar a capa", error.message, "error");
+  } finally {
+    event.target.value = "";
+  }
+}
+
+async function handleStudentPhotoSelection(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  try {
+    const dataUrl = await resizeImageFile(file, 420, 420, 0.82);
+    $("#student-photo-url").value = dataUrl;
+    updateStudentPhotoPreview(dataUrl, $("#student-form [name='full_name']").value || "Aluno");
+    toast("Foto preparada", "A imagem será salva no perfil do aluno.");
+  } catch (error) {
+    toast("Não foi possível usar a foto", error.message, "error");
+  } finally {
+    event.target.value = "";
+  }
+}
+
+function updateStudentPhotoPreview(url = "", name = "Aluno") {
+  const preview = $("#student-photo-preview");
+  if (!preview) return;
+  preview.innerHTML = url
+    ? `<img src="${escapeAttribute(url)}" alt="Foto de ${escapeAttribute(name)}">`
+    : initialsFromName(name);
 }
 
 function updateBookCoverPreview() {
@@ -2639,7 +2735,7 @@ function renderGlobalSearch() {
     groups.push(`
       <div class="search-result-group">
         <strong>Livros</strong>
-        ${books.map(item => searchResultItem("book", item.id, "▤", item.title, `${item.author} · ${item.available_copies} disponível(is)`)).join("")}
+        ${books.map(item => searchResultItem("book", item.id, bookCoverUrl(item), item.title, `${item.author} · ${item.available_copies} disponível(is)`, true)).join("")}
       </div>
     `);
   }
@@ -2648,7 +2744,7 @@ function renderGlobalSearch() {
     groups.push(`
       <div class="search-result-group">
         <strong>Alunos</strong>
-        ${students.map(item => searchResultItem("student", item.id, "♙", item.full_name, `${item.class_name || "Sem turma"} · ${item.registration_number}`)).join("")}
+        ${students.map(item => searchResultItem("student", item.id, item.photo_url || "", item.full_name, `${item.class_name || "Sem turma"} · ${item.registration_number}`, true)).join("")}
       </div>
     `);
   }
@@ -2666,10 +2762,14 @@ function renderGlobalSearch() {
   container.classList.remove("is-hidden");
 }
 
-function searchResultItem(type, id, icon, title, subtitle) {
+function searchResultItem(type, id, visual, title, subtitle, isImage = false) {
+  const media = isImage && visual
+    ? `<img src="${escapeAttribute(visual)}" alt="" loading="lazy">`
+    : `<span>${escapeHTML(visual || "•")}</span>`;
+
   return `
     <button class="search-result-item" data-action="search-result" data-type="${type}" data-id="${id}" type="button">
-      <span class="search-result-item__icon">${icon}</span>
+      <span class="search-result-item__icon ${isImage ? "search-result-item__icon--photo" : ""}">${media}</span>
       <span>
         <strong>${escapeHTML(title)}</strong>
         <small>${escapeHTML(subtitle)}</small>
@@ -3087,17 +3187,22 @@ function buildResponsiveTable({ headers, rows, cards }) {
   `;
 }
 
-function personCell(name, subtitle) {
+function personCell(name, subtitle, photoUrl = "") {
   return `
-    <span class="table-primary">${escapeHTML(name)}</span>
-    <span class="table-secondary">${escapeHTML(subtitle || "")}</span>
+    <span class="table-person">
+      ${photoUrl ? `<img src="${escapeAttribute(photoUrl)}" alt="" loading="lazy">` : `<span class="table-person__initials">${initialsFromName(name)}</span>`}
+      <span>
+        <span class="table-primary">${escapeHTML(name)}</span>
+        <span class="table-secondary">${escapeHTML(subtitle || "")}</span>
+      </span>
+    </span>
   `;
 }
 
 function bookCell(title, subtitle, coverUrl, extra = "") {
   return `
     <span class="table-book">
-      <span class="table-book__cover">${coverUrl ? `<img src="${escapeAttribute(coverUrl)}" alt="">` : "BS"}</span>
+      <span class="table-book__cover">${coverUrl ? `<img src="${escapeAttribute(coverUrl)}" alt="" loading="lazy">` : "BS"}</span>
       <span>
         <span class="table-primary">${escapeHTML(title)}</span>
         <span class="table-secondary">${escapeHTML([subtitle, extra].filter(Boolean).join(" · "))}</span>
@@ -3168,7 +3273,7 @@ function mobileStudentSimpleCard(item) {
   return `
     <article class="mobile-data-card">
       <div class="mobile-data-card__top">
-        <span><span class="table-primary">${escapeHTML(item.full_name)}</span><span class="table-secondary">${escapeHTML(item.registration_number)}</span></span>
+        <span class="mobile-person">${studentAvatar(item, "mobile-person__avatar")}<span><span class="table-primary">${escapeHTML(item.full_name)}</span><span class="table-secondary">${escapeHTML(item.registration_number)}</span></span></span>
         ${Number(item.overdue_loans) > 0 ? statusBadge("Pendente", "danger") : statusBadge("Regular", "success")}
       </div>
       <div class="mobile-data-row"><span>Chamada</span><strong>${item.roll_number || "—"}</strong></div>
