@@ -481,10 +481,15 @@ function configureUserInterface() {
   setAvatarElement($("#topbar-avatar"), state.user);
   setAvatarElement($("#profile-photo-preview"), state.user);
   if ($("#admin-hero-avatar")) setAvatarElement($("#admin-hero-avatar"), state.user);
+  if ($("#librarian-hero-avatar")) setAvatarElement($("#librarian-hero-avatar"), state.user);
   if ($("#admin-welcome-title") && isAdmin) $("#admin-welcome-title").textContent = `Central de ${firstName(state.user.name)}`;
 
   $("#sidebar-user-name").textContent = state.user.name;
   $("#topbar-user-name").textContent = state.user.name;
+  if ($("#librarian-hero-name")) $("#librarian-hero-name").textContent = state.user.name;
+  if ($("#admin-hero-name")) $("#admin-hero-name").textContent = state.user.name;
+  if ($("#admin-hero-email")) $("#admin-hero-email").textContent = state.user.email || "";
+  if ($("#topbar-role-pill")) $("#topbar-role-pill").textContent = isAdmin ? "Admin" : "Balcão";
   $("#sidebar-user-role").textContent = role;
   $("#topbar-user-role").textContent = role;
   $("#profile-name-input").value = state.user.name || "";
@@ -1423,6 +1428,15 @@ function prepareReservationForBook(id) {
 
 
 function bookCoverUrl(item) {
+  const originalCoverMap = {
+    "dom casmurro": "assets/covers/dom-casmurro.jpg",
+    "crime e castigo": "assets/covers/crime-e-castigo.jpg",
+    "vidas secas": "assets/covers/vidas-secas.webp",
+    "turma da monica: lacos": "assets/covers/turma-da-monica-lacos.jpg",
+    "watchmen": "assets/covers/watchmen.jpg"
+  };
+  const normalizedTitle = normalize(item?.title || "");
+  if (originalCoverMap[normalizedTitle]) return originalCoverMap[normalizedTitle];
   const stored = String(item?.cover_url || "");
   if (stored && !stored.startsWith("data:image/svg+xml")) return stored;
   const title = encodeURIComponent(item?.title || "Livro");
