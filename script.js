@@ -27,7 +27,8 @@ const state = {
   currentBookView: "grid",
   selectedServiceStudent: null,
   selectedNoticeLoan: null,
-  loadingRoutes: new Set()
+  loadingRoutes: new Set(),
+  profileAvatarDraft: null
 };
 
 const routeMeta = {
@@ -226,6 +227,8 @@ function bindSpecialControls() {
   $("#report-print-button").addEventListener("click", () => window.print());
   $("#activity-refresh-button").addEventListener("click", loadActivities);
   $("#change-own-password-button").addEventListener("click", handleChangeOwnPassword);
+  $("#profile-photo-input").addEventListener("change", handleProfilePhotoSelection);
+  $("#save-profile-button").addEventListener("click", handleSaveProfile);
   $("#confirm-cancel").addEventListener("click", () => resolveConfirmation(false));
   $("#confirm-accept").addEventListener("click", () => resolveConfirmation(true));
 
@@ -451,23 +454,38 @@ function configureUserInterface() {
   if (!state.user) return;
 
   const isAdmin = state.user.role === "admin";
+  const app = $(selectors.appView);
+  app.classList.toggle("role-admin", isAdmin);
+  app.classList.toggle("role-librarian", !isAdmin);
+
   $("#admin-navigation").classList.toggle("is-hidden", !isAdmin);
   $$(".admin-only").forEach(element => element.classList.toggle("is-hidden", !isAdmin));
+  $$(".admin-only-nav").forEach(element => element.classList.toggle("is-hidden", !isAdmin));
+  $$(".librarian-only").forEach(element => element.classList.toggle("is-hidden", isAdmin));
   $$("[data-settings-tab]").forEach(button => {
     button.classList.toggle("is-hidden", !isAdmin && button.dataset.settingsTab !== "account");
   });
   $(".settings-form__footer")?.classList.toggle("is-hidden", !isAdmin);
   switchSettingsTab(isAdmin ? "general" : "account");
 
-  const initials = initialsFromName(state.user.name);
-  const role = isAdmin ? "Administrador" : "Bibliotecária";
+  const role = isAdmin ? "Administrador do sistema" : "Bibliotecária";
+  const roleDescription = isAdmin
+    ? "Controle do acervo, usuários, relatórios e configurações."
+    : "Atendimento, empréstimos, devoluções e acompanhamento de alunos.";
 
-  $("#sidebar-avatar").textContent = initials;
-  $("#topbar-avatar").textContent = initials;
+  setAvatarElement($("#sidebar-avatar"), state.user);
+  setAvatarElement($("#topbar-avatar"), state.user);
+  setAvatarElement($("#profile-photo-preview"), state.user);
+
   $("#sidebar-user-name").textContent = state.user.name;
   $("#topbar-user-name").textContent = state.user.name;
   $("#sidebar-user-role").textContent = role;
   $("#topbar-user-role").textContent = role;
+  $("#profile-name-input").value = state.user.name || "";
+  $("#profile-email-input").value = state.user.email || "";
+  $("#profile-role-icon").textContent = isAdmin ? "A" : "B";
+  $("#profile-role-title").textContent = role;
+  $("#profile-role-description").textContent = roleDescription;
 }
 
 async function loadCoreData() {
@@ -491,9 +509,8 @@ async function loadCoreData() {
 
 async function navigate(route, updateHash = true) {
   if (!routeMeta[route]) route = "dashboard";
-  if (["usuarios", "configuracoes"].includes(route) && state.user?.role !== "admin" && route === "usuarios") {
-    route = "dashboard";
-  }
+  const librarianBlockedRoutes = ["exemplares", "relatorios", "atividades", "usuarios"];
+  if (state.user?.role !== "admin" && librarianBlockedRoutes.includes(route)) route = "dashboard";
 
   state.currentRoute = route;
 
@@ -571,10 +588,19 @@ function renderDashboard() {
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
-  $("#welcome-title").textContent = `${greeting}, ${firstName(state.user.name)}!`;
-  $("#welcome-message").textContent = dashboard.loans.overdue > 0
-    ? `Existem ${dashboard.loans.overdue} devolução(ões) atrasada(s) aguardando acompanhamento.`
-    : "A biblioteca está organizada. Confira os próximos prazos e movimentações.";
+  const librarianTitle = $("#librarian-welcome-title");
+  const librarianMessage = $("#librarian-welcome-message");
+  if (librarianTitle) librarianTitle.textContent = `${greeting}, ${firstName(state.user.name)}!`;
+  if (librarianMessage) librarianMessage.textContent = dashboard.loans.overdue > 0
+    ? `${dashboard.loans.overdue} devolução(ões) atrasada(s) precisam de acompanhamento.`
+    : "Atendimento em dia. Confira as devoluções e reservas de hoje.";
+
+  const adminTitle = $("#admin-welcome-title");
+  if (adminTitle) adminTitle.textContent = `${greeting}, ${firstName(state.user.name)} — administração`;
+
+  $("#librarian-due-today").textContent = dashboard.loans.due_today;
+  $("#librarian-overdue").textContent = dashboard.loans.overdue;
+  $("#librarian-ready-reservations").textContent = dashboard.reservations.ready;
 
   $("#metric-total-titles").textContent = dashboard.books.total_titles;
   $("#metric-total-copies").textContent = `${dashboard.books.total_copies} exemplares no total`;
@@ -619,7 +645,7 @@ function renderDashboardAlerts(dashboard) {
     });
   }
 
-  if (dashboard.books.attention_copies > 0) {
+  if (state.user?.role === "admin" && dashboard.books.attention_copies > 0) {
     alerts.push({
       type: "warning",
       icon: "▥",
@@ -1186,7 +1212,7 @@ function renderBooks() {
   ].join("");
 
   if (!items.length) {
-    container.innerHTML = emptyState("▤", "Nenhum livro encontrado", "Cadastre um título ou ajuste os filtros.");
+    container.innerHTML = emptyState("▤", "Nenhum livro encontrado", state.user?.role === "admin" ? "Cadastre um título ou ajuste os filtros." : "Ajuste os filtros ou peça ao administrador para atualizar o acervo.");
     return;
   }
 
@@ -1202,7 +1228,7 @@ function renderBooks() {
           <td>${Number(item.damaged_copies) + Number(item.lost_copies) > 0 ? statusBadge("Atenção", "warning") : statusBadge("Regular", "success")}</td>
           <td>${tableActions([
             { label: "Detalhes", action: "view-book", id: item.id },
-            { label: "Editar", action: "edit-book", id: item.id },
+            ...(state.user?.role === "admin" ? [{ label: "Editar", action: "edit-book", id: item.id }] : []),
             { label: "Emprestar", action: "loan-book", id: item.id, disabled: Number(item.available_copies) === 0 }
           ])}</td>
         </tr>
@@ -1239,6 +1265,7 @@ function renderBooks() {
 
 async function handleSaveBook(event) {
   event.preventDefault();
+  if (state.user?.role !== "admin") return toast("Acesso restrito", "Somente o administrador pode cadastrar ou editar livros.", "warning");
   const form = event.currentTarget;
   const payload = formToObject(form);
   const id = payload.id;
@@ -1263,6 +1290,7 @@ async function handleSaveBook(event) {
 }
 
 function editBook(id) {
+  if (state.user?.role !== "admin") return toast("Acesso restrito", "Somente o administrador pode editar livros.", "warning");
   const item = state.books.find(current => current.id === id);
   if (!item) return;
 
@@ -1330,7 +1358,7 @@ async function openBookDetails(id) {
         <section class="detail-section">
           <div class="detail-section__header">
             <h3>Exemplares</h3>
-            <button class="button button--primary button--compact" data-open-modal="copy-modal" data-book-id="${book.id}" type="button">Adicionar exemplar</button>
+            ${state.user?.role === "admin" ? `<button class="button button--primary button--compact" data-open-modal="copy-modal" data-book-id="${book.id}" type="button">Adicionar exemplar</button>` : ""}
           </div>
           ${copies.length ? buildResponsiveTable({
             headers: ["Patrimônio", "Situação", "Aquisição", "Observação", ""],
@@ -1340,7 +1368,7 @@ async function openBookDetails(id) {
                 <td>${copyBadge(copy.status)}</td>
                 <td>${formatDate(copy.acquired_at)}</td>
                 <td>${escapeHTML(copy.condition_notes || "—")}</td>
-                <td>${tableActions([{ label: "Alterar", action: "edit-copy", id: copy.id }])}</td>
+                <td>${state.user?.role === "admin" ? tableActions([{ label: "Alterar", action: "edit-copy", id: copy.id }]) : "—"}</td>
               </tr>
             `),
             cards: copies.map(copy => mobileCopyCard(copy))
@@ -1363,7 +1391,7 @@ async function openBookDetails(id) {
           }) : inlineEmpty("O título ainda não possui movimentações.")}
         </section>
         <div class="card-footer-actions" style="margin-top:22px">
-          <button class="button button--secondary" data-action="edit-book" data-id="${book.id}" type="button">Editar livro</button>
+          ${state.user?.role === "admin" ? `<button class="button button--secondary" data-action="edit-book" data-id="${book.id}" type="button">Editar livro</button>` : ""}
           <button class="button button--primary" data-action="loan-book" data-id="${book.id}" type="button" ${Number(book.available_copies) === 0 ? "disabled" : ""}>Registrar empréstimo</button>
           ${state.user.role === "admin" ? `<button class="button button--danger" data-action="archive-book" data-id="${book.id}" type="button">Arquivar livro</button>` : ""}
         </div>
@@ -1445,6 +1473,7 @@ function renderCopies() {
 
 async function handleCreateCopies(event) {
   event.preventDefault();
+  if (state.user?.role !== "admin") return toast("Acesso restrito", "Somente o administrador pode adicionar exemplares.", "warning");
   const form = event.currentTarget;
   const payload = formToObject(form);
   const submit = form.querySelector('[type="submit"]');
@@ -1463,6 +1492,7 @@ async function handleCreateCopies(event) {
 }
 
 async function editCopyStatus(id) {
+  if (state.user?.role !== "admin") return toast("Acesso restrito", "Somente o administrador pode alterar exemplares.", "warning");
   const item = state.copies.find(current => current.id === id) || { id };
   const options = ["available", "maintenance", "damaged", "lost"];
   const input = prompt(
@@ -2173,6 +2203,92 @@ async function handleSaveSettings(event) {
   }
 }
 
+function setAvatarElement(element, user) {
+  if (!element || !user) return;
+  const image = user.avatar_url || state.profileAvatarDraft;
+  element.classList.toggle("has-photo", Boolean(image));
+  if (image) {
+    element.style.backgroundImage = `url("${String(image).replaceAll('"', '%22')}")`;
+    element.textContent = "";
+  } else {
+    element.style.backgroundImage = "";
+    element.textContent = initialsFromName(user.name || "BookShare");
+  }
+}
+
+async function handleProfilePhotoSelection(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  if (!file.type.startsWith("image/")) {
+    toast("Arquivo inválido", "Escolha uma imagem JPG, PNG ou WEBP.", "warning");
+    return;
+  }
+  if (file.size > 6 * 1024 * 1024) {
+    toast("Imagem muito grande", "Escolha uma foto com até 6 MB.", "warning");
+    return;
+  }
+
+  try {
+    state.profileAvatarDraft = await resizeProfileImage(file, 360, 0.82);
+    setAvatarElement($("#profile-photo-preview"), { ...state.user, avatar_url: state.profileAvatarDraft });
+    toast("Foto preparada", "Clique em Salvar meu perfil para concluir.");
+  } catch (_error) {
+    toast("Não foi possível ler a foto", "Tente outra imagem.", "error");
+  }
+}
+
+function resizeProfileImage(file, size, quality) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = () => {
+      const image = new Image();
+      image.onerror = reject;
+      image.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = size;
+        canvas.height = size;
+        const context = canvas.getContext("2d");
+        const side = Math.min(image.naturalWidth, image.naturalHeight);
+        const sx = (image.naturalWidth - side) / 2;
+        const sy = (image.naturalHeight - side) / 2;
+        context.drawImage(image, sx, sy, side, side, 0, 0, size, size);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+      image.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function handleSaveProfile() {
+  const name = $("#profile-name-input").value.trim();
+  if (name.length < 2) {
+    toast("Nome inválido", "Informe o nome que deve aparecer no sistema.", "warning");
+    return;
+  }
+
+  const button = $("#save-profile-button");
+  setButtonLoading(button, true, "Salvando...");
+  try {
+    const response = await api("/auth/profile", {
+      method: "PUT",
+      body: {
+        name,
+        avatar_url: state.profileAvatarDraft ?? state.user.avatar_url ?? null
+      }
+    });
+    state.user = response.user;
+    state.profileAvatarDraft = null;
+    configureUserInterface();
+    toast("Perfil atualizado", "Nome e foto foram salvos no Supabase.");
+  } catch (error) {
+    toast("Não foi possível salvar", error.message, "error");
+  } finally {
+    setButtonLoading(button, false);
+  }
+}
+
 async function handleChangeOwnPassword() {
   const currentPassword = $("#current-password").value;
   const newPassword = $("#new-password").value;
@@ -2657,6 +2773,11 @@ function closeSidebar() {
 }
 
 function openModal(id, trigger = null) {
+  const adminOnlyModals = ["book-modal", "copy-modal", "user-modal"];
+  if (state.user?.role !== "admin" && adminOnlyModals.includes(id)) {
+    toast("Acesso restrito", "Essa função pertence ao administrador do sistema.", "warning");
+    return;
+  }
   const dialog = document.getElementById(id);
   if (!dialog) return;
 
