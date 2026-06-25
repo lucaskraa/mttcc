@@ -1,4 +1,3 @@
-
 "use strict";
 
 require("dotenv").config();
@@ -269,33 +268,69 @@ async function createInventoryCodes(client, bookId, quantity, acquiredAt = null,
   return copies;
 }
 
-async function ensureDefaultAdmin() {
-  const email = cleanText(process.env.ADMIN_EMAIL)?.toLowerCase();
-  const password = String(process.env.ADMIN_PASSWORD || "");
-  const name = cleanText(process.env.ADMIN_NAME) || "Administrador BookShare";
+async function ensureInitialUsers() {
+  const accounts = [
+    {
+      name: cleanText(process.env.ADMIN_NAME) || "Administrador BookShare",
+      email: cleanText(process.env.ADMIN_EMAIL)?.toLowerCase(),
+      password: String(process.env.ADMIN_PASSWORD || ""),
+      role: "admin",
+      variableGroup: "ADMIN"
+    },
+    {
+      name: cleanText(process.env.LIBRARIAN1_NAME) || "Bibliotecária Principal",
+      email: cleanText(process.env.LIBRARIAN1_EMAIL)?.toLowerCase(),
+      password: String(process.env.LIBRARIAN1_PASSWORD || ""),
+      role: "librarian",
+      variableGroup: "LIBRARIAN1"
+    },
+    {
+      name: cleanText(process.env.LIBRARIAN2_NAME) || "Auxiliar da Biblioteca",
+      email: cleanText(process.env.LIBRARIAN2_EMAIL)?.toLowerCase(),
+      password: String(process.env.LIBRARIAN2_PASSWORD || ""),
+      role: "librarian",
+      variableGroup: "LIBRARIAN2"
+    }
+  ];
 
-  if (!email || password.length < 8) {
-    console.warn("ADMIN_EMAIL e ADMIN_PASSWORD não configurados. O administrador automático não foi criado.");
-    return;
+  for (const account of accounts) {
+    if (!account.email || account.password.length < 8) {
+      console.warn(`${account.variableGroup}_EMAIL ou ${account.variableGroup}_PASSWORD não configurados corretamente. Essa conta inicial não foi criada.`);
+      continue;
+    }
+
+    const existing = await pool.query(
+      "SELECT id, role FROM users WHERE email = $1",
+      [account.email]
+    );
+
+    if (existing.rows[0]) {
+      if (existing.rows[0].role !== account.role) {
+        await pool.query(
+          `UPDATE users
+           SET role = $1, active = TRUE, updated_at = NOW()
+           WHERE id = $2`,
+          [account.role, existing.rows[0].id]
+        );
+      }
+      continue;
+    }
+
+    const passwordHash = await bcrypt.hash(account.password, 12);
+    await pool.query(
+      `INSERT INTO users (name, email, password_hash, role, active)
+       VALUES ($1, $2, $3, $4, TRUE)`,
+      [account.name, account.email, passwordHash, account.role]
+    );
+
+    console.log(`Conta inicial criada: ${account.email} (${account.role})`);
   }
-
-  const existing = await pool.query("SELECT id FROM users WHERE email = $1", [email]);
-  if (existing.rows[0]) return;
-
-  const passwordHash = await bcrypt.hash(password, 12);
-  await pool.query(
-    `INSERT INTO users (name, email, password_hash, role, active)
-     VALUES ($1, $2, $3, 'admin', TRUE)`,
-    [name, email, passwordHash]
-  );
-
-  console.log(`Administrador inicial criado: ${email}`);
 }
 
 app.get("/", (_req, res) => {
   res.json({
     name: "BookShare API",
-    version: "2.0.0",
+    version: "2.1.0",
     status: "online",
     timestamp: new Date().toISOString()
   });
@@ -2084,9 +2119,9 @@ app.use((error, _req, res, _next) => {
 async function start() {
   try {
     await pool.query("SELECT 1");
-    await ensureDefaultAdmin();
+    await ensureInitialUsers();
     app.listen(PORT, () => {
-      console.log(`BookShare API 2.0 online na porta ${PORT}.`);
+      console.log(`BookShare API 2.1 online na porta ${PORT}.`);
     });
   } catch (error) {
     console.error("Falha ao iniciar a API:", error);
