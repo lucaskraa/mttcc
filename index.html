@@ -45,31 +45,27 @@
           para acompanhar cada leitura, empréstimo e nova descoberta.
         </p>
 
-        <div class="showcase-library showcase-library--books" aria-hidden="true">
-          <div class="literary-display">
-            <div class="literary-display__glow"></div>
-            <div class="literary-book-card literary-book-card--machado">
-              <span class="literary-book-card__badge">Clássico brasileiro</span>
+        <div class="showcase-library showcase-library--covers" aria-hidden="true">
+          <div class="cover-shelf">
+            <article class="cover-book cover-book--main">
+              <span>Literatura brasileira</span>
               <strong>Dom Casmurro</strong>
               <small>Machado de Assis</small>
-              <em>Romance marcante para o acervo escolar.</em>
-            </div>
-            <div class="literary-book-stack">
-              <div class="literary-book literary-book--dostoievski">
-                <span class="literary-book__type">Literatura russa</span>
+              <i>Clássico essencial do acervo escolar</i>
+            </article>
+            <div class="cover-shelf__side">
+              <article class="cover-book cover-book--russian">
+                <span>Literatura russa</span>
                 <strong>Crime e Castigo</strong>
                 <small>Fiódor Dostoiévski</small>
-              </div>
-              <div class="literary-book literary-book--tolstoi">
-                <span class="literary-book__type">Leitura clássica</span>
-                <strong>Guerra e Paz</strong>
-                <small>Liev Tolstói</small>
-              </div>
+              </article>
+              <article class="cover-book cover-book--brazil">
+                <span>Brasil</span>
+                <strong>Vidas Secas</strong>
+                <small>Graciliano Ramos</small>
+              </article>
             </div>
-            <div class="literary-quote">
-              <span>Acervo em destaque</span>
-              <p>Organize empréstimos, acompanhe prazos e mantenha os clássicos sempre ao alcance da biblioteca.</p>
-            </div>
+            <div class="cover-shelf__base"></div>
           </div>
         </div>
 
@@ -223,7 +219,7 @@
           <span class="nav-item__icon">▤</span>
           <span>Livros</span>
         </button>
-        <button class="nav-item" data-route="exemplares" type="button">
+        <button class="nav-item admin-only-nav" data-route="exemplares" type="button">
           <span class="nav-item__icon">▥</span>
           <span>Exemplares</span>
         </button>
@@ -238,12 +234,12 @@
           <span>Turmas</span>
         </button>
 
-        <p class="nav-group-label">Análise</p>
-        <button class="nav-item" data-route="relatorios" type="button">
+        <p class="nav-group-label admin-only-nav">Análise</p>
+        <button class="nav-item admin-only-nav" data-route="relatorios" type="button">
           <span class="nav-item__icon">▧</span>
           <span>Relatórios</span>
         </button>
-        <button class="nav-item" data-route="atividades" type="button">
+        <button class="nav-item admin-only-nav" data-route="atividades" type="button">
           <span class="nav-item__icon">↻</span>
           <span>Histórico de ações</span>
         </button>
@@ -325,27 +321,45 @@
 
       <div class="workspace">
         <section id="view-dashboard" class="page-view">
-          <div class="welcome-card">
-            <div class="welcome-card__copy">
-              <p class="eyebrow eyebrow--light">Biblioteca em movimento</p>
-              <h2 id="welcome-title">Bom trabalho!</h2>
-              <p id="welcome-message">Veja o que precisa da sua atenção hoje.</p>
-              <div class="welcome-card__actions">
-                <button class="button button--light" data-open-modal="loan-modal" type="button">＋ Registrar empréstimo</button>
-                <button class="button button--transparent" data-route="pendencias" type="button">Ver pendências</button>
+          <section class="librarian-home librarian-only">
+            <div class="librarian-home__intro">
+              <div>
+                <p class="eyebrow eyebrow--light">Balcão da biblioteca</p>
+                <h2 id="librarian-welcome-title">Bom trabalho!</h2>
+                <p id="librarian-welcome-message">Atenda alunos, registre devoluções e acompanhe os prazos.</p>
+              </div>
+              <div class="librarian-home__actions">
+                <button class="button button--light" data-open-modal="loan-modal" type="button">＋ Emprestar livro</button>
+                <button class="button button--transparent" data-open-modal="return-search-modal" type="button">↩ Registrar devolução</button>
+                <button class="button button--transparent" data-route="pendencias" type="button">! Ver atrasos</button>
               </div>
             </div>
-            <div class="welcome-card__art" aria-hidden="true">
-              <div class="art-shelf">
-                <span></span><span></span><span></span><span></span><span></span>
-              </div>
-              <div class="art-lamp"></div>
-              <div class="art-book art-book--one"></div>
-              <div class="art-book art-book--two"></div>
+            <div class="librarian-task-grid">
+              <button class="librarian-task" data-route="emprestimos" type="button">
+                <span>Hoje</span><strong id="librarian-due-today">0</strong><small>devoluções previstas</small>
+              </button>
+              <button class="librarian-task librarian-task--danger" data-route="pendencias" type="button">
+                <span>Atrasos</span><strong id="librarian-overdue">0</strong><small>precisam de contato</small>
+              </button>
+              <button class="librarian-task" data-route="reservas" type="button">
+                <span>Reservas</span><strong id="librarian-ready-reservations">0</strong><small>prontas para retirada</small>
+              </button>
             </div>
-          </div>
+          </section>
 
-          <div class="metric-grid">
+          <section class="admin-home admin-only">
+            <div>
+              <span class="admin-home__badge">ADMINISTRAÇÃO</span>
+              <h2 id="admin-welcome-title">Painel administrativo</h2>
+              <p id="admin-welcome-message">Gerencie o acervo, as contas, os relatórios e as regras da biblioteca.</p>
+            </div>
+            <div class="admin-home__actions">
+              <button class="button button--light" data-open-modal="book-modal" type="button">＋ Cadastrar livro</button>
+              <button class="button button--transparent" data-route="usuarios" type="button">Gerenciar usuários</button>
+            </div>
+          </section>
+
+          <div class="metric-grid admin-only">
             <article class="metric-card">
               <div class="metric-card__top">
                 <span class="metric-card__icon metric-card__icon--green">▤</span>
@@ -390,7 +404,7 @@
           <div id="dashboard-alerts" class="dashboard-alerts"></div>
 
           <div class="dashboard-layout">
-            <article class="panel panel--chart">
+            <article class="panel panel--chart admin-only">
               <div class="panel__header">
                 <div>
                   <p class="eyebrow">Últimos 30 dias</p>
@@ -428,7 +442,7 @@
               <div id="dashboard-recent-loans" class="table-shell table-shell--flat"></div>
             </article>
 
-            <article class="panel panel--popular">
+            <article class="panel panel--popular admin-only">
               <div class="panel__header">
                 <div>
                   <p class="eyebrow">Preferências</p>
@@ -457,7 +471,7 @@
                   <strong>Registrar devolução</strong>
                   <small>Localizar empréstimo ativo</small>
                 </button>
-                <button class="quick-action-card" data-open-modal="book-modal" type="button">
+                <button class="quick-action-card admin-only" data-open-modal="book-modal" type="button">
                   <span class="quick-action-card__icon">▤</span>
                   <strong>Novo livro</strong>
                   <small>Adicionar título e exemplares</small>
@@ -627,7 +641,7 @@
             </div>
             <div class="page-actions__buttons">
               <button class="button button--secondary" id="export-books-button" type="button">↓ Exportar acervo</button>
-              <button class="button button--primary" data-open-modal="book-modal" type="button">＋ Cadastrar livro</button>
+              <button class="button button--primary admin-only" data-open-modal="book-modal" type="button">＋ Cadastrar livro</button>
             </div>
           </div>
 
@@ -964,6 +978,38 @@
               </section>
 
               <section id="settings-account" class="settings-section is-hidden">
+                <div class="settings-section__heading">
+                  <p class="eyebrow">Meu perfil</p>
+                  <h2>Foto e identificação</h2>
+                  <p>A foto aparece no topo e ajuda a diferenciar a bibliotecária do administrador.</p>
+                </div>
+
+                <div class="profile-editor">
+                  <label class="profile-photo-picker" for="profile-photo-input">
+                    <span id="profile-photo-preview" class="profile-photo-preview">BS</span>
+                    <strong>Escolher foto</strong>
+                    <small>JPG, PNG ou WEBP. A imagem será reduzida antes do envio.</small>
+                    <input id="profile-photo-input" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+                  </label>
+                  <div class="profile-editor__fields">
+                    <label class="field">
+                      <span class="field__label">Nome exibido</span>
+                      <input id="profile-name-input" type="text" maxlength="120">
+                    </label>
+                    <label class="field">
+                      <span class="field__label">E-mail da conta</span>
+                      <input id="profile-email-input" type="email" readonly>
+                    </label>
+                    <div class="profile-role-card">
+                      <span id="profile-role-icon">B</span>
+                      <div><strong id="profile-role-title">Bibliotecária</strong><small id="profile-role-description">Atendimento e circulação do acervo.</small></div>
+                    </div>
+                    <button id="save-profile-button" class="button button--primary" type="button">Salvar meu perfil</button>
+                  </div>
+                </div>
+
+                <div class="settings-divider"></div>
+
                 <div class="settings-section__heading">
                   <p class="eyebrow">Segurança</p>
                   <h2>Alterar minha senha</h2>
