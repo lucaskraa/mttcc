@@ -1,7 +1,7 @@
 "use strict";
 
 const CONFIG = {
-  API_BASE_URL: "https://mttcc.onrender.com/api",
+  API_BASE_URL: "https://mttcc-1.onrender.com/api",
   TOKEN_KEY: "bookshare_token",
   REQUEST_TIMEOUT: 25000,
   SEARCH_DELAY: 260
