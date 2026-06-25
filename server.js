@@ -339,7 +339,7 @@ async function ensureInitialUsers() {
 app.get("/", (_req, res) => {
   res.json({
     name: "BookShare API",
-    version: "2.1.0",
+    version: "2.2.0",
     status: "online",
     timestamp: new Date().toISOString()
   });
@@ -358,29 +358,66 @@ app.get("/api/public/book-cover", asyncRoute(async (req, res) => {
   }
 
   try {
-    const query = new URLSearchParams({
-      title,
-      limit: "1",
-      fields: "cover_i,title,author_name"
-    });
-    if (author) query.set("author", author);
+    const searchTerms = [`intitle:${title}`];
+    if (author) searchTerms.push(`inauthor:${author}`);
 
-    const response = await fetch(`https://openlibrary.org/search.json?${query.toString()}`, {
-      headers: { "User-Agent": "BookShare-School-Library/1.0" },
-      signal: AbortSignal.timeout(9000)
+    const query = new URLSearchParams({
+      q: searchTerms.join(" "),
+      maxResults: "8",
+      projection: "lite",
+      printType: "books",
+      orderBy: "relevance"
+    });
+
+    const response = await fetch(`https://www.googleapis.com/books/v1/volumes?${query.toString()}`, {
+      headers: {
+        "Accept": "application/json",
+        "User-Agent": "BookShare-School-Library/2.0"
+      },
+      signal: AbortSignal.timeout(10000)
     });
 
     if (response.ok) {
       const data = await response.json();
-      const coverId = data.docs?.[0]?.cover_i;
-      if (coverId) {
-        const coverUrl = `https://covers.openlibrary.org/b/id/${coverId}-L.jpg`;
+      const items = Array.isArray(data.items) ? data.items : [];
+
+      const normalizedTitle = title
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
+
+      const bestItem =
+        items.find(item => {
+          const itemTitle = String(item.volumeInfo?.title || "")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase();
+
+          return itemTitle === normalizedTitle && item.volumeInfo?.imageLinks;
+        }) ||
+        items.find(item => item.volumeInfo?.imageLinks);
+
+      const links = bestItem?.volumeInfo?.imageLinks;
+      let coverUrl =
+        links?.extraLarge ||
+        links?.large ||
+        links?.medium ||
+        links?.small ||
+        links?.thumbnail ||
+        links?.smallThumbnail;
+
+      if (coverUrl) {
+        coverUrl = String(coverUrl)
+          .replace(/^http:/i, "https:")
+          .replace("zoom=1", "zoom=2")
+          .replace("&edge=curl", "");
+
         bookCoverCache.set(cacheKey, coverUrl);
         return res.redirect(302, coverUrl);
       }
     }
   } catch (error) {
-    console.warn("Falha ao buscar capa externa:", error.message);
+    console.warn("Falha ao buscar capa no Google Books:", error.message);
   }
 
   const escapedTitle = title.replace(/[<>&\"']/g, "").slice(0, 36);
