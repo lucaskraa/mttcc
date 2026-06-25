@@ -135,6 +135,7 @@ CREATE TABLE IF NOT EXISTS students (
   class_id UUID NOT NULL,
   roll_number INTEGER,
   guardian_contact VARCHAR(80),
+  photo_url TEXT,
   notes TEXT,
   active BOOLEAN NOT NULL DEFAULT TRUE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -152,6 +153,8 @@ CREATE TABLE IF NOT EXISTS students (
       OR roll_number BETWEEN 1 AND 99
     )
 );
+
+ALTER TABLE students ADD COLUMN IF NOT EXISTS photo_url TEXT;
 
 CREATE INDEX IF NOT EXISTS students_class_id_idx
   ON students (class_id);
@@ -1066,6 +1069,70 @@ SELECT 'Vitor Hugo Rodrigues', '2026B030', c.id, 30, '(41) 90030-5190', 'Aluno d
 FROM classes c WHERE c.name = '3º B' AND c.shift = 'Manhã' AND c.school_year = 2026
 ON CONFLICT (registration_number) DO UPDATE SET
   full_name = EXCLUDED.full_name, class_id = EXCLUDED.class_id, roll_number = EXCLUDED.roll_number, guardian_contact = EXCLUDED.guardian_contact, active = TRUE, updated_at = NOW();
+
+-- Fotografias de demonstração dos alunos. Substitua pelas fotos autorizadas da escola no painel.
+
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026A001' WHERE registration_number = '2026A001';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026A002' WHERE registration_number = '2026A002';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026A003' WHERE registration_number = '2026A003';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026A004' WHERE registration_number = '2026A004';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026A005' WHERE registration_number = '2026A005';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026A006' WHERE registration_number = '2026A006';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026A007' WHERE registration_number = '2026A007';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026A008' WHERE registration_number = '2026A008';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026A009' WHERE registration_number = '2026A009';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026A010' WHERE registration_number = '2026A010';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026A011' WHERE registration_number = '2026A011';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026A012' WHERE registration_number = '2026A012';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026A013' WHERE registration_number = '2026A013';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026A014' WHERE registration_number = '2026A014';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026A015' WHERE registration_number = '2026A015';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026A016' WHERE registration_number = '2026A016';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026A017' WHERE registration_number = '2026A017';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026A018' WHERE registration_number = '2026A018';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026A019' WHERE registration_number = '2026A019';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026A020' WHERE registration_number = '2026A020';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026A021' WHERE registration_number = '2026A021';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026A022' WHERE registration_number = '2026A022';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026A023' WHERE registration_number = '2026A023';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026A024' WHERE registration_number = '2026A024';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026A025' WHERE registration_number = '2026A025';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026A026' WHERE registration_number = '2026A026';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026A027' WHERE registration_number = '2026A027';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026A028' WHERE registration_number = '2026A028';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026A029' WHERE registration_number = '2026A029';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026A030' WHERE registration_number = '2026A030';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026B001' WHERE registration_number = '2026B001';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026B002' WHERE registration_number = '2026B002';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026B003' WHERE registration_number = '2026B003';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026B004' WHERE registration_number = '2026B004';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026B005' WHERE registration_number = '2026B005';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026B006' WHERE registration_number = '2026B006';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026B007' WHERE registration_number = '2026B007';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026B008' WHERE registration_number = '2026B008';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026B009' WHERE registration_number = '2026B009';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026B010' WHERE registration_number = '2026B010';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026B011' WHERE registration_number = '2026B011';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026B012' WHERE registration_number = '2026B012';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026B013' WHERE registration_number = '2026B013';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026B014' WHERE registration_number = '2026B014';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026B015' WHERE registration_number = '2026B015';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026B016' WHERE registration_number = '2026B016';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026B017' WHERE registration_number = '2026B017';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026B018' WHERE registration_number = '2026B018';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026B019' WHERE registration_number = '2026B019';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026B020' WHERE registration_number = '2026B020';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026B021' WHERE registration_number = '2026B021';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026B022' WHERE registration_number = '2026B022';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026B023' WHERE registration_number = '2026B023';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026B024' WHERE registration_number = '2026B024';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026B025' WHERE registration_number = '2026B025';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026B026' WHERE registration_number = '2026B026';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026B027' WHERE registration_number = '2026B027';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026B028' WHERE registration_number = '2026B028';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026B029' WHERE registration_number = '2026B029';
+UPDATE students SET photo_url = 'https://i.pravatar.cc/480?u=bookshare-2026B030' WHERE registration_number = '2026B030';
+
 INSERT INTO books (title, author, isbn, publisher, publication_year, category_id, shelf, description, cover_url, active)
 SELECT 'Dom Casmurro', 'Machado de Assis', 'BOOKSHARE-001', 'Acervo BookShare', 1899, c.id, 'A-01', 'Exemplar de demonstração da categoria Literatura Brasileira. Capa temática gerada para o catálogo BookShare.', 'data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22420%22%20height%3D%22640%22%20viewBox%3D%220%200%20420%20640%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20stop-color%3D%22%23164c43%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23d4ae62%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%22420%22%20height%3D%22640%22%20rx%3D%2218%22%20fill%3D%22url%28%23g%29%22%2F%3E%3Crect%20x%3D%2222%22%20y%3D%2222%22%20width%3D%22376%22%20height%3D%22596%22%20rx%3D%2212%22%20fill%3D%22none%22%20stroke%3D%22white%22%20stroke-opacity%3D%22.3%22%2F%3E%3Ctext%20x%3D%2244%22%20y%3D%2268%22%20fill%3D%22white%22%20fill-opacity%3D%22.8%22%20font-family%3D%22Arial%22%20font-size%3D%2218%22%20letter-spacing%3D%222%22%3ELITERATURA%20BRASILEIRA%3C%2Ftext%3E%3Ctext%20x%3D%22330%22%20y%3D%22125%22%20text-anchor%3D%22middle%22%20fill%3D%22white%22%20fill-opacity%3D%22.2%22%20font-family%3D%22Georgia%22%20font-size%3D%22120%22%3E%E2%9C%92%3C%2Ftext%3E%3Ctext%20x%3D%2244%22%20y%3D%22250%22%20fill%3D%22white%22%20font-family%3D%22Georgia%22%20font-size%3D%2236%22%20font-weight%3D%22700%22%3E%3Ctspan%20x%3D%2244%22%20dy%3D%220%22%3EDom%20Casmurro%3C%2Ftspan%3E%3C%2Ftext%3E%3Cline%20x1%3D%2244%22%20y1%3D%22490%22%20x2%3D%22190%22%20y2%3D%22490%22%20stroke%3D%22white%22%20stroke-opacity%3D%22.55%22%2F%3E%3Ctext%20x%3D%2244%22%20y%3D%22530%22%20fill%3D%22white%22%20font-family%3D%22Arial%22%20font-size%3D%2221%22%3EMachado%20de%20Assis%3C%2Ftext%3E%3Ctext%20x%3D%2244%22%20y%3D%22590%22%20fill%3D%22white%22%20fill-opacity%3D%22.7%22%20font-family%3D%22Arial%22%20font-size%3D%2216%22%3EBOOKSHARE%20%E2%80%A2%20ACERVO%20ESCOLAR%3C%2Ftext%3E%3C%2Fsvg%3E', TRUE
 FROM categories c WHERE c.name = 'Literatura Brasileira'
