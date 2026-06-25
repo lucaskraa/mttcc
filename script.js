@@ -113,7 +113,6 @@ async function initializeApplication() {
   bindApplicationEvents();
   initializeDates();
   startServiceClock();
-  await checkServerHealth();
 
   const token = localStorage.getItem(CONFIG.TOKEN_KEY);
 
@@ -469,25 +468,6 @@ function configureUserInterface() {
   $("#topbar-user-name").textContent = state.user.name;
   $("#sidebar-user-role").textContent = role;
   $("#topbar-user-role").textContent = role;
-}
-
-async function checkServerHealth() {
-  const element = $("#server-status");
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
-    const response = await fetch(`${CONFIG.API_BASE_URL}/health`, { signal: controller.signal });
-    clearTimeout(timeout);
-
-    if (!response.ok) throw new Error("offline");
-    element.classList.add("is-online");
-    element.classList.remove("is-offline");
-    element.lastElementChild.textContent = "Servidor e banco conectados";
-  } catch {
-    element.classList.add("is-offline");
-    element.classList.remove("is-online");
-    element.lastElementChild.textContent = "Servidor indisponível ou URL não configurada";
-  }
 }
 
 async function loadCoreData() {
