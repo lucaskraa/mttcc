@@ -15,6 +15,7 @@ const app = express();
 const PORT = Number(process.env.PORT || 3000);
 const JWT_SECRET = String(process.env.JWT_SECRET || "");
 const NODE_ENV = process.env.NODE_ENV || "development";
+const bookCoverCache = new Map();
 
 if (JWT_SECRET.length < 24) {
   console.error("JWT_SECRET ausente ou curta. Configure uma chave segura no Render.");
@@ -344,6 +345,50 @@ app.get("/", (_req, res) => {
   });
 });
 
+
+app.get("/api/public/book-cover", asyncRoute(async (req, res) => {
+  const title = cleanText(req.query.title, 180);
+  const author = cleanText(req.query.author, 160);
+
+  if (!title) throw httpError(400, "Título não informado.");
+
+  const cacheKey = `${title.toLowerCase()}::${String(author || "").toLowerCase()}`;
+  if (bookCoverCache.has(cacheKey)) {
+    return res.redirect(302, bookCoverCache.get(cacheKey));
+  }
+
+  try {
+    const query = new URLSearchParams({
+      title,
+      limit: "1",
+      fields: "cover_i,title,author_name"
+    });
+    if (author) query.set("author", author);
+
+    const response = await fetch(`https://openlibrary.org/search.json?${query.toString()}`, {
+      headers: { "User-Agent": "BookShare-School-Library/1.0" },
+      signal: AbortSignal.timeout(9000)
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      const coverId = data.docs?.[0]?.cover_i;
+      if (coverId) {
+        const coverUrl = `https://covers.openlibrary.org/b/id/${coverId}-L.jpg`;
+        bookCoverCache.set(cacheKey, coverUrl);
+        return res.redirect(302, coverUrl);
+      }
+    }
+  } catch (error) {
+    console.warn("Falha ao buscar capa externa:", error.message);
+  }
+
+  const escapedTitle = title.replace(/[<>&\"']/g, "").slice(0, 36);
+  const escapedAuthor = String(author || "Acervo BookShare").replace(/[<>&\"']/g, "").slice(0, 34);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="420" height="640" viewBox="0 0 420 640"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#123f39"/><stop offset="1" stop-color="#c79b56"/></linearGradient></defs><rect width="420" height="640" rx="24" fill="url(#g)"/><rect x="26" y="26" width="368" height="588" rx="16" fill="none" stroke="white" stroke-opacity=".28"/><text x="42" y="76" fill="white" fill-opacity=".7" font-family="Arial" font-size="17" letter-spacing="3">BOOKSHARE</text><text x="42" y="265" fill="white" font-family="Georgia" font-size="35" font-weight="700">${escapedTitle}</text><text x="42" y="535" fill="white" font-family="Arial" font-size="21">${escapedAuthor}</text></svg>`;
+  res.type("image/svg+xml").send(svg);
+}));
+
 app.get("/api/health", asyncRoute(async (_req, res) => {
   const result = await pool.query("SELECT NOW() AS database_time");
   res.json({
@@ -636,7 +681,7 @@ app.get("/api/classes", authenticate, asyncRoute(async (_req, res) => {
   res.json({ classes: result.rows });
 }));
 
-app.post("/api/classes", authenticate, asyncRoute(async (req, res) => {
+app.post("/api/classes", authenticate, requireRole("admin"), asyncRoute(async (req, res) => {
   const name = requiredText(req.body.name, "o nome da turma", 60);
   const shift = requiredText(req.body.shift, "o turno", 30);
   const schoolYear = cleanInteger(req.body.school_year, { min: 2020, max: 2100, nullable: false });
@@ -665,7 +710,7 @@ app.post("/api/classes", authenticate, asyncRoute(async (req, res) => {
   }
 }));
 
-app.put("/api/classes/:id", authenticate, asyncRoute(async (req, res) => {
+app.put("/api/classes/:id", authenticate, requireRole("admin"), asyncRoute(async (req, res) => {
   const name = requiredText(req.body.name, "o nome da turma", 60);
   const shift = requiredText(req.body.shift, "o turno", 30);
   const schoolYear = cleanInteger(req.body.school_year, { min: 2020, max: 2100, nullable: false });
@@ -699,7 +744,7 @@ app.put("/api/classes/:id", authenticate, asyncRoute(async (req, res) => {
   }
 }));
 
-app.put("/api/classes/:id/status", authenticate, asyncRoute(async (req, res) => {
+app.put("/api/classes/:id/status", authenticate, requireRole("admin"), asyncRoute(async (req, res) => {
   const active = cleanBoolean(req.body.active);
   const client = await pool.connect();
   try {
@@ -731,6 +776,7 @@ app.get("/api/students", authenticate, asyncRoute(async (_req, res) => {
       s.class_id,
       s.roll_number,
       s.guardian_contact,
+      s.photo_url,
       s.notes,
       s.active,
       s.created_at,
@@ -823,6 +869,7 @@ app.post("/api/students", authenticate, asyncRoute(async (req, res) => {
   const classId = requiredText(req.body.class_id, "a turma");
   const rollNumber = cleanInteger(req.body.roll_number, { min: 1, max: 99 });
   const guardianContact = cleanText(req.body.guardian_contact, 80);
+  const photoUrl = cleanText(req.body.photo_url);
   const notes = cleanText(req.body.notes);
 
   const client = await pool.connect();
@@ -834,10 +881,10 @@ app.post("/api/students", authenticate, asyncRoute(async (req, res) => {
 
     const result = await client.query(
       `INSERT INTO students
-        (full_name, registration_number, class_id, roll_number, guardian_contact, notes)
-       VALUES ($1, $2, $3, $4, $5, $6)
+        (full_name, registration_number, class_id, roll_number, guardian_contact, photo_url, notes)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING *`,
-      [fullName, registrationNumber, classId, rollNumber, guardianContact, notes]
+      [fullName, registrationNumber, classId, rollNumber, guardianContact, photoUrl, notes]
     );
 
     await audit(client, req, "create", "student", result.rows[0].id, result.rows[0]);
@@ -858,6 +905,7 @@ app.put("/api/students/:id", authenticate, asyncRoute(async (req, res) => {
   const classId = requiredText(req.body.class_id, "a turma");
   const rollNumber = cleanInteger(req.body.roll_number, { min: 1, max: 99 });
   const guardianContact = cleanText(req.body.guardian_contact, 80);
+  const photoUrl = cleanText(req.body.photo_url);
   const notes = cleanText(req.body.notes);
 
   const client = await pool.connect();
@@ -870,11 +918,12 @@ app.put("/api/students/:id", authenticate, asyncRoute(async (req, res) => {
            class_id = $3,
            roll_number = $4,
            guardian_contact = $5,
-           notes = $6,
+           photo_url = $6,
+           notes = $7,
            updated_at = NOW()
-       WHERE id = $7
+       WHERE id = $8
        RETURNING *`,
-      [fullName, registrationNumber, classId, rollNumber, guardianContact, notes, req.params.id]
+      [fullName, registrationNumber, classId, rollNumber, guardianContact, photoUrl, notes, req.params.id]
     );
     if (!result.rows[0]) throw httpError(404, "Aluno não encontrado.");
     await audit(client, req, "update", "student", req.params.id, result.rows[0]);
