@@ -38,34 +38,36 @@
       </header>
 
       <div class="auth-showcase__content">
-        <p class="eyebrow eyebrow--light">Gestão simples, acervo organizado</p>
-        <h1>A biblioteca inteira na palma da sua mão.</h1>
+        <p class="eyebrow eyebrow--light">Biblioteca escolar, sem burocracia</p>
+        <h1>Clareza para cuidar de cada livro e de cada aluno.</h1>
         <p class="auth-showcase__lead">
-          Transforme o acervo da escola em um espaço mais organizado, acessível e preparado
-          para acompanhar cada leitura, empréstimo e nova descoberta.
+          Um espaço de trabalho direto, acolhedor e confiável para registrar empréstimos,
+          acompanhar prazos e manter o acervo sempre organizado.
         </p>
 
-        <div class="showcase-library showcase-library--covers" aria-hidden="true">
-          <div class="cover-shelf">
-            <article class="cover-book cover-book--main">
-              <span>Literatura brasileira</span>
-              <strong>Dom Casmurro</strong>
-              <small>Machado de Assis</small>
-              <i>Clássico essencial do acervo escolar</i>
-            </article>
-            <div class="cover-shelf__side">
-              <article class="cover-book cover-book--russian">
-                <span>Literatura russa</span>
-                <strong>Crime e Castigo</strong>
-                <small>Fiódor Dostoiévski</small>
-              </article>
-              <article class="cover-book cover-book--brazil">
-                <span>Brasil</span>
-                <strong>Vidas Secas</strong>
-                <small>Graciliano Ramos</small>
-              </article>
+        <div class="showcase-library showcase-library--real-covers" aria-label="Seleção de obras do acervo">
+          <div class="real-cover-collage">
+            <figure class="real-cover real-cover--feature">
+              <img src="assets/covers/dom-casmurro.jpg" alt="Capa de Dom Casmurro">
+              <figcaption><strong>Dom Casmurro</strong><span>Machado de Assis</span></figcaption>
+            </figure>
+            <figure class="real-cover real-cover--crime">
+              <img src="assets/covers/crime-e-castigo.jpg" alt="Capa de Crime e Castigo">
+              <figcaption><strong>Crime e Castigo</strong><span>Fiódor Dostoiévski</span></figcaption>
+            </figure>
+            <figure class="real-cover real-cover--vidas">
+              <img src="assets/covers/vidas-secas.webp" alt="Capa de Vidas Secas">
+              <figcaption><strong>Vidas Secas</strong><span>Graciliano Ramos</span></figcaption>
+            </figure>
+            <figure class="real-cover real-cover--watchmen">
+              <img src="assets/covers/watchmen.jpg" alt="Capa de Watchmen">
+              <figcaption><strong>Watchmen</strong><span>Alan Moore</span></figcaption>
+            </figure>
+            <div class="real-cover-collage__note">
+              <span>Acervo em destaque</span>
+              <strong>Capas reais e catálogo visual</strong>
+              <small>Localize rapidamente a obra certa no balcão.</small>
             </div>
-            <div class="cover-shelf__base"></div>
           </div>
         </div>
 
@@ -303,6 +305,7 @@
               <strong id="topbar-user-name">Usuária</strong>
               <small id="topbar-user-role">Bibliotecária</small>
             </span>
+            <span id="topbar-role-pill" class="topbar-role-pill">Balcão</span>
             <span aria-hidden="true">⌄</span>
           </button>
         </div>
@@ -321,52 +324,68 @@
 
       <div class="workspace">
         <section id="view-dashboard" class="page-view">
-          <section class="librarian-home librarian-only">
-            <div class="librarian-home__intro">
-              <div>
-                <p class="eyebrow eyebrow--light">Balcão da biblioteca</p>
-                <h2 id="librarian-welcome-title">Bom trabalho!</h2>
-                <p id="librarian-welcome-message">Atenda alunos, registre devoluções e acompanhe os prazos.</p>
+          <section class="librarian-home librarian-only librarian-desk">
+            <div class="librarian-desk__welcome">
+              <div class="librarian-desk__copy">
+                <span class="librarian-desk__label">Atendimento de hoje</span>
+                <h2 id="librarian-welcome-title">Olá, bibliotecária.</h2>
+                <p id="librarian-welcome-message">Escolha uma tarefa e siga o atendimento sem telas desnecessárias.</p>
               </div>
-              <div class="librarian-home__actions">
-                <button class="button button--light" data-open-modal="loan-modal" type="button">＋ Emprestar livro</button>
-                <button class="button button--transparent" data-open-modal="return-search-modal" type="button">↩ Registrar devolução</button>
-                <button class="button button--transparent" data-route="pendencias" type="button">! Ver atrasos</button>
+              <div class="librarian-desk__portrait">
+                <span id="librarian-hero-avatar" class="librarian-hero-avatar">B</span>
+                <div><strong id="librarian-hero-name">Bibliotecária</strong><small>Atendimento e circulação</small></div>
               </div>
             </div>
-            <div class="librarian-task-grid">
-              <button class="librarian-task" data-route="emprestimos" type="button">
-                <span>Hoje</span><strong id="librarian-due-today">0</strong><small>devoluções previstas</small>
+
+            <div class="librarian-desk__actions">
+              <button class="desk-action desk-action--primary" data-open-modal="loan-modal" type="button">
+                <span>01</span><div><strong>Registrar empréstimo</strong><small>Aluno, exemplar e prazo.</small></div><i>→</i>
               </button>
-              <button class="librarian-task librarian-task--danger" data-route="pendencias" type="button">
-                <span>Atrasos</span><strong id="librarian-overdue">0</strong><small>precisam de contato</small>
+              <button class="desk-action" data-open-modal="return-search-modal" type="button">
+                <span>02</span><div><strong>Receber devolução</strong><small>Localize por aluno ou livro.</small></div><i>→</i>
               </button>
-              <button class="librarian-task" data-route="reservas" type="button">
-                <span>Reservas</span><strong id="librarian-ready-reservations">0</strong><small>prontas para retirada</small>
+              <button class="desk-action" data-route="pendencias" type="button">
+                <span>03</span><div><strong>Resolver pendências</strong><small>Atrasos e contatos.</small></div><i>→</i>
               </button>
+              <button class="desk-action" data-route="livros" type="button">
+                <span>04</span><div><strong>Consultar acervo</strong><small>Disponibilidade e estante.</small></div><i>→</i>
+              </button>
+            </div>
+
+            <div class="librarian-desk__summary">
+              <button data-route="emprestimos" type="button"><span>Vencem hoje</span><strong id="librarian-due-today">0</strong></button>
+              <button data-route="pendencias" type="button"><span>Em atraso</span><strong id="librarian-overdue">0</strong></button>
+              <button data-route="reservas" type="button"><span>Reservas prontas</span><strong id="librarian-ready-reservations">0</strong></button>
             </div>
           </section>
 
-          <section class="admin-home admin-only">
-            <div class="admin-command__identity">
-              <span id="admin-hero-avatar" class="admin-command__avatar">A</span>
-              <div>
-                <span class="admin-home__badge">ADMINISTRAÇÃO DO SISTEMA</span>
-                <h2 id="admin-welcome-title">Central administrativa</h2>
-                <p id="admin-welcome-message">Controle o acervo, as permissões, os relatórios e a segurança do BookShare.</p>
+          <section class="admin-home admin-only admin-console">
+            <div class="admin-console__main">
+              <div class="admin-console__identity">
+                <span id="admin-hero-avatar" class="admin-console__avatar">A</span>
+                <div>
+                  <span class="admin-console__badge">ACESSO ADMINISTRATIVO</span>
+                  <h2 id="admin-welcome-title">Painel de administração</h2>
+                  <p id="admin-welcome-message">Gerencie acervo, equipe, regras e relatórios em uma área separada do atendimento.</p>
+                  <div class="admin-console__userline">
+                    <strong id="admin-hero-name">Administrador</strong>
+                    <span id="admin-hero-email">admin@bookshare.com</span>
+                  </div>
+                </div>
+              </div>
+              <div class="admin-console__actions">
+                <button class="button button--gold" data-open-modal="book-modal" type="button">＋ Cadastrar livro</button>
+                <button class="button button--transparent" data-route="configuracoes" type="button">Editar perfil</button>
               </div>
             </div>
-            <div class="admin-command__actions">
-              <button class="button button--gold" data-open-modal="book-modal" type="button">＋ Novo livro</button>
-              <button class="button button--transparent" data-route="usuarios" type="button">Usuários e permissões</button>
-            </div>
-            <div class="admin-command-grid">
-              <button data-route="livros" type="button"><span>▤</span><strong>Livros e acervo</strong><small>Títulos, capas e categorias</small></button>
-              <button data-route="exemplares" type="button"><span>▥</span><strong>Exemplares</strong><small>Patrimônio e conservação</small></button>
-              <button data-route="usuarios" type="button"><span>♟</span><strong>Equipe</strong><small>Contas e permissões</small></button>
-              <button data-route="relatorios" type="button"><span>▧</span><strong>Relatórios</strong><small>Indicadores e exportação</small></button>
-              <button data-route="atividades" type="button"><span>↻</span><strong>Auditoria</strong><small>Histórico de ações</small></button>
-              <button data-route="configuracoes" type="button"><span>⚙</span><strong>Configurações</strong><small>Regras e meu perfil</small></button>
+
+            <div class="admin-console__modules">
+              <button data-route="livros" type="button"><span>01</span><div><strong>Acervo</strong><small>Livros, capas e categorias</small></div></button>
+              <button data-route="exemplares" type="button"><span>02</span><div><strong>Patrimônio</strong><small>Exemplares e conservação</small></div></button>
+              <button data-route="usuarios" type="button"><span>03</span><div><strong>Equipe</strong><small>Contas e permissões</small></div></button>
+              <button data-route="relatorios" type="button"><span>04</span><div><strong>Relatórios</strong><small>Indicadores e exportação</small></div></button>
+              <button data-route="atividades" type="button"><span>05</span><div><strong>Auditoria</strong><small>Histórico de alterações</small></div></button>
+              <button data-route="configuracoes" type="button"><span>06</span><div><strong>Regras</strong><small>Prazo, limites e mensagens</small></div></button>
             </div>
           </section>
 
