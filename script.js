@@ -28,7 +28,9 @@ const state = {
   selectedServiceStudent: null,
   selectedNoticeLoan: null,
   loadingRoutes: new Set(),
-  profileAvatarDraft: null
+  profileAvatarDraft: null,
+  bookCoverCache: new Map(),
+  bookCoverRequests: new Map()
 };
 
 const routeMeta = {
@@ -111,6 +113,7 @@ let serviceClockTimer = null;
 window.addEventListener("DOMContentLoaded", initializeApplication);
 
 async function initializeApplication() {
+  initializeBookCoverHydration();
   bindApplicationEvents();
   initializeDates();
   startServiceClock();
@@ -1273,6 +1276,8 @@ function renderBooks() {
       </div>
     </article>
   `).join("");
+
+  hydrateVisibleBookCovers(container);
 }
 
 async function handleSaveBook(event) {
@@ -1427,28 +1432,334 @@ function prepareReservationForBook(id) {
 }
 
 
+const BOOK_COVER_PLACEHOLDER = "assets/covers/book-placeholder.svg";
+
+const LOCAL_BOOK_COVERS = new Map([
+  ["dom casmurro::machado de assis", "assets/covers/dom-casmurro.jpg"],
+  ["crime e castigo::fiodor dostoievski", "assets/covers/crime-e-castigo.jpg"],
+  ["crime e castigo::fiódor dostoiévski", "assets/covers/crime-e-castigo.jpg"],
+  ["vidas secas::graciliano ramos", "assets/covers/vidas-secas.jpg"],
+  ["watchmen::alan moore", "assets/covers/watchmen.jpg"]
+]);
+
+function normalizeCoverValue(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function bookCoverKey(title, author = "") {
+  return `${normalizeCoverValue(title)}::${normalizeCoverValue(author)}`;
+}
+
+function getLocalBookCover(title, author = "") {
+  const exactKey = bookCoverKey(title, author);
+  if (LOCAL_BOOK_COVERS.has(exactKey)) return LOCAL_BOOK_COVERS.get(exactKey);
+
+  const normalizedTitle = normalizeCoverValue(title);
+  for (const [key, value] of LOCAL_BOOK_COVERS.entries()) {
+    if (key.startsWith(`${normalizedTitle}::`)) return value;
+  }
+
+  return "";
+}
+
+function readStoredCoverCache(key) {
+  if (state.bookCoverCache.has(key)) return state.bookCoverCache.get(key);
+
+  try {
+    const cache = JSON.parse(localStorage.getItem("bookshare_google_covers_v1") || "{}");
+    const value = String(cache[key] || "");
+    if (value.startsWith("https://")) {
+      state.bookCoverCache.set(key, value);
+      return value;
+    }
+  } catch (_error) {
+    // Cache inválido é ignorado.
+  }
+
+  return "";
+}
+
+function saveStoredCoverCache(key, value) {
+  state.bookCoverCache.set(key, value);
+
+  try {
+    const cache = JSON.parse(localStorage.getItem("bookshare_google_covers_v1") || "{}");
+    cache[key] = value;
+
+    const entries = Object.entries(cache);
+    const limited = Object.fromEntries(entries.slice(Math.max(0, entries.length - 250)));
+    localStorage.setItem("bookshare_google_covers_v1", JSON.stringify(limited));
+  } catch (_error) {
+    // O catálogo continua funcionando mesmo sem armazenamento local.
+  }
+}
+
 function bookCoverUrl(item) {
   const stored = String(item?.cover_url || "").trim();
 
-  const isUploadedRaster = stored.startsWith("data:image/jpeg") ||
+  const isUploadedRaster =
+    stored.startsWith("data:image/jpeg") ||
     stored.startsWith("data:image/png") ||
     stored.startsWith("data:image/webp");
-  const isExternalRaster = /^https?:\/\//i.test(stored) &&
-    !stored.includes("/assets/covers/") &&
-    !stored.includes("openlibrary.org") &&
-    !stored.includes("books.google.com/books/content");
 
-  if (isUploadedRaster || isExternalRaster) return stored;
+  const isUsableExternal =
+    /^https:\/\//i.test(stored) &&
+    !stored.includes("/api/public/book-cover") &&
+    !stored.includes("data:image/svg+xml");
 
-  const title = encodeURIComponent(item?.title || item?.book_title || "Livro");
-  const author = encodeURIComponent(item?.author || item?.book_author || "");
-  return `${CONFIG.API_BASE_URL}/public/book-cover?title=${title}&author=${author}&v=10`;
+  if (isUploadedRaster || isUsableExternal) return stored;
+
+  const title = item?.title || item?.book_title || "";
+  const author = item?.author || item?.book_author || "";
+
+  const localCover = getLocalBookCover(title, author);
+  if (localCover) return localCover;
+
+  const cachedCover = readStoredCoverCache(bookCoverKey(title, author));
+  return cachedCover || BOOK_COVER_PLACEHOLDER;
 }
 
-function fallbackCoverUrl(item) {
-  const title = encodeURIComponent(item?.title || item?.book_title || "Livro");
-  const author = encodeURIComponent(item?.author || item?.book_author || "Acervo BookShare");
-  return `${CONFIG.API_BASE_URL}/public/book-cover?title=${title}&author=${author}&fallback=1&v=10`;
+function fallbackCoverUrl() {
+  return BOOK_COVER_PLACEHOLDER;
+}
+
+function inferBookFromImage(image) {
+  const card = image.closest(".book-card");
+  if (card) {
+    return {
+      title: card.querySelector("h3")?.textContent?.trim() || "",
+      author: card.querySelector(".book-card__author")?.textContent?.trim() || ""
+    };
+  }
+
+  const tableBook = image.closest(".table-book");
+  if (tableBook) {
+    const secondary = tableBook.querySelector(".table-secondary")?.textContent?.trim() || "";
+    return {
+      title: tableBook.querySelector(".table-primary")?.textContent?.trim() || "",
+      author: secondary.split(" · ")[0] || ""
+    };
+  }
+
+  const popular = image.closest(".popular-item");
+  if (popular) {
+    return {
+      title: popular.querySelector(".popular-item__copy strong")?.textContent?.trim() || "",
+      author: popular.querySelector(".popular-item__copy span")?.textContent?.trim() || ""
+    };
+  }
+
+  const searchResult = image.closest('.search-result-item[data-type="book"]');
+  if (searchResult) {
+    const subtitle = searchResult.querySelector("small")?.textContent?.trim() || "";
+    return {
+      title: searchResult.querySelector("strong")?.textContent?.trim() || "",
+      author: subtitle.split(" · ")[0] || ""
+    };
+  }
+
+  const detail = image.closest(".detail-header-card");
+  if (detail) {
+    const spans = [...detail.querySelectorAll("div > span")];
+    return {
+      title: detail.querySelector("div > strong")?.textContent?.trim() || "",
+      author: spans[0]?.textContent?.trim() || ""
+    };
+  }
+
+  const alt = String(image.alt || "").replace(/^Capa de\s+/i, "").trim();
+  return { title: alt, author: "" };
+}
+
+function findBestGoogleBookItem(items, title, author) {
+  const wantedTitle = normalizeCoverValue(title);
+  const wantedAuthor = normalizeCoverValue(author);
+  const authorWords = wantedAuthor.split(" ").filter(word => word.length > 2);
+
+  return (Array.isArray(items) ? items : [])
+    .filter(item => item?.volumeInfo?.imageLinks && item?.id)
+    .map(item => {
+      const info = item.volumeInfo;
+      const foundTitle = normalizeCoverValue(info.title);
+      const foundAuthor = normalizeCoverValue((info.authors || []).join(" "));
+
+      let score = 0;
+      if (foundTitle === wantedTitle) score += 70;
+      else if (foundTitle.startsWith(wantedTitle)) score += 45;
+      else if (foundTitle.includes(wantedTitle)) score += 30;
+      else if (wantedTitle.includes(foundTitle)) score += 18;
+
+      const matchingAuthorWords = authorWords.filter(word => foundAuthor.includes(word)).length;
+      score += matchingAuthorWords * 10;
+      if (authorWords.length && matchingAuthorWords === authorWords.length) score += 20;
+      if (info.language === "pt") score += 8;
+
+      return { item, score };
+    })
+    .sort((a, b) => b.score - a.score)[0]?.item || null;
+}
+
+async function requestGoogleBookCover(title, author) {
+  const key = bookCoverKey(title, author);
+
+  const localCover = getLocalBookCover(title, author);
+  if (localCover) return localCover;
+
+  const cachedCover = readStoredCoverCache(key);
+  if (cachedCover) return cachedCover;
+
+  if (state.bookCoverRequests.has(key)) return state.bookCoverRequests.get(key);
+
+  const request = (async () => {
+    const queries = [
+      `intitle:"${title}"${author ? ` inauthor:"${author}"` : ""}`,
+      `"${title}"${author ? ` ${author}` : ""}`,
+      title
+    ];
+
+    for (const queryText of queries) {
+      try {
+        const params = new URLSearchParams({
+          q: queryText,
+          maxResults: "12",
+          printType: "books",
+          projection: "full",
+          orderBy: "relevance"
+        });
+
+        const response = await fetch(
+          `https://www.googleapis.com/books/v1/volumes?${params.toString()}`,
+          { headers: { Accept: "application/json" } }
+        );
+
+        if (!response.ok) continue;
+
+        const data = await response.json();
+        const best = findBestGoogleBookItem(data.items, title, author);
+
+        if (best?.id) {
+          const url =
+            `https://books.google.com/books/content?id=${encodeURIComponent(best.id)}` +
+            `&printsec=frontcover&img=1&zoom=2&source=gbs_api`;
+
+          saveStoredCoverCache(key, url);
+          return url;
+        }
+      } catch (_error) {
+        // Tenta a consulta seguinte.
+      }
+    }
+
+    return BOOK_COVER_PLACEHOLDER;
+  })();
+
+  state.bookCoverRequests.set(key, request);
+
+  try {
+    return await request;
+  } finally {
+    state.bookCoverRequests.delete(key);
+  }
+}
+
+function applyResolvedCover(title, author, url) {
+  const targetKey = bookCoverKey(title, author);
+
+  document.querySelectorAll(
+    ".book-card__cover img, .table-book__cover img, .popular-item__cover img, " +
+    '.search-result-item[data-type="book"] img, .detail-header-card .table-book__cover img'
+  ).forEach(image => {
+    const identity = inferBookFromImage(image);
+    if (bookCoverKey(identity.title, identity.author) === targetKey) {
+      image.src = url;
+      image.dataset.coverResolved = "true";
+    }
+  });
+}
+
+async function hydrateBookCoverImage(image) {
+  if (!(image instanceof HTMLImageElement)) return;
+  if (image.dataset.coverLoading === "true" || image.dataset.coverResolved === "true") return;
+
+  const identity = inferBookFromImage(image);
+  if (!identity.title) return;
+
+  const localCover = getLocalBookCover(identity.title, identity.author);
+  if (localCover) {
+    image.src = localCover;
+    image.dataset.coverResolved = "true";
+    return;
+  }
+
+  const currentSource = image.getAttribute("src") || "";
+  if (
+    currentSource &&
+    currentSource !== BOOK_COVER_PLACEHOLDER &&
+    !currentSource.includes("/api/public/book-cover")
+  ) {
+    image.dataset.coverResolved = "true";
+    return;
+  }
+
+  image.dataset.coverLoading = "true";
+
+  const url = await requestGoogleBookCover(identity.title, identity.author);
+  image.dataset.coverLoading = "false";
+
+  if (url && url !== BOOK_COVER_PLACEHOLDER) {
+    applyResolvedCover(identity.title, identity.author, url);
+  }
+}
+
+function hydrateVisibleBookCovers(root = document) {
+  const selector =
+    ".book-card__cover img, .table-book__cover img, .popular-item__cover img, " +
+    '.search-result-item[data-type="book"] img, .detail-header-card .table-book__cover img';
+
+  root.querySelectorAll(selector).forEach(hydrateBookCoverImage);
+}
+
+function initializeBookCoverHydration() {
+  const observer = new MutationObserver(mutations => {
+    for (const mutation of mutations) {
+      for (const node of mutation.addedNodes) {
+        if (!(node instanceof Element)) continue;
+
+        if (node.matches?.("img")) hydrateBookCoverImage(node);
+        hydrateVisibleBookCovers(node);
+      }
+    }
+  });
+
+  observer.observe(document.documentElement, {
+    childList: true,
+    subtree: true
+  });
+
+  window.addEventListener("load", () => hydrateVisibleBookCovers(document));
+
+  document.addEventListener("error", event => {
+    const image = event.target;
+    if (!(image instanceof HTMLImageElement)) return;
+
+    const relevant =
+      image.matches(".book-card__cover img") ||
+      image.matches(".table-book__cover img") ||
+      image.matches(".popular-item__cover img") ||
+      image.closest('.search-result-item[data-type="book"]') ||
+      image.closest(".detail-header-card");
+
+    if (!relevant) return;
+
+    image.src = BOOK_COVER_PLACEHOLDER;
+    image.dataset.coverResolved = "false";
+  }, true);
 }
 
 function studentAvatar(item, className = "") {
