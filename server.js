@@ -27,7 +27,7 @@ const bookCoverSyncState = {
   finishedAt: null
 };
 
-const STATIC_GOOGLE_VOLUME_IDS = new Map(Object.entries({"Dom Casmurro": "qmE0EQAAQBAJ", "Memórias Póstumas de Brás Cubas": "qnyeEAAAQBAJ", "O Cortiço": "vQMREQAAQBAJ", "Vidas Secas": "OiNgEQAAQBAJ", "Capitães da Areia": "FDJ1_r4MCIEC", "Crime e Castigo": "nO2MDwAAQBAJ", "Os Irmãos Karamázov": "8PIuEAAAQBAJ", "Guerra e Paz": "P1Q6DwAAQBAJ", "Anna Kariênina": "vitqBgAAQBAJ", "O Mestre e Margarida": "XU5HEQAAQBAJ", "O Pequeno Príncipe": "_NTSEAAAQBAJ", "Alice no País das Maravilhas": "X5K1EAAAQBAJ", "As Aventuras de Tom Sawyer": "nBg5EAAAQBAJ", "O Mágico de Oz": "59IJ34ms1HQC", "A Ilha do Tesouro": "B9wXEAAAQBAJ", "Mensagem": "0yyBEQAAQBAJ", "Antologia Poética": "0BFXAAAAYAAJ", "Romanceiro da Inconfidência": "POGGDwAAQBAJ", "Os Lusíadas": "19JjCAAAQBAJ", "Laços de Família": "ZxlOA83HZM0C", "Morangos Mofados": "BwyvDwAAQBAJ", "Contos Novos": "kxD9EAAAQBAJ", "Primeiras Estórias": "ZH5rDQAAQBAJ", "O Alienista": "TTUFEQAAQBAJ", "Cosmos": "Cl06FjKX6doC", "O Mundo Assombrado pelos Demônios": "D-tKAgAACAAJ", "A Origem das Espécies": "a4cgEQAAQBAJ", "Primavera Silenciosa": "PV3pDAAAQBAJ", "Breves Respostas para Grandes Questões": "tI9yDwAAQBAJ", "O Gene Egoísta": "GA0v1URr4_QC", "Uma Breve História do Tempo": "igLOOwAACAAJ", "O Universo Numa Casca de Noz": "NXxVCwAAQBAJ", "Sete Breves Lições de Física": "BD0qDwAAQBAJ", "A República": "38n-zwEACAAJ", "Watchmen": "QkK2oAEACAAJ"}).map(([title, id]) => [normalizeSearchText(title), id]));
+const OFFICIAL_EDITIONS = new Map(Object.entries({"Dom Casmurro":{"title":"Dom Casmurro","author":"Machado de Assis","isbn13":null,"googleVolumeId":"qmE0EQAAQBAJ"},"Memórias Póstumas de Brás Cubas":{"title":"Memórias Póstumas de Brás Cubas","author":"Machado de Assis","isbn13":null,"googleVolumeId":"qnyeEAAAQBAJ"},"O Cortiço":{"title":"O Cortiço","author":"Aluísio Azevedo","isbn13":null,"googleVolumeId":"vQMREQAAQBAJ"},"Vidas Secas":{"title":"Vidas Secas","author":"Graciliano Ramos","isbn13":null,"googleVolumeId":"OiNgEQAAQBAJ"},"Capitães da Areia":{"title":"Capitães da Areia","author":"Jorge Amado","isbn13":null,"googleVolumeId":"FDJ1_r4MCIEC"},"Crime e Castigo":{"title":"Crime e Castigo","author":"Fiódor Dostoiévski","isbn13":null,"googleVolumeId":"nO2MDwAAQBAJ"},"Os Irmãos Karamázov":{"title":"Os Irmãos Karamázov","author":"Fiódor Dostoiévski","isbn13":null,"googleVolumeId":"8PIuEAAAQBAJ"},"Guerra e Paz":{"title":"Guerra e Paz","author":"Liev Tolstói","isbn13":null,"googleVolumeId":"P1Q6DwAAQBAJ"},"Anna Kariênina":{"title":"Anna Kariênina","author":"Liev Tolstói","isbn13":null,"googleVolumeId":"vitqBgAAQBAJ"},"O Mestre e Margarida":{"title":"O Mestre e Margarida","author":"Mikhail Bulgákov","isbn13":null,"googleVolumeId":"XU5HEQAAQBAJ"},"O Pequeno Príncipe":{"title":"O Pequeno Príncipe","author":"Antoine de Saint-Exupéry","isbn13":null,"googleVolumeId":"_NTSEAAAQBAJ"},"Alice no País das Maravilhas":{"title":"Alice no País das Maravilhas","author":"Lewis Carroll","isbn13":null,"googleVolumeId":"X5K1EAAAQBAJ"},"As Aventuras de Tom Sawyer":{"title":"As Aventuras de Tom Sawyer","author":"Mark Twain","isbn13":null,"googleVolumeId":"nBg5EAAAQBAJ"},"O Mágico de Oz":{"title":"O Mágico de Oz","author":"L. Frank Baum","isbn13":null,"googleVolumeId":"59IJ34ms1HQC"},"A Ilha do Tesouro":{"title":"A Ilha do Tesouro","author":"Robert Louis Stevenson","isbn13":null,"googleVolumeId":"B9wXEAAAQBAJ"},"Alguma Poesia":{"title":"Alguma Poesia","author":"Carlos Drummond de Andrade","isbn13":"9786555874617","googleVolumeId":null},"Mensagem":{"title":"Mensagem","author":"Fernando Pessoa","isbn13":null,"googleVolumeId":"0yyBEQAAQBAJ"},"Antologia Poética":{"title":"Antologia Poética","author":"Vinicius de Moraes","isbn13":null,"googleVolumeId":"0BFXAAAAYAAJ"},"Romanceiro da Inconfidência":{"title":"Romanceiro da Inconfidência","author":"Cecília Meireles","isbn13":null,"googleVolumeId":"POGGDwAAQBAJ"},"Os Lusíadas":{"title":"Os Lusíadas","author":"Luís de Camões","isbn13":null,"googleVolumeId":"19JjCAAAQBAJ"},"Laços de Família":{"title":"Laços de Família","author":"Clarice Lispector","isbn13":null,"googleVolumeId":"ZxlOA83HZM0C"},"Morangos Mofados":{"title":"Morangos Mofados","author":"Caio Fernando Abreu","isbn13":null,"googleVolumeId":"BwyvDwAAQBAJ"},"Contos Novos":{"title":"Contos Novos","author":"Mário de Andrade","isbn13":null,"googleVolumeId":"kxD9EAAAQBAJ"},"Primeiras Estórias":{"title":"Primeiras Estórias","author":"João Guimarães Rosa","isbn13":null,"googleVolumeId":"ZH5rDQAAQBAJ"},"O Alienista":{"title":"O Alienista","author":"Machado de Assis","isbn13":null,"googleVolumeId":"TTUFEQAAQBAJ"},"Cosmos":{"title":"Cosmos","author":"Carl Sagan","isbn13":null,"googleVolumeId":"Cl06FjKX6doC"},"O Mundo Assombrado pelos Demônios":{"title":"O Mundo Assombrado pelos Demônios","author":"Carl Sagan","isbn13":null,"googleVolumeId":"D-tKAgAACAAJ"},"A Origem das Espécies":{"title":"A Origem das Espécies","author":"Charles Darwin","isbn13":null,"googleVolumeId":"a4cgEQAAQBAJ"},"Primavera Silenciosa":{"title":"Primavera Silenciosa","author":"Rachel Carson","isbn13":null,"googleVolumeId":"PV3pDAAAQBAJ"},"Breves Respostas para Grandes Questões":{"title":"Breves Respostas para Grandes Questões","author":"Stephen Hawking","isbn13":null,"googleVolumeId":"tI9yDwAAQBAJ"},"O Gene Egoísta":{"title":"O Gene Egoísta","author":"Richard Dawkins","isbn13":null,"googleVolumeId":"GA0v1URr4_QC"},"A Dupla Hélice":{"title":"A Dupla Hélice","author":"James D. Watson","isbn13":"9788537811740","googleVolumeId":null},"O Imperador de Todos os Males":{"title":"O Imperador de Todos os Males","author":"Siddhartha Mukherjee","isbn13":"9788535920062","googleVolumeId":null},"A Vida Maravilhosa":{"title":"A Vida Maravilhosa","author":"Stephen Jay Gould","isbn13":"9788571641419","googleVolumeId":null},"A Canção da Célula":{"title":"A Canção da Célula","author":"Siddhartha Mukherjee","isbn13":"9788535934724","googleVolumeId":null},"Uma Breve História do Tempo":{"title":"Uma Breve História do Tempo","author":"Stephen Hawking","isbn13":null,"googleVolumeId":"igLOOwAACAAJ"},"Seis Peças Fáceis":{"title":"Seis Peças Fáceis","author":"Richard Feynman","isbn13":"9788500004797","googleVolumeId":null},"O Universo Numa Casca de Noz":{"title":"O Universo Numa Casca de Noz","author":"Stephen Hawking","isbn13":null,"googleVolumeId":"NXxVCwAAQBAJ"},"Sete Breves Lições de Física":{"title":"Sete Breves Lições de Física","author":"Carlo Rovelli","isbn13":null,"googleVolumeId":"BD0qDwAAQBAJ"},"Física do Impossível":{"title":"Física do Impossível","author":"Michio Kaku","isbn13":"9788532525598","googleVolumeId":null},"A Colher que Desaparece":{"title":"A Colher que Desaparece","author":"Sam Kean","isbn13":"9788537806937","googleVolumeId":null},"Tio Tungstênio":{"title":"Tio Tungstênio","author":"Oliver Sacks","isbn13":"9788535919820","googleVolumeId":null},"Os Botões de Napoleão":{"title":"Os Botões de Napoleão","author":"Penny Le Couteur e Jay Burreson","isbn13":"9788571109247","googleVolumeId":null},"A Tabela Periódica":{"title":"A Tabela Periódica","author":"Primo Levi","isbn13":"9788535941975","googleVolumeId":null},"O Homem que Calculava":{"title":"O Homem que Calculava","author":"Malba Tahan","isbn13":"9786555875911","googleVolumeId":null},"O Último Teorema de Fermat":{"title":"O Último Teorema de Fermat","author":"Simon Singh","isbn13":"9788501923790","googleVolumeId":null},"O Diabo dos Números":{"title":"O Diabo dos Números","author":"Hans Magnus Enzensberger","isbn13":"9788571647183","googleVolumeId":null},"Alex no País dos Números":{"title":"Alex no País dos Números","author":"Alex Bellos","isbn13":"9788535918380","googleVolumeId":null},"A Música dos Números Primos":{"title":"A Música dos Números Primos","author":"Marcus du Sautoy","isbn13":"9788537800379","googleVolumeId":null},"1808":{"title":"1808","author":"Laurentino Gomes","isbn13":"9788576653202","googleVolumeId":null},"1822":{"title":"1822","author":"Laurentino Gomes","isbn13":"9788525060648","googleVolumeId":null},"Brasil: Uma Biografia":{"title":"Brasil: Uma Biografia","author":"Lilia Schwarcz e Heloisa Starling","isbn13":"9788535925661","googleVolumeId":null},"Sapiens":{"title":"Sapiens","author":"Yuval Noah Harari","isbn13":"9786559213016","googleVolumeId":null},"A Era dos Extremos":{"title":"A Era dos Extremos","author":"Eric Hobsbawm","isbn13":"9788571644687","googleVolumeId":null},"Por uma Outra Globalização":{"title":"Por uma Outra Globalização","author":"Milton Santos","isbn13":"9786555871869","googleVolumeId":null},"Geografia da Fome":{"title":"Geografia da Fome","author":"Josué de Castro","isbn13":"9786556923390","googleVolumeId":null},"Prisioneiros da Geografia":{"title":"Prisioneiros da Geografia","author":"Tim Marshall","isbn13":"9788537817575","googleVolumeId":null},"Armas, Germes e Aço":{"title":"Armas, Germes e Aço","author":"Jared Diamond","isbn13":"9788501110015","googleVolumeId":null},"O Poder da Geografia":{"title":"O Poder da Geografia","author":"Tim Marshall","isbn13":"9786559790678","googleVolumeId":null},"A República":{"title":"A República","author":"Platão","isbn13":null,"googleVolumeId":"38n-zwEACAAJ"},"Ética a Nicômaco":{"title":"Ética a Nicômaco","author":"Aristóteles","isbn13":"9788572838818","googleVolumeId":null},"Discurso do Método":{"title":"Discurso do Método","author":"René Descartes","isbn13":"9788525410979","googleVolumeId":null},"O Mundo de Sofia":{"title":"O Mundo de Sofia","author":"Jostein Gaarder","isbn13":"9788535921892","googleVolumeId":null},"Assim Falou Zaratustra":{"title":"Assim Falou Zaratustra","author":"Friedrich Nietzsche","isbn13":"9788535930481","googleVolumeId":null},"A Ética Protestante e o Espírito do Capitalismo":{"title":"A Ética Protestante e o Espírito do Capitalismo","author":"Max Weber","isbn13":"9788572329750","googleVolumeId":null},"As Regras do Método Sociológico":{"title":"As Regras do Método Sociológico","author":"Émile Durkheim","isbn13":"9788572838061","googleVolumeId":null},"Casa-Grande & Senzala":{"title":"Casa-Grande & Senzala","author":"Gilberto Freyre","isbn13":"9788526008694","googleVolumeId":null},"Modernidade Líquida":{"title":"Modernidade Líquida","author":"Zygmunt Bauman","isbn13":"9788571105980","googleVolumeId":null},"O Manifesto Comunista":{"title":"O Manifesto Comunista","author":"Karl Marx e Friedrich Engels","isbn13":"9788563560360","googleVolumeId":null},"A História da Arte":{"title":"A História da Arte","author":"E. H. Gombrich","isbn13":"9788521611851","googleVolumeId":null},"Modos de Ver":{"title":"Modos de Ver","author":"John Berger","isbn13":"9786589733997","googleVolumeId":null},"O Que É Arte?":{"title":"O Que É Arte?","author":"Jorge Coli","isbn13":"9788511010466","googleVolumeId":null},"Poética":{"title":"Poética","author":"Aristóteles","isbn13":"9788573266054","googleVolumeId":null},"A Câmara Clara":{"title":"A Câmara Clara","author":"Roland Barthes","isbn13":"9788520942680","googleVolumeId":null},"Os Inovadores":{"title":"Os Inovadores","author":"Walter Isaacson","isbn13":"9786555601367","googleVolumeId":null},"Código":{"title":"Código","author":"Charles Petzold","isbn13":"9788582606315","googleVolumeId":null},"Código Limpo":{"title":"Código Limpo","author":"Robert C. Martin","isbn13":"9788576082675","googleVolumeId":null},"Algoritmos":{"title":"Algoritmos","author":"Thomas Cormen e colaboradores","isbn13":"9788535236996","googleVolumeId":null},"Inteligência Artificial: Uma Abordagem Moderna":{"title":"Inteligência Artificial: Uma Abordagem Moderna","author":"Stuart Russell e Peter Norvig","isbn13":"9788595158870","googleVolumeId":null},"O Diário de Anne Frank":{"title":"O Diário de Anne Frank","author":"Anne Frank","isbn13":"9788501044457","googleVolumeId":null},"Longa Caminhada até a Liberdade":{"title":"Longa Caminhada até a Liberdade","author":"Nelson Mandela","isbn13":"9786555200737","googleVolumeId":null},"Steve Jobs":{"title":"Steve Jobs","author":"Walter Isaacson","isbn13":"9788535919714","googleVolumeId":null},"Minha História":{"title":"Minha História","author":"Michelle Obama","isbn13":"9788547000646","googleVolumeId":null},"Eu Sou Malala":{"title":"Eu Sou Malala","author":"Malala Yousafzai","isbn13":"9788535923438","googleVolumeId":null},"Maus":{"title":"Maus","author":"Art Spiegelman","isbn13":"9788535906288","googleVolumeId":null},"Persépolis":{"title":"Persépolis","author":"Marjane Satrapi","isbn13":"9788535911626","googleVolumeId":null},"Watchmen":{"title":"Watchmen","author":"Alan Moore e Dave Gibbons","isbn13":null,"googleVolumeId":"QkK2oAEACAAJ"},"Turma da Mônica: Laços":{"title":"Turma da Mônica: Laços","author":"Vitor e Lu Cafaggi","isbn13":"9788565484572","googleVolumeId":null},"Daytripper":{"title":"Daytripper","author":"Fábio Moon e Gabriel Bá","isbn13":"9788573517712","googleVolumeId":null}}).map(([title, edition]) => [normalizeSearchText(title), edition]));
 
 if (JWT_SECRET.length < 24) {
   console.error("JWT_SECRET ausente ou curta. Configure uma chave segura no Render.");
@@ -379,520 +379,230 @@ async function ensureInitialUsers() {
 }
 
 
-function isMissingCoverUrl(value) {
-  const url = String(value || "").trim().toLowerCase();
-
-  return (
-    !url ||
-    url.includes("no_cover") ||
-    url.includes("no-cover") ||
-    url.includes("nocover") ||
-    url.includes("image_not_available") ||
-    url.includes("image-not-available") ||
-    url.includes("googlebooks/images/no_cover") ||
-    url.includes("book-placeholder") ||
-    url.includes("/api/public/book-cover") ||
-    (url.startsWith("data:image/svg+xml") && url.includes("bookshare"))
-  );
+function isDataImage(value) {
+  return /^data:image\/(jpeg|jpg|png|webp);base64,/i.test(String(value || ""));
 }
 
-function isUsableCoverUrl(value) {
-  const url = String(value || "").trim();
-
-  if (isMissingCoverUrl(url)) return false;
-
-  return (
-    url.startsWith("https://") ||
-    url.startsWith("data:image/jpeg") ||
-    url.startsWith("data:image/png") ||
-    url.startsWith("data:image/webp") ||
-    url.startsWith("assets/")
-  );
+function editionForTitle(title) {
+  return OFFICIAL_EDITIONS.get(normalizeSearchText(title)) || null;
 }
 
-function delay(milliseconds) {
-  return new Promise(resolve => setTimeout(resolve, milliseconds));
-}
-
-function rankCandidate(candidate, title, author) {
-  const wantedTitle = normalizeSearchText(title);
-  const wantedAuthor = normalizeSearchText(author || "");
-  const foundTitle = normalizeSearchText(candidate.title || "");
-  const foundAuthor = normalizeSearchText(candidate.author || "");
-  const authorWords = wantedAuthor.split(" ").filter(word => word.length > 2);
-
-  let score = 0;
-
-  if (foundTitle === wantedTitle) score += 120;
-  else if (foundTitle.startsWith(wantedTitle)) score += 75;
-  else if (foundTitle.includes(wantedTitle)) score += 55;
-  else if (wantedTitle.includes(foundTitle)) score += 28;
-
-  const matches = authorWords.filter(word => foundAuthor.includes(word)).length;
-  score += matches * 18;
-
-  if (authorWords.length && matches === authorWords.length) score += 38;
-
-  return score;
-}
-
-async function validateCoverUrl(url) {
-  const normalizedUrl = String(url || "").replace(/^http:/i, "https:");
-
-  if (isMissingCoverUrl(normalizedUrl)) return null;
-
+function dataImageParts(value) {
+  const match = String(value || "").match(/^data:(image\/(?:jpeg|jpg|png|webp));base64,(.+)$/i);
+  if (!match) return null;
   try {
-    const response = await fetch(normalizedUrl, {
-      headers: {
-        "Accept": "image/avif,image/webp,image/apng,image/jpeg,image/png,image/*,*/*;q=0.8",
-        "User-Agent": "Mozilla/5.0 BookShare-Cover-Validator/3.0"
-      },
-      redirect: "follow",
-      signal: AbortSignal.timeout(12000)
-    });
-
-    if (!response.ok) return null;
-
-    const finalUrl = String(response.url || normalizedUrl);
-    const contentType = String(response.headers.get("content-type") || "").toLowerCase();
-
-    if (isMissingCoverUrl(finalUrl)) return null;
-    if (!contentType.startsWith("image/")) return null;
-
-    // O fallback "image not available" do Google costuma ser GIF.
-    if (contentType.includes("gif")) return null;
-
-    const buffer = Buffer.from(await response.arrayBuffer());
-
-    // Capas verdadeiras normalmente passam facilmente desse tamanho.
-    if (buffer.length < 4500) return null;
-
-    return {
-      url: finalUrl,
-      contentType,
-      bytes: buffer.length
-    };
+    return { contentType: match[1].toLowerCase().replace("image/jpg", "image/jpeg"), buffer: Buffer.from(match[2], "base64") };
   } catch (_error) {
     return null;
   }
 }
 
-async function resolveFromOpenLibrary(title, author) {
-  try {
-    const params = new URLSearchParams({
-      title,
-      author: author || "",
-      limit: "30",
-      fields: "cover_i,title,author_name"
-    });
-
-    const response = await fetch(`https://openlibrary.org/search.json?${params.toString()}`, {
-      headers: {
-        "Accept": "application/json",
-        "User-Agent": "BookShare-School-Library/3.0"
-      },
-      signal: AbortSignal.timeout(12000)
-    });
-
-    if (!response.ok) return null;
-
-    const data = await response.json();
-    const candidates = (Array.isArray(data.docs) ? data.docs : [])
-      .filter(item => item.cover_i)
-      .map(item => ({
-        score: rankCandidate(
-          {
-            title: item.title,
-            author: (item.author_name || []).join(" ")
-          },
-          title,
-          author
-        ),
-        url: `https://covers.openlibrary.org/b/id/${item.cover_i}-L.jpg?default=false`
-      }))
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 8);
-
-    for (const candidate of candidates) {
-      if (candidate.score < 30) continue;
-
-      const validated = await validateCoverUrl(candidate.url);
-      if (validated) {
-        return {
-          url: validated.url,
-          source: "Open Library",
-          score: candidate.score
-        };
-      }
+function jpegDimensions(buffer) {
+  if (buffer.length < 24 || buffer[0] !== 0xff || buffer[1] !== 0xd8) return null;
+  let offset = 2;
+  while (offset + 9 < buffer.length) {
+    if (buffer[offset] !== 0xff) { offset += 1; continue; }
+    const marker = buffer[offset + 1];
+    if ([0xc0,0xc1,0xc2,0xc3,0xc5,0xc6,0xc7,0xc9,0xca,0xcb,0xcd,0xce,0xcf].includes(marker)) {
+      return { height: buffer.readUInt16BE(offset + 5), width: buffer.readUInt16BE(offset + 7) };
     }
-  } catch (error) {
-    console.warn(`Open Library cover lookup failed for ${title}:`, error.message);
+    if (marker === 0xd8 || marker === 0xd9) { offset += 2; continue; }
+    const length = buffer.readUInt16BE(offset + 2);
+    if (!length || length < 2) break;
+    offset += 2 + length;
   }
-
   return null;
 }
 
-async function resolveFromGoogleBooks(title, author) {
-  const searches = [
-    `intitle:"${title}"${author ? ` inauthor:"${author}"` : ""}`,
-    `"${title}"${author ? ` ${author}` : ""}`,
-    `${title}${author ? ` ${author}` : ""}`
+function pngDimensions(buffer) {
+  if (buffer.length < 24 || buffer.toString("ascii",1,4) !== "PNG") return null;
+  return { width: buffer.readUInt32BE(16), height: buffer.readUInt32BE(20) };
+}
+
+function imageDimensions(buffer, contentType) {
+  if (contentType.includes("png")) return pngDimensions(buffer);
+  if (contentType.includes("jpeg") || contentType.includes("jpg")) return jpegDimensions(buffer);
+  return null;
+}
+
+async function downloadVerifiedCover(url) {
+  if (!url) return null;
+  const safeUrl = String(url).replace(/^http:/i, "https:").replace("&edge=curl", "");
+  try {
+    const response = await fetch(safeUrl, {
+      redirect: "follow",
+      headers: {
+        "Accept": "image/avif,image/webp,image/jpeg,image/png,image/*,*/*;q=0.8",
+        "User-Agent": "Mozilla/5.0 BookShare-Official-Covers/5.0"
+      },
+      signal: AbortSignal.timeout(15000)
+    });
+    if (!response.ok) return null;
+    const contentType = String(response.headers.get("content-type") || "").split(";")[0].toLowerCase();
+    if (!/^image\/(jpeg|jpg|png|webp)$/.test(contentType)) return null;
+    const buffer = Buffer.from(await response.arrayBuffer());
+    if (buffer.length < 4500 || buffer.length > 2_500_000) return null;
+    const dimensions = imageDimensions(buffer, contentType);
+    if (dimensions && (dimensions.width < 100 || dimensions.height < 140)) return null;
+    return { buffer, contentType: contentType.replace("image/jpg","image/jpeg"), sourceUrl: String(response.url || safeUrl) };
+  } catch (_error) {
+    return null;
+  }
+}
+
+function imageLinksFromVolume(volume) {
+  const links = volume?.volumeInfo?.imageLinks || {};
+  return [links.extraLarge,links.large,links.medium,links.small,links.thumbnail,links.smallThumbnail]
+    .filter(Boolean)
+    .map(url => String(url).replace(/^http:/i,"https:").replace("&edge=curl","").replace("zoom=1","zoom=3"));
+}
+
+async function googleVolume(volumeId) {
+  if (!volumeId) return null;
+  try {
+    const params = new URLSearchParams();
+    if (GOOGLE_BOOKS_API_KEY) params.set("key",GOOGLE_BOOKS_API_KEY);
+    const suffix = params.toString() ? `?${params}` : "";
+    const response = await fetch(`https://www.googleapis.com/books/v1/volumes/${encodeURIComponent(volumeId)}${suffix}`, {
+      headers: { "Accept":"application/json", "User-Agent":"BookShare-Official-Covers/5.0" },
+      signal: AbortSignal.timeout(15000)
+    });
+    if (!response.ok) return null;
+    return await response.json();
+  } catch (_error) { return null; }
+}
+
+async function googleVolumeByIsbn(isbn13) {
+  if (!isbn13) return null;
+  try {
+    const params = new URLSearchParams({ q:`isbn:${isbn13}`, maxResults:"5", projection:"full", printType:"books" });
+    if (GOOGLE_BOOKS_API_KEY) params.set("key",GOOGLE_BOOKS_API_KEY);
+    const response = await fetch(`https://www.googleapis.com/books/v1/volumes?${params}`, {
+      headers: { "Accept":"application/json", "User-Agent":"BookShare-Official-Covers/5.0" },
+      signal: AbortSignal.timeout(15000)
+    });
+    if (!response.ok) return null;
+    const data = await response.json();
+    const normalized = String(isbn13).replace(/\D/g,"");
+    const items = Array.isArray(data.items) ? data.items : [];
+    return items.find(item => (item.volumeInfo?.industryIdentifiers || []).some(id => String(id.identifier).replace(/\D/g,"") === normalized)) || items[0] || null;
+  } catch (_error) { return null; }
+}
+
+async function coverFromGoogleVolume(volume) {
+  if (!volume?.id) return null;
+  const urls = [
+    ...imageLinksFromVolume(volume),
+    `https://books.google.com/books/content?id=${encodeURIComponent(volume.id)}&printsec=frontcover&img=1&zoom=3&source=gbs_api`,
+    `https://books.google.com/books/content?id=${encodeURIComponent(volume.id)}&printsec=frontcover&img=1&zoom=2&source=gbs_api`
   ];
-
-  for (const searchText of searches) {
-    try {
-      const params = new URLSearchParams({
-        q: searchText,
-        maxResults: "30",
-        printType: "books",
-        projection: "full",
-        orderBy: "relevance"
-      });
-
-      if (GOOGLE_BOOKS_API_KEY) {
-        params.set("key", GOOGLE_BOOKS_API_KEY);
-      }
-
-      const response = await fetch(`https://www.googleapis.com/books/v1/volumes?${params.toString()}`, {
-        headers: {
-          "Accept": "application/json",
-          "User-Agent": "BookShare-School-Library/3.0"
-        },
-        signal: AbortSignal.timeout(12000)
-      });
-
-      if (!response.ok) continue;
-
-      const data = await response.json();
-
-      const candidates = (Array.isArray(data.items) ? data.items : [])
-        .map(item => {
-          const info = item.volumeInfo || {};
-          const links = info.imageLinks || {};
-
-          // Só aceita resultados que realmente informam uma imagem.
-          const directUrl =
-            links.extraLarge ||
-            links.large ||
-            links.medium ||
-            links.small ||
-            links.thumbnail ||
-            links.smallThumbnail;
-
-          if (!directUrl) return null;
-
-          const score =
-            rankCandidate(
-              {
-                title: info.title,
-                author: (info.authors || []).join(" ")
-              },
-              title,
-              author
-            ) +
-            (info.language === "pt" ? 10 : 0) +
-            (links.large || links.extraLarge ? 8 : 0);
-
-          return {
-            score,
-            url: String(directUrl)
-              .replace(/^http:/i, "https:")
-              .replace("&edge=curl", "")
-              .replace("zoom=1", "zoom=2")
-          };
-        })
-        .filter(Boolean)
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 10);
-
-      for (const candidate of candidates) {
-        if (candidate.score < 42) continue;
-
-        const validated = await validateCoverUrl(candidate.url);
-        if (validated) {
-          return {
-            url: validated.url,
-            source: "Google Books",
-            score: candidate.score
-          };
-        }
-      }
-    } catch (error) {
-      console.warn(`Google Books cover lookup failed for ${title}:`, error.message);
-    }
+  for (const url of [...new Set(urls)]) {
+    const image = await downloadVerifiedCover(url);
+    if (image) return { ...image, source:"Google Books — edição exata" };
   }
-
   return null;
 }
 
-async function resolveFromLongitood(title, author) {
-  try {
-    const params = new URLSearchParams({
-      book_title: title,
-      author_name: author || "",
-      image_size: "large"
-    });
-
-    const response = await fetch(`https://bookcover.longitood.com/bookcover?${params.toString()}`, {
-      headers: {
-        "Accept": "application/json",
-        "User-Agent": "BookShare-School-Library/3.0"
-      },
-      signal: AbortSignal.timeout(12000)
-    });
-
-    if (!response.ok) return null;
-
-    const data = await response.json();
-    const candidateUrl = String(data.url || "").replace(/^http:/i, "https:");
-
-    const validated = await validateCoverUrl(candidateUrl);
-
-    if (validated) {
-      return {
-        url: validated.url,
-        source: "BookCover",
-        score: 45
-      };
-    }
-  } catch (error) {
-    console.warn(`BookCover lookup failed for ${title}:`, error.message);
+async function coverFromOpenLibraryIsbn(isbn13) {
+  if (!isbn13) return null;
+  for (const size of ["L","M"]) {
+    const image = await downloadVerifiedCover(`https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn13)}-${size}.jpg?default=false`);
+    if (image) return { ...image, source:"Open Library — ISBN exato" };
   }
-
   return null;
 }
 
-async function resolveBookCover(title, author) {
-  const cacheKey = `${normalizeSearchText(title)}::${normalizeSearchText(author || "")}`;
-  const cached = bookCoverCache.get(cacheKey);
+async function resolveOfficialEditionCover(title) {
+  const edition = editionForTitle(title);
+  if (!edition) return null;
+  const cacheKey = normalizeSearchText(title);
+  if (bookCoverCache.has(cacheKey)) return bookCoverCache.get(cacheKey);
 
-  if (cached && !isMissingCoverUrl(cached.url)) return cached;
-
-  // Open Library costuma retornar 404 quando não há capa, evitando placeholders falsos.
-  const result =
-    await resolveFromOpenLibrary(title, author) ||
-    await resolveFromGoogleBooks(title, author) ||
-    await resolveFromLongitood(title, author);
-
-  if (result) {
-    bookCoverCache.set(cacheKey, result);
+  let cover = null;
+  if (edition.isbn13) {
+    const byIsbn = await googleVolumeByIsbn(edition.isbn13);
+    cover = await coverFromGoogleVolume(byIsbn);
+    if (!cover) cover = await coverFromOpenLibraryIsbn(edition.isbn13);
   }
-
-  return result;
+  if (!cover && edition.googleVolumeId) {
+    cover = await coverFromGoogleVolume(await googleVolume(edition.googleVolumeId));
+  }
+  if (cover) {
+    const result = {
+      dataUri:`data:${cover.contentType};base64,${cover.buffer.toString("base64")}`,
+      contentType:cover.contentType,
+      buffer:cover.buffer,
+      source:`${cover.source}${edition.isbn13 ? ` • ISBN ${edition.isbn13}` : ""}`
+    };
+    bookCoverCache.set(cacheKey,result);
+    return result;
+  }
+  return null;
 }
 
-async function repairBrokenCoverUrls() {
-  const result = await pool.query(`
-    UPDATE books
-    SET cover_url = NULL,
-        updated_at = NOW()
-    WHERE cover_url IS NOT NULL
-      AND (
-        LOWER(cover_url) LIKE '%no_cover%'
-        OR LOWER(cover_url) LIKE '%no-cover%'
-        OR LOWER(cover_url) LIKE '%nocover%'
-        OR LOWER(cover_url) LIKE '%image_not_available%'
-        OR LOWER(cover_url) LIKE '%image-not-available%'
-        OR LOWER(cover_url) LIKE '%googlebooks/images/no_cover%'
-        OR LOWER(cover_url) LIKE '%/api/public/book-cover%'
-        OR LOWER(cover_url) LIKE '%book-placeholder%'
-        OR LOWER(cover_url) LIKE 'https://books.google.com/books/content?id=%'
-      )
-    RETURNING id
-  `);
-
-  console.log(`Links de capa quebrados limpos: ${result.rowCount}.`);
-}
+function delay(milliseconds) { return new Promise(resolve => setTimeout(resolve,milliseconds)); }
 
 async function syncBookCovers({ force = false } = {}) {
   if (bookCoverSyncState.running) return bookCoverSyncState;
-
-  bookCoverSyncState.running = true;
-  bookCoverSyncState.processed = 0;
-  bookCoverSyncState.updated = 0;
-  bookCoverSyncState.failed = 0;
-  bookCoverSyncState.startedAt = new Date().toISOString();
-  bookCoverSyncState.finishedAt = null;
-
+  bookCoverSyncState.running=true;
+  Object.assign(bookCoverSyncState,{total:0,processed:0,updated:0,failed:0,startedAt:new Date().toISOString(),finishedAt:null,currentTitle:null});
   try {
-    const result = await pool.query(`
-      SELECT id, title, author, isbn, cover_url
-      FROM books
-      WHERE active = TRUE
-      ORDER BY title ASC
-    `);
-
-    const targets = result.rows.filter(book => {
-      const current = String(book.cover_url || "");
-
-      // Preserva fotos enviadas manualmente e arquivos locais.
-      if (
-        current.startsWith("data:image/jpeg") ||
-        current.startsWith("data:image/png") ||
-        current.startsWith("data:image/webp") ||
-        current.startsWith("assets/")
-      ) {
-        return false;
-      }
-
-      return force || !isUsableCoverUrl(current);
+    const result = await pool.query(`SELECT id,title,author,cover_url,cover_source FROM books WHERE active=TRUE ORDER BY title`);
+    const targets=result.rows.filter(book => {
+      if (!editionForTitle(book.title)) return false;
+      if (book.cover_source === "manual-upload") return false;
+      return force || book.cover_source !== "official-edition-v21" || !isDataImage(book.cover_url);
     });
-
-    bookCoverSyncState.total = targets.length;
-
-    for (const book of targets) {
-      try {
-        if (String(book.author || "").includes("BookShare")) {
-          bookCoverSyncState.processed += 1;
-          continue;
-        }
-
-        const resolved = await resolveBookCover(book.title, book.author);
-
-        if (resolved?.url) {
-          await pool.query(
-            `UPDATE books
-             SET cover_url = $1,
-                 cover_source = $2,
-                 cover_checked_at = NOW(),
-                 updated_at = NOW()
-             WHERE id = $3`,
-            [resolved.url, resolved.source, book.id]
-          );
-
-          bookCoverSyncState.updated += 1;
-        } else {
-          await pool.query(
-            `UPDATE books
-             SET cover_url = NULL,
-                 cover_source = 'not-found',
-                 cover_checked_at = NOW(),
-                 updated_at = NOW()
-             WHERE id = $1`,
-            [book.id]
-          );
-
-          bookCoverSyncState.failed += 1;
-        }
-      } catch (error) {
-        bookCoverSyncState.failed += 1;
-        console.warn(`Cover sync failed for ${book.title}:`, error.message);
-      } finally {
-        bookCoverSyncState.processed += 1;
+    bookCoverSyncState.total=targets.length;
+    let cursor=0;
+    const worker=async()=>{
+      while (cursor<targets.length) {
+        const book=targets[cursor++];
+        bookCoverSyncState.currentTitle=book.title;
+        try {
+          const cover=await resolveOfficialEditionCover(book.title);
+          if (cover) {
+            await pool.query(`UPDATE books SET cover_url=$1,cover_source='official-edition-v21',cover_checked_at=NOW(),updated_at=NOW() WHERE id=$2`,[cover.dataUri,book.id]);
+            bookCoverSyncState.updated+=1;
+          } else {
+            await pool.query(`UPDATE books SET cover_source='official-not-found',cover_checked_at=NOW(),updated_at=NOW() WHERE id=$1`,[book.id]);
+            bookCoverSyncState.failed+=1;
+          }
+        } catch (error) {
+          bookCoverSyncState.failed+=1;
+          console.warn(`Official cover failed for ${book.title}:`,error.message);
+        } finally { bookCoverSyncState.processed+=1; await delay(100); }
       }
-
-      await delay(120);
-    }
+    };
+    await Promise.all([worker(),worker(),worker()]);
   } finally {
-    bookCoverSyncState.running = false;
-    bookCoverSyncState.finishedAt = new Date().toISOString();
-    console.log("Book cover sync finished:", bookCoverSyncState);
+    bookCoverSyncState.running=false; bookCoverSyncState.currentTitle=null; bookCoverSyncState.finishedAt=new Date().toISOString();
+    console.log("Official cover sync finished:",bookCoverSyncState);
   }
-
   return bookCoverSyncState;
 }
 
-app.get("/", (_req, res) => {
-  res.json({
-    name: "BookShare API",
-    version: "3.0.0",
-    status: "online",
-    timestamp: new Date().toISOString()
-  });
-});
-
-
 app.get("/api/public/book-cover", asyncRoute(async (req, res) => {
-  const title = requiredText(req.query.title, "o título", 180);
-  const author = cleanText(req.query.author, 160) || "";
-
-  const databaseBook = await pool.query(`
-    SELECT id, title, author, cover_url
-    FROM books
-    WHERE LOWER(title) = LOWER($1)
-    ORDER BY CASE WHEN LOWER(author) = LOWER($2) THEN 0 ELSE 1 END
-    LIMIT 1
-  `, [title, author]);
-
-  const book = databaseBook.rows[0];
-
-  async function sendValidatedImage(imageUrl, sourceName) {
-    const validated = await validateCoverUrl(imageUrl);
-    if (!validated) return false;
-
-    const response = await fetch(validated.url, {
-      headers: {
-        "Accept": "image/avif,image/webp,image/jpeg,image/png,image/*,*/*;q=0.8",
-        "User-Agent": "Mozilla/5.0 BookShare-Image-Proxy/3.0"
-      },
-      signal: AbortSignal.timeout(12000)
-    });
-
-    if (!response.ok) return false;
-
-    const contentType = response.headers.get("content-type") || "image/jpeg";
-    const buffer = Buffer.from(await response.arrayBuffer());
-
-    if (buffer.length < 4500) return false;
-
-    res.set("Content-Type", contentType);
-    res.set("Cache-Control", "public, max-age=604800, stale-while-revalidate=86400");
-    res.set("X-Book-Cover-Source", sourceName);
-    res.set("Access-Control-Allow-Origin", "*");
-    res.send(buffer);
-    return true;
-  }
-
-  if (book && isUsableCoverUrl(book.cover_url)) {
-    const sent = await sendValidatedImage(book.cover_url, "database");
-
-    if (sent) return;
-
-    await pool.query(
-      `UPDATE books
-       SET cover_url = NULL,
-           cover_source = 'broken',
-           cover_checked_at = NOW(),
-           updated_at = NOW()
-       WHERE id = $1`,
-      [book.id]
-    );
-  }
-
-  const resolved = await resolveBookCover(book?.title || title, book?.author || author);
-
-  if (resolved?.url) {
-    if (book?.id) {
-      await pool.query(
-        `UPDATE books
-         SET cover_url = $1,
-             cover_source = $2,
-             cover_checked_at = NOW(),
-             updated_at = NOW()
-         WHERE id = $3`,
-        [resolved.url, resolved.source, book.id]
-      );
+  const title=requiredText(req.query.title,"o título",180);
+  const bookResult=await pool.query(`SELECT id,title,cover_url,cover_source FROM books WHERE LOWER(title)=LOWER($1) LIMIT 1`,[title]);
+  const book=bookResult.rows[0];
+  let parts=dataImageParts(book?.cover_url);
+  if (!parts && editionForTitle(book?.title || title)) {
+    const cover=await resolveOfficialEditionCover(book?.title || title);
+    if (cover) {
+      parts={contentType:cover.contentType,buffer:cover.buffer};
+      if (book?.id) await pool.query(`UPDATE books SET cover_url=$1,cover_source='official-edition-v21',cover_checked_at=NOW(),updated_at=NOW() WHERE id=$2`,[cover.dataUri,book.id]);
     }
-
-    const sent = await sendValidatedImage(resolved.url, resolved.source);
-    if (sent) return;
   }
-
-  // Placeholder próprio, sem “image not available”.
-  res.set("Content-Type", "image/svg+xml; charset=utf-8");
-  res.set("Cache-Control", "public, max-age=3600");
-  res.send(`
-    <svg xmlns="http://www.w3.org/2000/svg" width="420" height="640" viewBox="0 0 420 640">
-      <rect width="420" height="640" rx="28" fill="#f2efe7"/>
-      <rect x="62" y="72" width="296" height="496" rx="22" fill="#ffffff" stroke="#d7d2c7" stroke-width="5"/>
-      <path d="M132 204c40-22 78-19 78-19v246s-38-4-78 18V204Zm156 0c-40-22-78-19-78-19v246s38-4 78 18V204Z"
-            fill="#dcebe6" stroke="#176b63" stroke-width="8" stroke-linejoin="round"/>
-      <path d="M210 186v246" stroke="#176b63" stroke-width="8" stroke-linecap="round"/>
-      <text x="210" y="520" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" fill="#66736f">
-        Capa não encontrada
-      </text>
-    </svg>
-  `);
+  if (parts) {
+    res.set("Content-Type",parts.contentType);
+    res.set("Cache-Control","public,max-age=2592000,immutable");
+    res.set("Access-Control-Allow-Origin","*");
+    return res.send(parts.buffer);
+  }
+  res.set("Content-Type","image/svg+xml; charset=utf-8");
+  res.set("Cache-Control","public,max-age=600");
+  return res.send(`<svg xmlns="http://www.w3.org/2000/svg" width="420" height="640"><rect width="420" height="640" rx="28" fill="#f4f1e9"/><path d="M110 190c55-24 100-10 100-10v250s-45-12-100 12V190Zm200 0c-55-24-100-10-100-10v250s45-12 100 12V190Z" fill="#dcebe6" stroke="#176b63" stroke-width="9"/><path d="M210 180v250" stroke="#176b63" stroke-width="9"/><text x="210" y="520" text-anchor="middle" font-family="Arial" font-size="22" fill="#66736f">Capa sendo sincronizada</text></svg>`);
 }));
 
 app.get("/api/public/book-covers/status", (_req, res) => {
@@ -1632,10 +1342,10 @@ app.post("/api/books", authenticate, requireRole("admin"), asyncRoute(async (req
     await client.query("BEGIN");
     const result = await client.query(
       `INSERT INTO books
-        (title, author, isbn, publisher, publication_year, category_id, shelf, description, cover_url)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        (title, author, isbn, publisher, publication_year, category_id, shelf, description, cover_url, cover_source)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        RETURNING *`,
-      [title, author, isbn, publisher, publicationYear, categoryId, shelf, description, coverUrl]
+      [title, author, isbn, publisher, publicationYear, categoryId, shelf, description, coverUrl, coverUrl ? "manual-upload" : null]
     );
 
     const book = result.rows[0];
@@ -1694,10 +1404,12 @@ app.put("/api/books/:id", authenticate, requireRole("admin"), asyncRoute(async (
            shelf = $7,
            description = $8,
            cover_url = $9,
+           cover_source = $10,
+           cover_checked_at = CASE WHEN $9 IS NULL THEN cover_checked_at ELSE NOW() END,
            updated_at = NOW()
-       WHERE id = $10
+       WHERE id = $11
        RETURNING *`,
-      [title, author, isbn, publisher, publicationYear, categoryId, shelf, description, coverUrl, req.params.id]
+      [title, author, isbn, publisher, publicationYear, categoryId, shelf, description, coverUrl, coverUrl ? "manual-upload" : null, req.params.id]
     );
 
     if (!result.rows[0]) throw httpError(404, "Livro não encontrado.");
@@ -2728,14 +2440,13 @@ async function start() {
     await pool.query("SELECT 1");
     await ensureRuntimeSchema();
     await ensureInitialUsers();
-    await repairBrokenCoverUrls();
 
     app.listen(PORT, () => {
-      console.log(`BookShare API 3.0 online na porta ${PORT}.`);
+      console.log(`BookShare API 5.0 online na porta ${PORT}.`);
 
       setTimeout(() => {
-        syncBookCovers({ force: true })
-          .catch(error => console.error("Initial validated cover sync failed:", error));
+        syncBookCovers({ force: false })
+          .catch(error => console.error("Initial official cover sync failed:", error));
       }, 2500);
     });
   } catch (error) {
