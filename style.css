@@ -5618,3 +5618,18 @@ body { background: #f2f1ed; color: var(--v8-ink); }
   .admin-console__actions .button { width: 100%; }
   .topbar-role-pill { display: none; }
 }
+
+
+/* Ajustes V9: painel enxuto, perfil e capas */
+.role-librarian .dashboard-layout { grid-template-columns: 1fr; }
+.role-librarian .panel--attention-list { grid-column: 1 / -1; min-height: 260px; }
+.librarian-desk__portrait { appearance:none; border:1px solid rgba(255,255,255,.18); cursor:pointer; color:inherit; font:inherit; text-align:left; }
+.librarian-desk__portrait:hover { transform:translateY(-2px); background:rgba(255,255,255,.11); }
+.librarian-desk__portrait:focus-visible { outline:3px solid rgba(255,255,255,.32); outline-offset:3px; }
+.book-card__cover img, .table-book__cover img, .popular-item__cover img, .real-cover img { background:#eef2ef; object-fit:cover; }
+.book-card__cover img { width:100%; height:100%; display:block; }
+.real-cover img { width:100%; height:100%; display:block; object-fit:cover; }
+.role-librarian #view-configuracoes .settings-layout { grid-template-columns:1fr; max-width:880px; margin-inline:auto; }
+.role-librarian #view-configuracoes .settings-menu { display:none; }
+.role-librarian #settings-form { border-radius:28px; padding:28px; }
+.role-librarian #settings-account { display:block !important; }
