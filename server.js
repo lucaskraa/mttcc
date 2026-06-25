@@ -306,6 +306,26 @@ async function createInventoryCodes(client, bookId, quantity, acquiredAt = null,
   return copies;
 }
 
+
+async function ensureRuntimeSchema() {
+  const migrations = [
+    `ALTER TABLE IF EXISTS users
+       ADD COLUMN IF NOT EXISTS avatar_url TEXT`,
+    `ALTER TABLE IF EXISTS students
+       ADD COLUMN IF NOT EXISTS photo_url TEXT`,
+    `ALTER TABLE IF EXISTS books
+       ADD COLUMN IF NOT EXISTS cover_url TEXT`,
+    `ALTER TABLE IF EXISTS books
+       ADD COLUMN IF NOT EXISTS cover_source TEXT`,
+    `ALTER TABLE IF EXISTS books
+       ADD COLUMN IF NOT EXISTS cover_checked_at TIMESTAMPTZ`
+  ];
+
+  for (const statement of migrations) {
+    await pool.query(statement);
+  }
+}
+
 async function ensureInitialUsers() {
   const accounts = [
     {
@@ -551,7 +571,7 @@ async function syncBookCovers({ force = false } = {}) {
 app.get("/", (_req, res) => {
   res.json({
     name: "BookShare API",
-    version: "2.6.0",
+    version: "2.7.0",
     status: "online",
     timestamp: new Date().toISOString()
   });
@@ -2421,9 +2441,10 @@ app.use((error, _req, res, _next) => {
 async function start() {
   try {
     await pool.query("SELECT 1");
+    await ensureRuntimeSchema();
     await ensureInitialUsers();
     app.listen(PORT, () => {
-      console.log(`BookShare API 2.6 online na porta ${PORT}.`);
+      console.log(`BookShare API 2.7 online na porta ${PORT}.`);
       setTimeout(() => {
         syncBookCovers().catch(error => console.error("Initial cover sync failed:", error));
       }, 2500);
