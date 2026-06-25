@@ -35,48 +35,56 @@
             <small>Biblioteca escolar</small>
           </span>
         </a>
-        <span class="auth-status">
-          <i></i>
-          Sistema interno
-        </span>
       </header>
 
       <div class="auth-showcase__content">
         <p class="eyebrow eyebrow--light">Gestão simples, acervo organizado</p>
         <h1>A biblioteca inteira na palma da sua mão.</h1>
         <p class="auth-showcase__lead">
-          Controle alunos, turmas, livros, exemplares, empréstimos, reservas e atrasos
-          em uma interface feita para o dia a dia da escola.
+          Transforme o acervo da escola em um espaço mais organizado, acessível e preparado
+          para acompanhar cada leitura, empréstimo e nova descoberta.
         </p>
 
-        <div class="showcase-dashboard" aria-hidden="true">
-          <div class="showcase-dashboard__top">
-            <span class="showcase-dot"></span>
-            <span class="showcase-dot"></span>
-            <span class="showcase-dot"></span>
-          </div>
-          <div class="showcase-dashboard__body">
-            <aside class="showcase-sidebar">
-              <span class="showcase-logo"></span>
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
-            </aside>
-            <div class="showcase-content">
-              <div class="showcase-title"></div>
-              <div class="showcase-metrics">
-                <span></span>
-                <span></span>
-                <span></span>
+        <div class="showcase-library" aria-hidden="true">
+          <div class="library-scene">
+            <div class="library-scene__wall">
+              <span class="library-picture library-picture--one"></span>
+              <span class="library-picture library-picture--two"></span>
+            </div>
+
+            <div class="library-shelf library-shelf--top">
+              <div class="library-book library-book--green library-book--tall"></div>
+              <div class="library-book library-book--cream"></div>
+              <div class="library-book library-book--blue library-book--short"></div>
+              <div class="library-book library-book--gold library-book--tall"></div>
+              <div class="library-book library-book--rose"></div>
+              <div class="library-book library-book--mint library-book--short"></div>
+              <div class="library-book library-book--navy library-book--tall"></div>
+              <span class="library-bookend"></span>
+            </div>
+
+            <div class="library-shelf library-shelf--middle">
+              <span class="library-bookend library-bookend--left"></span>
+              <div class="library-book library-book--gold library-book--short"></div>
+              <div class="library-book library-book--navy"></div>
+              <div class="library-book library-book--mint library-book--tall"></div>
+              <div class="library-book library-book--cream library-book--short"></div>
+              <div class="library-book library-book--rose library-book--tall"></div>
+              <div class="library-book library-book--green"></div>
+            </div>
+
+            <div class="library-desk">
+              <div class="library-stack">
+                <span></span><span></span><span></span>
               </div>
-              <div class="showcase-main">
-                <div class="showcase-chart">
-                  <i></i><i></i><i></i><i></i><i></i><i></i>
-                </div>
-                <div class="showcase-list">
-                  <span></span><span></span><span></span><span></span>
-                </div>
+              <div class="open-book">
+                <span class="open-book__page open-book__page--left"></span>
+                <span class="open-book__page open-book__page--right"></span>
+                <i></i>
+              </div>
+              <div class="library-plant">
+                <span></span><span></span><span></span>
+                <i></i>
               </div>
             </div>
           </div>
@@ -84,21 +92,27 @@
 
         <div class="auth-benefits">
           <article>
-            <span class="auth-benefits__icon">01</span>
+            <span class="auth-benefits__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M4 6.5h10a3 3 0 0 1 3 3V18H7a3 3 0 0 0-3 3V6.5Z"/><path d="M17 9.5h1a2 2 0 0 1 2 2V18h-3"/><path d="M7 10h6M7 13h5"/></svg>
+            </span>
             <div>
               <strong>Empréstimos sem confusão</strong>
               <p>O sistema escolhe o exemplar disponível e atualiza o acervo.</p>
             </div>
           </article>
           <article>
-            <span class="auth-benefits__icon">02</span>
+            <span class="auth-benefits__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/><path d="M18.5 5.5 20 4"/></svg>
+            </span>
             <div>
               <strong>Atrasos visíveis</strong>
               <p>Acompanhe dias de atraso, contatos e histórico de cobrança.</p>
             </div>
           </article>
           <article>
-            <span class="auth-benefits__icon">03</span>
+            <span class="auth-benefits__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="12" height="14" rx="2"/><rect x="17" y="8" width="4" height="8" rx="1"/><path d="M7 16h4M6 9h6"/></svg>
+            </span>
             <div>
               <strong>Funciona em qualquer tela</strong>
               <p>Computador, tablet e celular com a mesma organização.</p>
@@ -109,7 +123,7 @@
 
       <footer class="auth-showcase__footer">
         <span>BookShare © 2026</span>
-        <span>Dados protegidos pelo servidor da escola</span>
+        <span>Organização que acompanha cada história</span>
       </footer>
     </div>
 
@@ -171,11 +185,6 @@
         <div class="login-help">
           <span>Primeiro acesso ou esqueceu a senha?</span>
           <p>Solicite ao administrador da escola a criação ou redefinição da conta.</p>
-        </div>
-
-        <div class="server-status" id="server-status">
-          <span class="server-status__dot"></span>
-          <span>Verificando conexão com o servidor...</span>
         </div>
       </form>
     </div>
