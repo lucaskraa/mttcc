@@ -349,7 +349,7 @@ async function ensureInitialUsers() {
 app.get("/", (_req, res) => {
   res.json({
     name: "BookShare API",
-    version: "2.4.0",
+    version: "2.5.0",
     status: "online",
     timestamp: new Date().toISOString()
   });
@@ -362,12 +362,52 @@ app.get("/api/public/book-cover", asyncRoute(async (req, res) => {
 
   if (!title) throw httpError(400, "Título não informado.");
 
-  const cacheKey = `${title.toLowerCase()}::${String(author || "").toLowerCase()}`;
-  const cachedUrl = bookCoverCache.get(cacheKey);
+  const cacheKey = `${normalizeSearchText(title)}::${normalizeSearchText(author || "")}`;
+  const cached = bookCoverCache.get(cacheKey);
 
-  if (typeof cachedUrl === "string" && cachedUrl.startsWith("http")) {
+  async function deliverImage(imageUrl, sourceName) {
+    if (!imageUrl) return false;
+
+    const safeUrl = String(imageUrl)
+      .replace(/^http:/i, "https:")
+      .replace("&edge=curl", "");
+
+    try {
+      const imageResponse = await fetch(safeUrl, {
+        headers: {
+          "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+          "User-Agent": "Mozilla/5.0 BookShare/2.5"
+        },
+        signal: AbortSignal.timeout(12000)
+      });
+
+      if (imageResponse.ok) {
+        const contentType = imageResponse.headers.get("content-type") || "";
+
+        if (contentType.startsWith("image/")) {
+          const buffer = Buffer.from(await imageResponse.arrayBuffer());
+
+          res.set("Content-Type", contentType);
+          res.set("Cache-Control", "public, max-age=604800, stale-while-revalidate=86400");
+          res.set("X-Book-Cover-Source", sourceName);
+          res.set("Access-Control-Allow-Origin", "*");
+          res.send(buffer);
+          return true;
+        }
+      }
+    } catch (error) {
+      console.warn(`Falha ao baixar capa de ${sourceName}:`, error.message);
+    }
+
     res.set("Cache-Control", "public, max-age=86400");
-    return res.redirect(302, cachedUrl);
+    res.set("X-Book-Cover-Source", `${sourceName} redirect`);
+    res.redirect(302, safeUrl);
+    return true;
+  }
+
+  if (cached?.url) {
+    const delivered = await deliverImage(cached.url, cached.source || "cache");
+    if (delivered) return;
   }
 
   const normalizedTitle = normalizeSearchText(title);
@@ -376,27 +416,9 @@ app.get("/api/public/book-cover", asyncRoute(async (req, res) => {
 
   function rankGoogleItem(item) {
     const info = item?.volumeInfo || {};
-    const itemTitle = normalizeSearchText(info.title || "");
-    const itemAuthors = normalizeSearchText((info.authors || []).join(" "));
-    const links = info.imageLinks;
-
-    if (!links) return null;
-
-    let score = 0;
-
-    if (itemTitle === normalizedTitle) score += 40;
-    else if (itemTitle.startsWith(normalizedTitle)) score += 24;
-    else if (itemTitle.includes(normalizedTitle)) score += 18;
-    else if (normalizedTitle.includes(itemTitle)) score += 10;
-
-    if (authorWords.length) {
-      const matchingWords = authorWords.filter(word => itemAuthors.includes(word)).length;
-      score += matchingWords * 7;
-      if (matchingWords === authorWords.length) score += 12;
-    }
-
-    if (info.language === "pt") score += 6;
-    if (Array.isArray(info.industryIdentifiers) && info.industryIdentifiers.length) score += 2;
+    const foundTitle = normalizeSearchText(info.title || "");
+    const foundAuthors = normalizeSearchText((info.authors || []).join(" "));
+    const links = info.imageLinks || {};
 
     const imageUrl =
       links.extraLarge ||
@@ -408,9 +430,23 @@ app.get("/api/public/book-cover", asyncRoute(async (req, res) => {
 
     if (!imageUrl) return null;
 
+    let score = 0;
+
+    if (foundTitle === normalizedTitle) score += 100;
+    else if (foundTitle.startsWith(normalizedTitle)) score += 65;
+    else if (foundTitle.includes(normalizedTitle)) score += 48;
+    else if (normalizedTitle.includes(foundTitle)) score += 28;
+
+    const authorMatches = authorWords.filter(word => foundAuthors.includes(word)).length;
+    score += authorMatches * 16;
+
+    if (authorWords.length && authorMatches === authorWords.length) score += 35;
+    if (info.language === "pt") score += 12;
+    if (links.large || links.extraLarge) score += 8;
+
     return {
       score,
-      imageUrl: String(imageUrl)
+      url: String(imageUrl)
         .replace(/^http:/i, "https:")
         .replace("zoom=1", "zoom=2")
         .replace("&edge=curl", "")
@@ -418,31 +454,34 @@ app.get("/api/public/book-cover", asyncRoute(async (req, res) => {
   }
 
   const googleQueries = [
-    `"${title}"${author ? ` inauthor:"${author}"` : ""}`,
     `intitle:"${title}"${author ? ` inauthor:"${author}"` : ""}`,
+    `"${title}"${author ? ` ${author}` : ""}`,
     `${title}${author ? ` ${author}` : ""}`,
-    `"${title}"`
+    title
   ];
 
-  let bestGoogleCover = null;
+  let bestGoogle = null;
 
-  for (const searchQuery of googleQueries) {
+  for (const searchText of googleQueries) {
     try {
-      const query = new URLSearchParams({
-        q: searchQuery,
+      const params = new URLSearchParams({
+        q: searchText,
         maxResults: "20",
         printType: "books",
         projection: "full",
         orderBy: "relevance"
       });
 
-      const response = await fetch(`https://www.googleapis.com/books/v1/volumes?${query.toString()}`, {
-        headers: {
-          "Accept": "application/json",
-          "User-Agent": "BookShare-School-Library/2.4"
-        },
-        signal: AbortSignal.timeout(12000)
-      });
+      const response = await fetch(
+        `https://www.googleapis.com/books/v1/volumes?${params.toString()}`,
+        {
+          headers: {
+            "Accept": "application/json",
+            "User-Agent": "BookShare-School-Library/2.5"
+          },
+          signal: AbortSignal.timeout(12000)
+        }
+      );
 
       if (!response.ok) continue;
 
@@ -452,40 +491,44 @@ app.get("/api/public/book-cover", asyncRoute(async (req, res) => {
         .filter(Boolean)
         .sort((a, b) => b.score - a.score);
 
-      if (ranked[0] && (!bestGoogleCover || ranked[0].score > bestGoogleCover.score)) {
-        bestGoogleCover = ranked[0];
+      if (ranked[0] && (!bestGoogle || ranked[0].score > bestGoogle.score)) {
+        bestGoogle = ranked[0];
       }
 
-      if (bestGoogleCover?.score >= 45) break;
+      if (bestGoogle?.score >= 110) break;
     } catch (error) {
       console.warn(`Google Books falhou para "${title}":`, error.message);
     }
   }
 
-  if (bestGoogleCover?.imageUrl) {
-    if (bookCoverCache.size > 500) bookCoverCache.clear();
-    bookCoverCache.set(cacheKey, bestGoogleCover.imageUrl);
+  if (bestGoogle?.url) {
+    bookCoverCache.set(cacheKey, {
+      url: bestGoogle.url,
+      source: "Google Books"
+    });
 
-    res.set("X-Book-Cover-Source", "Google Books");
-    res.set("Cache-Control", "public, max-age=86400");
-    return res.redirect(302, bestGoogleCover.imageUrl);
+    const delivered = await deliverImage(bestGoogle.url, "Google Books");
+    if (delivered) return;
   }
 
   try {
-    const query = new URLSearchParams({
+    const params = new URLSearchParams({
       title,
       author: author || "",
-      limit: "20",
+      limit: "30",
       fields: "cover_i,title,author_name"
     });
 
-    const response = await fetch(`https://openlibrary.org/search.json?${query.toString()}`, {
-      headers: {
-        "Accept": "application/json",
-        "User-Agent": "BookShare-School-Library/2.4"
-      },
-      signal: AbortSignal.timeout(12000)
-    });
+    const response = await fetch(
+      `https://openlibrary.org/search.json?${params.toString()}`,
+      {
+        headers: {
+          "Accept": "application/json",
+          "User-Agent": "BookShare-School-Library/2.5"
+        },
+        signal: AbortSignal.timeout(12000)
+      }
+    );
 
     if (response.ok) {
       const data = await response.json();
@@ -493,38 +536,42 @@ app.get("/api/public/book-cover", asyncRoute(async (req, res) => {
       const ranked = (Array.isArray(data.docs) ? data.docs : [])
         .filter(item => item.cover_i)
         .map(item => {
-          const itemTitle = normalizeSearchText(item.title || "");
-          const itemAuthors = normalizeSearchText((item.author_name || []).join(" "));
+          const foundTitle = normalizeSearchText(item.title || "");
+          const foundAuthors = normalizeSearchText((item.author_name || []).join(" "));
+
           let score = 0;
 
-          if (itemTitle === normalizedTitle) score += 30;
-          else if (itemTitle.includes(normalizedTitle)) score += 15;
+          if (foundTitle === normalizedTitle) score += 90;
+          else if (foundTitle.startsWith(normalizedTitle)) score += 55;
+          else if (foundTitle.includes(normalizedTitle)) score += 35;
 
-          for (const word of authorWords) {
-            if (itemAuthors.includes(word)) score += 6;
-          }
+          const authorMatches = authorWords.filter(word => foundAuthors.includes(word)).length;
+          score += authorMatches * 14;
 
-          return { score, coverId: item.cover_i };
+          return {
+            score,
+            url: `https://covers.openlibrary.org/b/id/${item.cover_i}-L.jpg?default=false`
+          };
         })
         .sort((a, b) => b.score - a.score);
 
-      if (ranked[0]?.coverId) {
-        const openLibraryUrl =
-          `https://covers.openlibrary.org/b/id/${ranked[0].coverId}-L.jpg?default=false`;
+      if (ranked[0]?.url) {
+        bookCoverCache.set(cacheKey, {
+          url: ranked[0].url,
+          source: "Open Library"
+        });
 
-        bookCoverCache.set(cacheKey, openLibraryUrl);
-        res.set("X-Book-Cover-Source", "Open Library");
-        res.set("Cache-Control", "public, max-age=86400");
-        return res.redirect(302, openLibraryUrl);
+        const delivered = await deliverImage(ranked[0].url, "Open Library");
+        if (delivered) return;
       }
     }
   } catch (error) {
     console.warn(`Open Library falhou para "${title}":`, error.message);
   }
 
-  res.set("X-Book-Cover-Source", "Google Books no-cover");
   res.set("Cache-Control", "public, max-age=3600");
-  return res.redirect(302, "https://books.google.com/googlebooks/images/no_cover_thumb.gif");
+  res.set("X-Book-Cover-Source", "not-found");
+  res.redirect(302, "https://books.google.com/googlebooks/images/no_cover_thumb.gif");
 }));
 
 app.get("/api/health", asyncRoute(async (_req, res) => {
