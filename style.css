@@ -6768,3 +6768,159 @@ body { background: #f2f1ed; color: var(--v8-ink); }
     align-items: flex-start;
   }
 }
+
+
+/* ================================================================
+   BOOKSHARE V31 — CORREÇÕES VISUAIS FINAIS
+   ================================================================ */
+
+/* A imagem da biblioteca volta, mas sem o quadro “Rotina organizada”. */
+.auth-showcase__compact-notes {
+  display: none !important;
+}
+
+.showcase-library.showcase-library--calm {
+  width: min(100%, 820px) !important;
+  height: auto !important;
+  min-height: 0 !important;
+  margin: 28px 0 30px !important;
+  display: block !important;
+  overflow: hidden !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 28px !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.showcase-library--calm::before,
+.calm-library-copy {
+  display: none !important;
+}
+
+.calm-library-visual {
+  width: 100% !important;
+  min-height: 0 !important;
+  display: block !important;
+  position: relative !important;
+}
+
+.calm-library-illustration {
+  width: 100% !important;
+  height: auto !important;
+  display: block !important;
+  border-radius: 28px !important;
+  box-shadow: 0 24px 55px rgba(18, 58, 51, .17) !important;
+}
+
+/* Neutraliza completamente estilos antigos de .admin-home. */
+.admin-home.admin-overview {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-auto-flow: row !important;
+  align-items: stretch !important;
+  justify-content: stretch !important;
+  gap: 16px !important;
+  color: inherit !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+.admin-home.admin-overview > * {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  grid-column: 1 !important;
+  position: static !important;
+  inset: auto !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+}
+
+.admin-overview__header {
+  min-height: 0 !important;
+  padding: 24px 26px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 20px !important;
+  overflow: hidden !important;
+}
+
+.admin-overview__header h2 {
+  margin: 6px 0 7px !important;
+  max-width: none !important;
+  color: #fff !important;
+  font-size: clamp(1.7rem, 3vw, 2.55rem) !important;
+  line-height: 1.08 !important;
+  overflow-wrap: anywhere !important;
+}
+
+.admin-overview__header p {
+  max-width: 680px !important;
+  color: rgba(255, 255, 255, .75) !important;
+}
+
+.admin-overview__actions,
+.admin-overview__stats {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 13px !important;
+  background: transparent !important;
+}
+
+.admin-overview__actions button,
+.admin-overview__stats button {
+  width: 100% !important;
+  min-width: 0 !important;
+  position: static !important;
+  transform: none !important;
+  box-sizing: border-box !important;
+}
+
+.admin-overview__stats button {
+  min-height: 100px !important;
+}
+
+.role-admin #view-dashboard,
+.role-admin .workspace {
+  min-width: 0 !important;
+  overflow-x: hidden !important;
+}
+
+@media (max-width: 1080px) {
+  .admin-overview__actions,
+  .admin-overview__stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .showcase-library.showcase-library--calm {
+    margin-top: 20px !important;
+    border-radius: 20px !important;
+  }
+
+  .calm-library-illustration {
+    border-radius: 20px !important;
+  }
+
+  .admin-overview__header {
+    padding: 21px !important;
+    align-items: stretch !important;
+    flex-direction: column !important;
+  }
+
+  .admin-overview__actions,
+  .admin-overview__stats {
+    grid-template-columns: 1fr !important;
+  }
+}
