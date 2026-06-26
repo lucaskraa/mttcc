@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#173f3a">
   <meta name="description" content="BookShare — sistema completo de gestão para biblioteca escolar.">
   <title>BookShare | Gestão de Biblioteca Escolar</title>
- 
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Literata:opsz,wght@7..72,600;7..72,700;7..72,800&display=swap" rel="stylesheet">
@@ -22,9 +22,9 @@
     <strong>BookShare</strong>
     <p>Preparando a biblioteca...</p>
   </div>
- 
+
   <div id="toast-root" class="toast-root" aria-live="polite"></div>
- 
+
   <section id="auth-view" class="auth-view is-hidden">
     <div class="auth-showcase">
       <header class="auth-showcase__header">
@@ -36,7 +36,7 @@
           </span>
         </a>
       </header>
- 
+
       <div class="auth-showcase__content">
         <p class="eyebrow eyebrow--light">Biblioteca escolar, sem burocracia</p>
         <h1>Clareza para cuidar de cada livro e de cada aluno.</h1>
@@ -44,7 +44,7 @@
           Um espaço de trabalho direto, acolhedor e confiável para registrar empréstimos,
           acompanhar prazos e manter o acervo sempre organizado.
         </p>
- 
+
         <div class="auth-library-panel" aria-label="Visão geral do BookShare">
           <div class="auth-library-panel__visual" aria-hidden="true">
             <svg viewBox="0 0 420 250" role="img">
@@ -66,7 +66,7 @@
             <p>Empréstimos, devoluções e acessos organizados em um só lugar.</p>
           </div>
         </div>
- 
+
 <div class="auth-benefits">
           <article>
             <span class="auth-benefits__icon" aria-hidden="true">
@@ -97,13 +97,13 @@
           </article>
         </div>
       </div>
- 
+
       <footer class="auth-showcase__footer">
         <span>BookShare © 2026</span>
         <span>Organização que acompanha cada história</span>
       </footer>
     </div>
- 
+
     <div class="auth-access">
       <form id="login-form" class="login-card" novalidate>
         <div class="login-card__mobile-brand">
@@ -113,13 +113,13 @@
             <small>Gestão de Biblioteca</small>
           </div>
         </div>
- 
+
         <div class="login-card__heading">
           <p class="eyebrow">Acesso autorizado</p>
           <h2>Bem-vinda de volta</h2>
           <p>Entre com a conta criada pelo administrador.</p>
         </div>
- 
+
         <label class="field">
           <span class="field__label">E-mail</span>
           <span class="input-shell">
@@ -135,7 +135,7 @@
           </span>
           <small class="field__error"></small>
         </label>
- 
+
         <label class="field">
           <span class="field__label">Senha</span>
           <span class="input-shell">
@@ -153,12 +153,12 @@
           </span>
           <small class="field__error"></small>
         </label>
- 
+
         <button id="login-submit" class="button button--primary button--large button--block" type="submit">
           <span>Entrar no BookShare</span>
           <span aria-hidden="true">→</span>
         </button>
- 
+
         <div class="login-help">
           <span>Primeiro acesso ou esqueceu a senha?</span>
           <p>Solicite ao administrador da escola a criação ou redefinição da conta.</p>
@@ -166,7 +166,7 @@
       </form>
     </div>
   </section>
- 
+
   <div id="app-view" class="app-shell is-hidden">
     <aside id="sidebar" class="sidebar">
       <div class="sidebar__header">
@@ -179,7 +179,7 @@
         </a>
         <button id="sidebar-close" class="icon-button sidebar__close" type="button" aria-label="Fechar menu">×</button>
       </div>
- 
+
       <div class="sidebar__quick">
         <button class="sidebar-quick-button librarian-only-nav" data-open-modal="loan-modal" type="button">
           <span>＋</span>
@@ -190,14 +190,14 @@
           Cadastrar funcionária
         </button>
       </div>
- 
+
       <nav class="sidebar__nav" aria-label="Navegação principal">
         <p class="nav-group-label">Visão geral</p>
         <button class="nav-item is-active" data-route="dashboard" type="button">
           <span class="nav-item__icon">⌂</span>
           <span>Início</span>
         </button>
- 
+
         <div id="librarian-navigation" class="librarian-only-nav">
           <p class="nav-group-label">Atendimento</p>
           <button class="nav-item" data-route="atendimento" type="button">
@@ -218,7 +218,7 @@
             <span>Pendências</span>
             <span id="pending-nav-count" class="nav-counter is-hidden">0</span>
           </button>
- 
+
           <p class="nav-group-label">Consulta</p>
           <button class="nav-item" data-route="livros" type="button">
             <span class="nav-item__icon">▤</span>
@@ -233,7 +233,7 @@
             <span>Turmas</span>
           </button>
         </div>
- 
+
         <div id="admin-navigation" class="admin-only-nav">
           <p class="nav-group-label">Administração</p>
           <button class="nav-item" data-route="usuarios" type="button">
@@ -253,14 +253,14 @@
             <span>Livros</span>
           </button>
         </div>
- 
+
         <p class="nav-group-label">Conta</p>
         <button class="nav-item" data-route="configuracoes" type="button">
           <span class="nav-item__icon">⚙</span>
           <span>Meu perfil</span>
         </button>
       </nav>
- 
+
       <div class="sidebar__profile">
         <button id="sidebar-profile-button" class="profile-summary" type="button">
           <span id="sidebar-avatar" class="avatar">BS</span>
@@ -273,9 +273,9 @@
         <button id="logout-button" class="icon-button icon-button--light" type="button" aria-label="Sair da conta">↪</button>
       </div>
     </aside>
- 
+
     <div id="sidebar-overlay" class="sidebar-overlay"></div>
- 
+
     <main class="main-content">
       <header class="topbar">
         <div class="topbar__left">
@@ -285,7 +285,7 @@
             <h1 id="page-title">Dashboard</h1>
           </div>
         </div>
- 
+
         <div class="topbar__center">
           <label class="global-search">
             <span>⌕</span>
@@ -294,7 +294,7 @@
           </label>
           <div id="global-search-results" class="global-search-results is-hidden"></div>
         </div>
- 
+
         <div class="topbar__right">
           <button id="refresh-button" class="icon-button icon-button--bordered" type="button" aria-label="Atualizar dados">↻</button>
           <button id="notifications-button" class="notification-button librarian-only" type="button" aria-label="Abrir notificações">
@@ -312,7 +312,7 @@
           </button>
         </div>
       </header>
- 
+
       <aside id="notification-panel" class="notification-panel">
         <div class="notification-panel__header">
           <div>
@@ -323,7 +323,7 @@
         </div>
         <div id="notification-list" class="notification-list"></div>
       </aside>
- 
+
       <div class="workspace">
         <section id="view-dashboard" class="page-view">
           <section class="librarian-home librarian-only librarian-desk librarian-overview">
@@ -342,7 +342,7 @@
                 <b>→</b>
               </button>
             </div>
- 
+
             <div class="librarian-overview__actions">
               <button class="librarian-task librarian-task--primary" data-open-modal="loan-modal" type="button">
                 <span>＋</span><div><strong>Registrar empréstimo</strong><small>Escolher aluno, livro e prazo.</small></div>
@@ -357,14 +357,14 @@
                 <span>▤</span><div><strong>Consultar livros</strong><small>Disponibilidade e localização.</small></div>
               </button>
             </div>
- 
+
             <div class="librarian-overview__summary">
               <button data-route="emprestimos" type="button"><span>Vencem hoje</span><strong id="librarian-due-today">0</strong></button>
               <button data-route="pendencias" type="button"><span>Em atraso</span><strong id="librarian-overdue">0</strong></button>
               <button data-route="reservas" type="button"><span>Reservas prontas</span><strong id="librarian-ready-reservations">0</strong></button>
             </div>
           </section>
- 
+
           <section class="admin-home admin-only admin-overview">
             <header class="admin-overview__header">
               <div class="admin-overview__identity">
@@ -380,14 +380,14 @@
                 Meu perfil <b>→</b>
               </button>
             </header>
- 
+
             <div class="admin-overview__actions">
               <button data-open-modal="user-modal" type="button"><span>＋</span><div><strong>Nova funcionária</strong><small>Criar acesso e vincular à escola.</small></div></button>
               <button data-open-modal="student-modal" type="button"><span>♙</span><div><strong>Novo aluno</strong><small>Registrar matrícula e turma.</small></div></button>
               <button data-open-modal="school-modal" type="button"><span>⌂</span><div><strong>Nova escola</strong><small>Cadastrar uma unidade escolar.</small></div></button>
               <button data-open-modal="book-modal" type="button"><span>▤</span><div><strong>Novo livro</strong><small>Adicionar título e exemplares.</small></div></button>
             </div>
- 
+
             <div class="admin-overview__stats">
               <button data-route="usuarios" type="button"><span>Funcionárias</span><strong id="admin-total-staff">0</strong><small>Contas ativas</small></button>
               <button data-route="alunos" type="button"><span>Alunos</span><strong id="admin-total-students">0</strong><small>Matrículas ativas</small></button>
@@ -395,7 +395,7 @@
               <button data-route="livros" type="button"><span>Livros</span><strong id="admin-total-books">0</strong><small>Títulos no catálogo</small></button>
             </div>
           </section>
- 
+
           <div class="metric-grid librarian-only">
             <article class="metric-card">
               <div class="metric-card__top">
@@ -406,7 +406,7 @@
               <span>títulos cadastrados</span>
               <small id="metric-total-copies">0 exemplares no total</small>
             </article>
- 
+
             <article class="metric-card">
               <div class="metric-card__top">
                 <span class="metric-card__icon metric-card__icon--blue">⇄</span>
@@ -416,7 +416,7 @@
               <span>empréstimos ativos</span>
               <small id="metric-due-soon">0 vencendo em breve</small>
             </article>
- 
+
             <article class="metric-card metric-card--attention">
               <div class="metric-card__top">
                 <span class="metric-card__icon metric-card__icon--orange">!</span>
@@ -426,7 +426,7 @@
               <span>devoluções atrasadas</span>
               <small id="metric-overdue-detail">Nenhuma cobrança necessária</small>
             </article>
- 
+
             <article class="metric-card">
               <div class="metric-card__top">
                 <span class="metric-card__icon metric-card__icon--purple">♙</span>
@@ -437,9 +437,9 @@
               <small id="metric-active-classes">0 turmas cadastradas</small>
             </article>
           </div>
- 
+
           <div id="dashboard-alerts" class="dashboard-alerts librarian-only"></div>
- 
+
           <div class="dashboard-layout librarian-only">
             <article class="panel panel--chart admin-only">
               <div class="panel__header">
@@ -456,7 +456,7 @@
                 <canvas id="circulation-chart" height="290"></canvas>
               </div>
             </article>
- 
+
             <article class="panel panel--attention-list">
               <div class="panel__header">
                 <div>
@@ -467,7 +467,7 @@
               </div>
               <div id="dashboard-due-list" class="compact-list"></div>
             </article>
- 
+
             <article class="panel panel--popular admin-only">
               <div class="panel__header">
                 <div>
@@ -478,7 +478,7 @@
               </div>
               <div id="dashboard-popular-books" class="popular-list"></div>
             </article>
- 
+
             <article class="panel panel--quick-actions">
               <div class="panel__header">
                 <div>
@@ -516,7 +516,7 @@
             </article>
           </div>
         </section>
- 
+
         <section id="view-atendimento" class="page-view is-hidden">
           <div class="service-hero">
             <div>
@@ -529,7 +529,7 @@
               <strong id="service-time">00:00</strong>
             </div>
           </div>
- 
+
           <div class="service-grid">
             <article class="panel service-panel service-panel--primary">
               <div class="panel__header">
@@ -544,7 +544,7 @@
               </label>
               <div id="service-student-results" class="service-results"></div>
             </article>
- 
+
             <article class="panel service-panel">
               <div class="panel__header">
                 <div>
@@ -560,7 +560,7 @@
             </article>
           </div>
         </section>
- 
+
         <section id="view-emprestimos" class="page-view is-hidden">
           <div class="page-actions">
             <div class="segmented-control" id="loan-status-tabs">
@@ -574,7 +574,7 @@
               <button class="button button--primary" data-open-modal="loan-modal" type="button">＋ Novo empréstimo</button>
             </div>
           </div>
- 
+
           <div class="filter-bar">
             <label class="search-field">
               <span>⌕</span>
@@ -593,11 +593,11 @@
             </label>
             <button id="loan-filter-clear" class="button button--ghost button--compact" type="button">Limpar</button>
           </div>
- 
+
           <div id="loans-summary" class="inline-summary"></div>
           <div id="loans-container" class="table-shell"></div>
         </section>
- 
+
         <section id="view-reservas" class="page-view is-hidden">
           <div class="page-actions">
             <div>
@@ -605,7 +605,7 @@
             </div>
             <button class="button button--primary" data-open-modal="reservation-modal" type="button">＋ Nova reserva</button>
           </div>
- 
+
           <div class="filter-bar">
             <label class="search-field">
               <span>⌕</span>
@@ -619,10 +619,10 @@
               <option value="all">Todas</option>
             </select>
           </div>
- 
+
           <div id="reservations-container" class="reservation-grid"></div>
         </section>
- 
+
         <section id="view-pendencias" class="page-view is-hidden">
           <div class="pending-hero">
             <div>
@@ -636,7 +636,7 @@
               <div><strong id="pending-critical-count">0</strong><span>há 15+ dias</span></div>
             </div>
           </div>
- 
+
           <div class="filter-bar">
             <label class="search-field">
               <span>⌕</span>
@@ -655,10 +655,10 @@
               <option value="contacted">Já avisados</option>
             </select>
           </div>
- 
+
           <div id="pending-container" class="pending-grid"></div>
         </section>
- 
+
         <section id="view-livros" class="page-view is-hidden">
           <div class="page-actions">
             <div class="view-switcher" id="book-view-switcher">
@@ -671,7 +671,7 @@
               <button class="button button--primary admin-only" data-open-modal="book-modal" type="button">＋ Cadastrar livro</button>
             </div>
           </div>
- 
+
           <div class="filter-bar">
             <label class="search-field">
               <span>⌕</span>
@@ -687,12 +687,12 @@
               <option value="attention">Com perdas ou danos</option>
             </select>
           </div>
- 
+
           <div id="cover-sync-status" class="cover-sync-status admin-only is-hidden"></div>
           <div id="books-summary" class="inline-summary"></div>
           <div id="books-container" class="book-grid"></div>
         </section>
- 
+
         <section id="view-exemplares" class="page-view is-hidden">
           <div class="page-actions">
             <div>
@@ -700,7 +700,7 @@
             </div>
             <button class="button button--primary" data-open-modal="copy-modal" type="button">＋ Adicionar exemplar</button>
           </div>
- 
+
           <div class="filter-bar">
             <label class="search-field">
               <span>⌕</span>
@@ -715,10 +715,10 @@
               <option value="maintenance">Manutenção</option>
             </select>
           </div>
- 
+
           <div id="copies-container" class="table-shell"></div>
         </section>
- 
+
         <section id="view-alunos" class="page-view is-hidden">
           <div class="page-actions">
             <div>
@@ -729,7 +729,7 @@
               <button class="button button--primary" data-open-modal="student-modal" type="button">＋ Cadastrar aluno</button>
             </div>
           </div>
- 
+
           <div class="filter-bar">
             <label class="search-field">
               <span>⌕</span>
@@ -745,10 +745,10 @@
               <option value="all">Todos</option>
             </select>
           </div>
- 
+
           <div id="students-container" class="student-grid"></div>
         </section>
- 
+
         <section id="view-turmas" class="page-view is-hidden">
           <div class="page-actions">
             <div>
@@ -756,7 +756,7 @@
             </div>
             <button class="button button--primary admin-only" data-open-modal="class-modal" type="button">＋ Cadastrar turma</button>
           </div>
- 
+
           <div class="filter-bar">
             <label class="search-field">
               <span>⌕</span>
@@ -773,10 +773,10 @@
               <option value="Integral">Integral</option>
             </select>
           </div>
- 
+
           <div id="classes-container" class="class-grid"></div>
         </section>
- 
+
         <section id="view-relatorios" class="page-view is-hidden">
           <div class="report-toolbar">
             <div class="report-period">
@@ -795,14 +795,14 @@
               <button id="report-print-button" class="button button--secondary" type="button">⌁ Imprimir</button>
             </div>
           </div>
- 
+
           <div class="report-metrics">
             <article><span>Empréstimos</span><strong id="report-total-loans">0</strong><small>no período</small></article>
             <article><span>Devolvidos</span><strong id="report-returned-loans">0</strong><small>finalizados</small></article>
             <article><span>Perdidos</span><strong id="report-lost-loans">0</strong><small>exemplares</small></article>
             <article><span>Danificados</span><strong id="report-damaged-loans">0</strong><small>exemplares</small></article>
           </div>
- 
+
           <div class="report-grid">
             <article class="panel">
               <div class="panel__header">
@@ -813,7 +813,7 @@
               </div>
               <div id="report-class-bars" class="bar-list"></div>
             </article>
- 
+
             <article class="panel">
               <div class="panel__header">
                 <div>
@@ -826,7 +826,7 @@
                 <div id="category-legend" class="donut-legend"></div>
               </div>
             </article>
- 
+
             <article class="panel report-grid__wide">
               <div class="panel__header">
                 <div>
@@ -836,7 +836,7 @@
               </div>
               <div id="report-popular-books" class="table-shell table-shell--flat"></div>
             </article>
- 
+
             <article class="panel report-grid__wide">
               <div class="panel__header">
                 <div>
@@ -848,7 +848,7 @@
             </article>
           </div>
         </section>
- 
+
         <section id="view-atividades" class="page-view is-hidden">
           <div class="page-actions">
             <div>
@@ -856,7 +856,7 @@
             </div>
             <button id="activity-refresh-button" class="button button--secondary" type="button">↻ Atualizar</button>
           </div>
- 
+
           <div class="filter-bar">
             <label class="search-field">
               <span>⌕</span>
@@ -873,11 +873,11 @@
               <option value="user">Usuários</option>
             </select>
           </div>
- 
+
           <div id="activity-container" class="timeline"></div>
         </section>
- 
- 
+
+
         <section id="view-escolas" class="page-view is-hidden admin-only">
           <div class="page-actions">
             <div>
@@ -885,7 +885,7 @@
             </div>
             <button class="button button--primary" data-open-modal="school-modal" type="button">＋ Cadastrar escola</button>
           </div>
- 
+
           <div class="filter-bar">
             <label class="search-field">
               <span>⌕</span>
@@ -897,10 +897,10 @@
               <option value="inactive">Arquivadas</option>
             </select>
           </div>
- 
+
           <div id="schools-container" class="school-grid"></div>
         </section>
- 
+
         <section id="view-usuarios" class="page-view is-hidden admin-only">
           <div class="page-actions">
             <div>
@@ -908,7 +908,7 @@
             </div>
             <button class="button button--primary" data-open-modal="user-modal" type="button">＋ Cadastrar funcionária</button>
           </div>
- 
+
           <div class="filter-bar">
             <label class="search-field">
               <span>⌕</span>
@@ -920,10 +920,10 @@
               <option value="admin">Administradores</option>
             </select>
           </div>
- 
+
           <div id="users-container" class="user-grid"></div>
         </section>
- 
+
         <section id="view-configuracoes" class="page-view is-hidden">
           <div class="settings-layout">
             <aside class="settings-menu">
@@ -932,7 +932,7 @@
               <button data-settings-tab="messages" type="button">Mensagens</button>
               <button data-settings-tab="account" type="button">Minha conta</button>
             </aside>
- 
+
             <form id="settings-form" class="panel settings-form">
               <section id="settings-general" class="settings-section">
                 <div class="settings-section__heading">
@@ -940,7 +940,7 @@
                   <h2>Informações da biblioteca</h2>
                   <p>Esses dados aparecem no sistema e nos relatórios.</p>
                 </div>
- 
+
                 <div class="form-grid">
                   <label class="field field--full">
                     <span class="field__label">Nome da escola</span>
@@ -964,14 +964,14 @@
                   </label>
                 </div>
               </section>
- 
+
               <section id="settings-loans" class="settings-section is-hidden">
                 <div class="settings-section__heading">
                   <p class="eyebrow">Regras</p>
                   <h2>Política de empréstimos</h2>
                   <p>As regras são validadas pelo servidor em todas as operações.</p>
                 </div>
- 
+
                 <div class="form-grid form-grid--three">
                   <label class="field">
                     <span class="field__label">Prazo padrão</span>
@@ -998,7 +998,7 @@
                     <span class="input-with-suffix"><input name="reservation_hold_days" type="number" min="1" max="30" required><small>dias</small></span>
                   </label>
                 </div>
- 
+
                 <label class="toggle-field">
                   <span>
                     <strong>Bloquear aluno com atraso</strong>
@@ -1008,34 +1008,34 @@
                   <i></i>
                 </label>
               </section>
- 
+
               <section id="settings-messages" class="settings-section is-hidden">
                 <div class="settings-section__heading">
                   <p class="eyebrow">Comunicação</p>
                   <h2>Modelos de mensagens</h2>
                   <p>Use as variáveis disponíveis para preencher os dados automaticamente.</p>
                 </div>
- 
+
                 <label class="field">
                   <span class="field__label">Mensagem de atraso</span>
                   <textarea name="notice_template" rows="7" required></textarea>
                   <small>Variáveis: {aluno}, {turma}, {livro}, {data}, {dias}, {escola}</small>
                 </label>
- 
+
                 <label class="field">
                   <span class="field__label">Mensagem de reserva disponível</span>
                   <textarea name="reservation_template" rows="6" required></textarea>
                   <small>Variáveis: {aluno}, {turma}, {livro}, {validade}, {escola}</small>
                 </label>
               </section>
- 
+
               <section id="settings-account" class="settings-section is-hidden">
                 <div class="settings-section__heading">
                   <p class="eyebrow">Meu perfil</p>
                   <h2>Foto e identificação</h2>
                   <p>A foto aparece no topo e ajuda a diferenciar a bibliotecária do administrador.</p>
                 </div>
- 
+
                 <div class="profile-editor">
                   <label class="profile-photo-picker" for="profile-photo-input">
                     <span id="profile-photo-preview" class="profile-photo-preview">BS</span>
@@ -1068,15 +1068,15 @@
                     <button id="save-profile-button" class="button button--primary" type="button">Salvar meu perfil</button>
                   </div>
                 </div>
- 
+
                 <div class="settings-divider"></div>
- 
+
                 <div class="settings-section__heading">
                   <p class="eyebrow">Segurança</p>
                   <h2>Alterar minha senha</h2>
                   <p>A senha é atualizada no servidor e armazenada de forma criptografada.</p>
                 </div>
- 
+
                 <div class="form-grid">
                   <label class="field">
                     <span class="field__label">Senha atual</span>
@@ -1089,7 +1089,7 @@
                 </div>
                 <button id="change-own-password-button" class="button button--secondary" type="button">Alterar senha</button>
               </section>
- 
+
               <div class="settings-form__footer">
                 <span id="settings-save-status">As alterações ainda não foram salvas.</span>
                 <button class="button button--primary" type="submit">Salvar configurações</button>
@@ -1099,22 +1099,22 @@
         </section>
       </div>
     </main>
- 
+
     <nav class="mobile-navigation" aria-label="Navegação móvel">
       <button class="is-active" data-route="dashboard" type="button"><span>⌂</span><small>Início</small></button>
- 
+
       <button class="librarian-only" data-route="atendimento" type="button"><span>⌁</span><small>Atender</small></button>
       <button class="librarian-only mobile-navigation__main" data-open-modal="loan-modal" type="button"><span>＋</span><small>Emprestar</small></button>
       <button class="librarian-only" data-route="livros" type="button"><span>▤</span><small>Livros</small></button>
- 
+
       <button class="admin-only" data-route="usuarios" type="button"><span>♟</span><small>Equipe</small></button>
       <button class="admin-only mobile-navigation__main" data-open-modal="user-modal" type="button"><span>＋</span><small>Funcionária</small></button>
       <button class="admin-only" data-route="escolas" type="button"><span>⌂</span><small>Escolas</small></button>
- 
+
       <button id="mobile-more-button" type="button"><span>•••</span><small>Mais</small></button>
     </nav>
   </div>
- 
+
   <dialog id="loan-modal" class="modal">
     <form id="loan-form" class="modal-card modal-card--large" novalidate>
       <header class="modal-card__header">
@@ -1131,7 +1131,7 @@
           <span><i>2</i>Livro</span>
           <span><i>3</i>Prazo</span>
         </div>
- 
+
         <div class="form-grid">
           <label class="field field--full">
             <span class="field__label">Aluno</span>
@@ -1163,7 +1163,7 @@
       </footer>
     </form>
   </dialog>
- 
+
   <dialog id="return-search-modal" class="modal">
     <div class="modal-card">
       <header class="modal-card__header">
@@ -1183,7 +1183,7 @@
       </div>
     </div>
   </dialog>
- 
+
   <dialog id="return-modal" class="modal">
     <form id="return-form" class="modal-card" novalidate>
       <input name="loan_id" type="hidden">
@@ -1222,7 +1222,7 @@
       </footer>
     </form>
   </dialog>
- 
+
   <dialog id="book-modal" class="modal">
     <form id="book-form" class="modal-card modal-card--xlarge" novalidate>
       <input name="id" type="hidden">
@@ -1245,7 +1245,7 @@
             </div>
             <button id="book-cover-file-button" class="button button--secondary button--compact" type="button">Enviar capa</button>
           </div>
- 
+
           <div class="form-grid">
             <label class="field field--full">
               <span class="field__label">Título</span>
@@ -1296,7 +1296,7 @@
       </footer>
     </form>
   </dialog>
- 
+
   <dialog id="copy-modal" class="modal">
     <form id="copy-form" class="modal-card" novalidate>
       <header class="modal-card__header">
@@ -1333,7 +1333,7 @@
       </footer>
     </form>
   </dialog>
- 
+
   <dialog id="student-modal" class="modal">
     <form id="student-form" class="modal-card modal-card--large" novalidate>
       <input name="id" type="hidden">
@@ -1388,7 +1388,7 @@
       </footer>
     </form>
   </dialog>
- 
+
   <dialog id="class-modal" class="modal">
     <form id="class-form" class="modal-card" novalidate>
       <input name="id" type="hidden">
@@ -1431,7 +1431,7 @@
       </footer>
     </form>
   </dialog>
- 
+
   <dialog id="reservation-modal" class="modal">
     <form id="reservation-form" class="modal-card" novalidate>
       <header class="modal-card__header">
@@ -1462,7 +1462,7 @@
       </footer>
     </form>
   </dialog>
- 
+
   <dialog id="notice-modal" class="modal">
     <form id="notice-form" class="modal-card" novalidate>
       <input name="loan_id" type="hidden">
@@ -1513,7 +1513,7 @@
       </footer>
     </form>
   </dialog>
- 
+
   <dialog id="user-modal" class="modal">
     <form id="user-form" class="modal-card modal-card--large" novalidate>
       <header class="modal-card__header">
@@ -1568,8 +1568,8 @@
       </footer>
     </form>
   </dialog>
- 
- 
+
+
   <dialog id="school-modal" class="modal">
     <form id="school-form" class="modal-card modal-card--large" novalidate>
       <header class="modal-card__header">
@@ -1611,7 +1611,7 @@
       </footer>
     </form>
   </dialog>
- 
+
   <dialog id="detail-modal" class="modal">
     <div class="modal-card modal-card--xlarge">
       <header class="modal-card__header">
@@ -1625,7 +1625,7 @@
       <div id="detail-modal-content" class="modal-card__body"></div>
     </div>
   </dialog>
- 
+
   <dialog id="confirm-modal" class="modal modal--small">
     <div class="modal-card">
       <div class="confirm-dialog">
@@ -1639,7 +1639,7 @@
       </div>
     </div>
   </dialog>
- 
+
   <script src="script.js?v=35"></script>
 </body>
 </html>
