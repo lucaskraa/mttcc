@@ -1,6 +1,6 @@
 {
   "name": "bookshare-api",
-  "version": "8.0.0",
+  "version": "9.0.0",
   "private": true,
   "description": "Sistema completo de gestão de biblioteca escolar com frontend responsivo, Node.js, Render e Supabase PostgreSQL.",
   "main": "server.js",
@@ -33,6 +33,7 @@
     "express-rate-limit": "^7.5.0",
     "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.2",
-    "pg": "^8.13.1"
+    "pg": "^8.13.1",
+    "sharp": "^0.33.5"
   }
 }
