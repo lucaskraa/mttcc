@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Literata:opsz,wght@7..72,600;7..72,700;7..72,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=28">
+  <link rel="stylesheet" href="style.css?v=29">
 </head>
 <body>
   <div id="app-loading" class="app-loading">
@@ -260,9 +260,13 @@
       </div>
 
       <div class="sidebar__quick">
-        <button class="sidebar-quick-button" data-open-modal="loan-modal" type="button">
+        <button class="sidebar-quick-button librarian-only-nav" data-open-modal="loan-modal" type="button">
           <span>＋</span>
           Registrar empréstimo
+        </button>
+        <button class="sidebar-quick-button admin-only-nav" data-open-modal="user-modal" type="button">
+          <span>＋</span>
+          Cadastrar funcionária
         </button>
       </div>
 
@@ -272,66 +276,68 @@
           <span class="nav-item__icon">⌂</span>
           <span>Início</span>
         </button>
-        <button class="nav-item" data-route="atendimento" type="button">
-          <span class="nav-item__icon">⌁</span>
-          <span>Balcão rápido</span>
-        </button>
 
-        <p class="nav-group-label">Biblioteca</p>
-        <button class="nav-item" data-route="emprestimos" type="button">
-          <span class="nav-item__icon">⇄</span>
-          <span>Empréstimos</span>
-        </button>
-        <button class="nav-item" data-route="reservas" type="button">
-          <span class="nav-item__icon">◇</span>
-          <span>Reservas</span>
-          <span id="reservations-nav-count" class="nav-counter is-hidden">0</span>
-        </button>
-        <button class="nav-item" data-route="pendencias" type="button">
-          <span class="nav-item__icon">!</span>
-          <span>Pendências</span>
-          <span id="pending-nav-count" class="nav-counter is-hidden">0</span>
-        </button>
-        <button class="nav-item" data-route="livros" type="button">
-          <span class="nav-item__icon">▤</span>
-          <span>Livros</span>
-        </button>
-        <button class="nav-item admin-only-nav" data-route="exemplares" type="button">
-          <span class="nav-item__icon">▥</span>
-          <span>Exemplares</span>
-        </button>
+        <div id="librarian-navigation" class="librarian-only-nav">
+          <p class="nav-group-label">Atendimento</p>
+          <button class="nav-item" data-route="atendimento" type="button">
+            <span class="nav-item__icon">⌁</span>
+            <span>Balcão rápido</span>
+          </button>
+          <button class="nav-item" data-route="emprestimos" type="button">
+            <span class="nav-item__icon">⇄</span>
+            <span>Empréstimos</span>
+          </button>
+          <button class="nav-item" data-route="reservas" type="button">
+            <span class="nav-item__icon">◇</span>
+            <span>Reservas</span>
+            <span id="reservations-nav-count" class="nav-counter is-hidden">0</span>
+          </button>
+          <button class="nav-item" data-route="pendencias" type="button">
+            <span class="nav-item__icon">!</span>
+            <span>Pendências</span>
+            <span id="pending-nav-count" class="nav-counter is-hidden">0</span>
+          </button>
 
-        <p class="nav-group-label">Comunidade escolar</p>
-        <button class="nav-item" data-route="alunos" type="button">
-          <span class="nav-item__icon">♙</span>
-          <span>Alunos</span>
-        </button>
-        <button class="nav-item" data-route="turmas" type="button">
-          <span class="nav-item__icon">▦</span>
-          <span>Turmas</span>
-        </button>
+          <p class="nav-group-label">Consulta</p>
+          <button class="nav-item" data-route="livros" type="button">
+            <span class="nav-item__icon">▤</span>
+            <span>Livros</span>
+          </button>
+          <button class="nav-item" data-route="alunos" type="button">
+            <span class="nav-item__icon">♙</span>
+            <span>Alunos</span>
+          </button>
+          <button class="nav-item" data-route="turmas" type="button">
+            <span class="nav-item__icon">▦</span>
+            <span>Turmas</span>
+          </button>
+        </div>
 
-        <p class="nav-group-label admin-only-nav">Análise</p>
-        <button class="nav-item admin-only-nav" data-route="relatorios" type="button">
-          <span class="nav-item__icon">▧</span>
-          <span>Relatórios</span>
-        </button>
-        <button class="nav-item admin-only-nav" data-route="atividades" type="button">
-          <span class="nav-item__icon">↻</span>
-          <span>Histórico de ações</span>
-        </button>
-
-        <div id="admin-navigation">
+        <div id="admin-navigation" class="admin-only-nav">
           <p class="nav-group-label">Administração</p>
           <button class="nav-item" data-route="usuarios" type="button">
             <span class="nav-item__icon">♟</span>
-            <span>Usuários</span>
+            <span>Funcionárias</span>
           </button>
-          <button class="nav-item" data-route="configuracoes" type="button">
-            <span class="nav-item__icon">⚙</span>
-            <span>Configurações</span>
+          <button class="nav-item" data-route="alunos" type="button">
+            <span class="nav-item__icon">♙</span>
+            <span>Alunos</span>
+          </button>
+          <button class="nav-item" data-route="escolas" type="button">
+            <span class="nav-item__icon">⌂</span>
+            <span>Escolas</span>
+          </button>
+          <button class="nav-item" data-route="livros" type="button">
+            <span class="nav-item__icon">▤</span>
+            <span>Livros</span>
           </button>
         </div>
+
+        <p class="nav-group-label">Conta</p>
+        <button class="nav-item" data-route="configuracoes" type="button">
+          <span class="nav-item__icon">⚙</span>
+          <span>Meu perfil</span>
+        </button>
       </nav>
 
       <div class="sidebar__profile">
@@ -370,7 +376,7 @@
 
         <div class="topbar__right">
           <button id="refresh-button" class="icon-button icon-button--bordered" type="button" aria-label="Atualizar dados">↻</button>
-          <button id="notifications-button" class="notification-button" type="button" aria-label="Abrir notificações">
+          <button id="notifications-button" class="notification-button librarian-only" type="button" aria-label="Abrir notificações">
             <span>♢</span>
             <i id="notification-dot" class="notification-dot is-hidden"></i>
           </button>
@@ -434,37 +440,54 @@
             </div>
           </section>
 
-          <section class="admin-home admin-only admin-console">
-            <div class="admin-console__main">
-              <div class="admin-console__identity">
-                <span id="admin-hero-avatar" class="admin-console__avatar">A</span>
-                <div>
-                  <span class="admin-console__badge">ACESSO ADMINISTRATIVO</span>
-                  <h2 id="admin-welcome-title">Painel de administração</h2>
-                  <p id="admin-welcome-message">Gerencie acervo, equipe, regras e relatórios em uma área separada do atendimento.</p>
-                  <div class="admin-console__userline">
+          <section class="admin-home admin-only admin-command">
+            <div class="admin-command__hero">
+              <div class="admin-command__identity">
+                <span id="admin-hero-avatar" class="admin-command__avatar">A</span>
+                <div class="admin-command__copy">
+                  <span class="admin-command__badge">ADMINISTRAÇÃO DO BOOKSHARE</span>
+                  <h2 id="admin-welcome-title">Painel administrativo</h2>
+                  <p id="admin-welcome-message">Cadastre pessoas, escolas e livros sem misturar o trabalho administrativo com o balcão da biblioteca.</p>
+                  <div class="admin-command__user">
                     <strong id="admin-hero-name">Administrador</strong>
                     <span id="admin-hero-email">admin@bookshare.com</span>
                   </div>
                 </div>
               </div>
-              <div class="admin-console__actions">
-                <button class="button button--gold" data-open-modal="book-modal" type="button">＋ Cadastrar livro</button>
-                <button class="button button--transparent" data-route="configuracoes" type="button">Editar perfil</button>
-              </div>
+              <button class="admin-profile-button" data-route="configuracoes" type="button">
+                <span>Editar meu perfil</span>
+                <b>→</b>
+              </button>
             </div>
 
-            <div class="admin-console__modules">
-              <button data-route="livros" type="button"><span>01</span><div><strong>Acervo</strong><small>Livros, capas e categorias</small></div></button>
-              <button data-route="exemplares" type="button"><span>02</span><div><strong>Patrimônio</strong><small>Exemplares e conservação</small></div></button>
-              <button data-route="usuarios" type="button"><span>03</span><div><strong>Equipe</strong><small>Contas e permissões</small></div></button>
-              <button data-route="relatorios" type="button"><span>04</span><div><strong>Relatórios</strong><small>Indicadores e exportação</small></div></button>
-              <button data-route="atividades" type="button"><span>05</span><div><strong>Auditoria</strong><small>Histórico de alterações</small></div></button>
-              <button data-route="configuracoes" type="button"><span>06</span><div><strong>Regras</strong><small>Prazo, limites e mensagens</small></div></button>
+            <div class="admin-command__actions">
+              <button data-open-modal="user-modal" type="button">
+                <span class="admin-command__action-icon">＋</span>
+                <div><strong>Nova funcionária</strong><small>Criar acesso para bibliotecária.</small></div>
+              </button>
+              <button data-open-modal="student-modal" type="button">
+                <span class="admin-command__action-icon">♙</span>
+                <div><strong>Novo aluno</strong><small>Registrar matrícula e turma.</small></div>
+              </button>
+              <button data-open-modal="school-modal" type="button">
+                <span class="admin-command__action-icon">⌂</span>
+                <div><strong>Nova escola</strong><small>Adicionar uma unidade escolar.</small></div>
+              </button>
+              <button data-open-modal="book-modal" type="button">
+                <span class="admin-command__action-icon">▤</span>
+                <div><strong>Novo livro</strong><small>Cadastrar título e exemplares.</small></div>
+              </button>
+            </div>
+
+            <div class="admin-summary-grid">
+              <button data-route="usuarios" type="button"><span>Funcionárias ativas</span><strong id="admin-total-staff">0</strong><small>Contas com acesso</small></button>
+              <button data-route="alunos" type="button"><span>Alunos ativos</span><strong id="admin-total-students">0</strong><small>Matrículas cadastradas</small></button>
+              <button data-route="escolas" type="button"><span>Escolas ativas</span><strong id="admin-total-schools">0</strong><small>Unidades registradas</small></button>
+              <button data-route="livros" type="button"><span>Livros ativos</span><strong id="admin-total-books">0</strong><small>Títulos no catálogo</small></button>
             </div>
           </section>
 
-          <div class="metric-grid admin-only">
+          <div class="metric-grid librarian-only">
             <article class="metric-card">
               <div class="metric-card__top">
                 <span class="metric-card__icon metric-card__icon--green">▤</span>
@@ -506,9 +529,9 @@
             </article>
           </div>
 
-          <div id="dashboard-alerts" class="dashboard-alerts"></div>
+          <div id="dashboard-alerts" class="dashboard-alerts librarian-only"></div>
 
-          <div class="dashboard-layout">
+          <div class="dashboard-layout librarian-only">
             <article class="panel panel--chart admin-only">
               <div class="panel__header">
                 <div>
@@ -943,12 +966,36 @@
           <div id="activity-container" class="timeline"></div>
         </section>
 
+
+        <section id="view-escolas" class="page-view is-hidden admin-only">
+          <div class="page-actions">
+            <div>
+              <p class="page-description">Unidades escolares atendidas pelo BookShare.</p>
+            </div>
+            <button class="button button--primary" data-open-modal="school-modal" type="button">＋ Cadastrar escola</button>
+          </div>
+
+          <div class="filter-bar">
+            <label class="search-field">
+              <span>⌕</span>
+              <input id="school-search" type="search" placeholder="Nome, código ou endereço">
+            </label>
+            <select id="school-status-filter" class="select-control">
+              <option value="">Todas as situações</option>
+              <option value="active">Ativas</option>
+              <option value="inactive">Arquivadas</option>
+            </select>
+          </div>
+
+          <div id="schools-container" class="school-grid"></div>
+        </section>
+
         <section id="view-usuarios" class="page-view is-hidden admin-only">
           <div class="page-actions">
             <div>
-              <p class="page-description">Contas internas para bibliotecárias e administradores.</p>
+              <p class="page-description">Funcionárias autorizadas a trabalhar no balcão da biblioteca.</p>
             </div>
-            <button class="button button--primary" data-open-modal="user-modal" type="button">＋ Novo usuário</button>
+            <button class="button button--primary" data-open-modal="user-modal" type="button">＋ Cadastrar funcionária</button>
           </div>
 
           <div class="filter-bar">
@@ -1094,9 +1141,18 @@
                       <span class="field__label">E-mail da conta</span>
                       <input id="profile-email-input" type="email" readonly>
                     </label>
+                    <label class="field">
+                      <span class="field__label">Telefone</span>
+                      <input id="profile-phone-input" type="text" maxlength="40" placeholder="(41) 99999-9999">
+                    </label>
                     <div class="profile-role-card">
                       <span id="profile-role-icon">B</span>
                       <div><strong id="profile-role-title">Bibliotecária</strong><small id="profile-role-description">Atendimento e circulação do acervo.</small></div>
+                    </div>
+                    <div class="profile-context-grid">
+                      <div><span>Escola</span><strong id="profile-school-name">Biblioteca Escolar</strong></div>
+                      <div><span>Cargo</span><strong id="profile-job-title">Bibliotecária</strong></div>
+                      <div><span>Telefone</span><strong id="profile-phone">Não informado</strong></div>
                     </div>
                     <button id="save-profile-button" class="button button--primary" type="button">Salvar meu perfil</button>
                   </div>
@@ -1135,9 +1191,15 @@
 
     <nav class="mobile-navigation" aria-label="Navegação móvel">
       <button class="is-active" data-route="dashboard" type="button"><span>⌂</span><small>Início</small></button>
-      <button data-route="atendimento" type="button"><span>⌁</span><small>Atender</small></button>
-      <button class="mobile-navigation__main" data-open-modal="loan-modal" type="button"><span>＋</span><small>Emprestar</small></button>
-      <button data-route="livros" type="button"><span>▤</span><small>Livros</small></button>
+
+      <button class="librarian-only" data-route="atendimento" type="button"><span>⌁</span><small>Atender</small></button>
+      <button class="librarian-only mobile-navigation__main" data-open-modal="loan-modal" type="button"><span>＋</span><small>Emprestar</small></button>
+      <button class="librarian-only" data-route="livros" type="button"><span>▤</span><small>Livros</small></button>
+
+      <button class="admin-only" data-route="usuarios" type="button"><span>♟</span><small>Equipe</small></button>
+      <button class="admin-only mobile-navigation__main" data-open-modal="user-modal" type="button"><span>＋</span><small>Funcionária</small></button>
+      <button class="admin-only" data-route="escolas" type="button"><span>⌂</span><small>Escolas</small></button>
+
       <button id="mobile-more-button" type="button"><span>•••</span><small>Mais</small></button>
     </nav>
   </div>
@@ -1542,40 +1604,99 @@
   </dialog>
 
   <dialog id="user-modal" class="modal">
-    <form id="user-form" class="modal-card" novalidate>
+    <form id="user-form" class="modal-card modal-card--large" novalidate>
       <header class="modal-card__header">
         <div>
-          <p class="eyebrow">Administração</p>
-          <h2>Criar usuário</h2>
-          <p>A conta poderá acessar o sistema imediatamente.</p>
+          <p class="eyebrow">Equipe da biblioteca</p>
+          <h2>Cadastrar funcionária</h2>
+          <p>Crie o acesso e vincule a pessoa à escola correta.</p>
         </div>
         <button class="icon-button" data-close-modal type="button">×</button>
       </header>
       <div class="modal-card__body">
-        <label class="field">
-          <span class="field__label">Nome completo</span>
-          <input name="name" type="text" maxlength="120" required>
-        </label>
-        <label class="field">
-          <span class="field__label">E-mail</span>
-          <input name="email" type="email" required>
-        </label>
-        <label class="field">
-          <span class="field__label">Perfil</span>
-          <select name="role" required>
-            <option value="librarian">Bibliotecária</option>
-            <option value="admin">Administrador</option>
-          </select>
-        </label>
-        <label class="field">
-          <span class="field__label">Senha inicial</span>
-          <input name="password" type="password" minlength="8" required>
-          <small>Mínimo de oito caracteres.</small>
-        </label>
+        <div class="form-grid">
+          <label class="field field--full">
+            <span class="field__label">Nome completo</span>
+            <input name="name" type="text" maxlength="120" required>
+          </label>
+          <label class="field">
+            <span class="field__label">E-mail de acesso</span>
+            <input name="email" type="email" required>
+          </label>
+          <label class="field">
+            <span class="field__label">Telefone</span>
+            <input name="phone" type="text" maxlength="40" placeholder="(41) 99999-9999">
+          </label>
+          <label class="field">
+            <span class="field__label">Cargo</span>
+            <input name="job_title" type="text" maxlength="80" value="Bibliotecária">
+          </label>
+          <label class="field">
+            <span class="field__label">Escola</span>
+            <select id="user-school" name="school_id">
+              <option value="">Selecione uma escola</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="field__label">Perfil de acesso</span>
+            <select name="role" required>
+              <option value="librarian">Bibliotecária</option>
+              <option value="admin">Administrador</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="field__label">Senha inicial</span>
+            <input name="password" type="password" minlength="8" required>
+            <small>Mínimo de oito caracteres. A funcionária poderá alterar depois.</small>
+          </label>
+        </div>
       </div>
       <footer class="modal-card__footer">
         <button class="button button--ghost" data-close-modal type="button">Cancelar</button>
-        <button class="button button--primary" type="submit">Criar usuário</button>
+        <button class="button button--primary" type="submit">Criar acesso</button>
+      </footer>
+    </form>
+  </dialog>
+
+
+  <dialog id="school-modal" class="modal">
+    <form id="school-form" class="modal-card modal-card--large" novalidate>
+      <header class="modal-card__header">
+        <div>
+          <p class="eyebrow">Unidade escolar</p>
+          <h2 id="school-modal-title">Cadastrar escola</h2>
+          <p>Essas informações identificam a unidade atendida.</p>
+        </div>
+        <button class="icon-button" data-close-modal type="button">×</button>
+      </header>
+      <div class="modal-card__body">
+        <input name="id" type="hidden">
+        <div class="form-grid">
+          <label class="field field--full">
+            <span class="field__label">Nome da escola</span>
+            <input name="name" type="text" maxlength="140" required>
+          </label>
+          <label class="field">
+            <span class="field__label">Código da unidade</span>
+            <input name="code" type="text" maxlength="30" placeholder="ESCOLA-01" required>
+          </label>
+          <label class="field">
+            <span class="field__label">Telefone</span>
+            <input name="phone" type="text" maxlength="40">
+          </label>
+          <label class="field field--full">
+            <span class="field__label">Endereço</span>
+            <input name="address" type="text" maxlength="220">
+          </label>
+          <label class="field field--full">
+            <span class="field__label">E-mail institucional</span>
+            <input name="contact_email" type="email" maxlength="180">
+          </label>
+        </div>
+      </div>
+      <footer class="modal-card__footer">
+        <button class="button button--ghost" data-close-modal type="button">Cancelar</button>
+        <button class="button button--primary" type="submit">Salvar escola</button>
       </footer>
     </form>
   </dialog>
@@ -1608,6 +1729,6 @@
     </div>
   </dialog>
 
-  <script src="script.js?v=28"></script>
+  <script src="script.js?v=29"></script>
 </body>
 </html>
