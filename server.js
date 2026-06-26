@@ -491,15 +491,22 @@ async function googleVolumeByIsbn(isbn13) {
 
 async function coverFromGoogleVolume(volume) {
   if (!volume?.id) return null;
-  const urls = [
-    ...imageLinksFromVolume(volume),
-    `https://books.google.com/books/content?id=${encodeURIComponent(volume.id)}&printsec=frontcover&img=1&zoom=3&source=gbs_api`,
-    `https://books.google.com/books/content?id=${encodeURIComponent(volume.id)}&printsec=frontcover&img=1&zoom=2&source=gbs_api`
-  ];
-  for (const url of [...new Set(urls)]) {
+
+  // Só usa URLs realmente fornecidas por imageLinks.
+  // Não constrói URL de capa quando a edição não possui imagem,
+  // porque isso retorna o placeholder "image not available".
+  const urls = [...new Set(imageLinksFromVolume(volume))];
+
+  for (const url of urls) {
     const image = await downloadVerifiedCover(url);
-    if (image) return { ...image, source:"Google Books — edição exata" };
+    if (image) {
+      return {
+        ...image,
+        source: "Google Books — imagem original da edição"
+      };
+    }
   }
+
   return null;
 }
 
@@ -512,32 +519,207 @@ async function coverFromOpenLibraryIsbn(isbn13) {
   return null;
 }
 
-async function resolveOfficialEditionCover(title) {
+
+function scoreCoverResult(foundTitle, foundAuthors, wantedTitle, wantedAuthor) {
+  const normalizedFoundTitle = normalizeSearchText(foundTitle || "");
+  const normalizedFoundAuthors = normalizeSearchText(foundAuthors || "");
+  const normalizedWantedTitle = normalizeSearchText(wantedTitle || "");
+  const normalizedWantedAuthor = normalizeSearchText(wantedAuthor || "");
+
+  let score = 0;
+
+  if (normalizedFoundTitle === normalizedWantedTitle) score += 120;
+  else if (normalizedFoundTitle.startsWith(normalizedWantedTitle)) score += 75;
+  else if (normalizedFoundTitle.includes(normalizedWantedTitle)) score += 55;
+  else if (normalizedWantedTitle.includes(normalizedFoundTitle)) score += 25;
+
+  const authorWords = normalizedWantedAuthor
+    .split(" ")
+    .filter(word => word.length > 2);
+
+  const matches = authorWords.filter(word => normalizedFoundAuthors.includes(word)).length;
+  score += matches * 18;
+
+  if (authorWords.length && matches === authorWords.length) score += 35;
+
+  return score;
+}
+
+async function coverFromGoogleSearch(title, author) {
+  const searches = [
+    `intitle:"${title}"${author ? ` inauthor:"${author}"` : ""}`,
+    `"${title}"${author ? ` ${author}` : ""}`,
+    `${title}${author ? ` ${author}` : ""}`
+  ];
+
+  for (const searchText of searches) {
+    try {
+      const params = new URLSearchParams({
+        q: searchText,
+        maxResults: "30",
+        projection: "full",
+        printType: "books",
+        orderBy: "relevance"
+      });
+
+      if (GOOGLE_BOOKS_API_KEY) params.set("key", GOOGLE_BOOKS_API_KEY);
+
+      const response = await fetch(
+        `https://www.googleapis.com/books/v1/volumes?${params.toString()}`,
+        {
+          headers: {
+            "Accept": "application/json",
+            "User-Agent": "BookShare-Original-Covers/6.0"
+          },
+          signal: AbortSignal.timeout(15000)
+        }
+      );
+
+      if (!response.ok) continue;
+
+      const data = await response.json();
+
+      const ranked = (Array.isArray(data.items) ? data.items : [])
+        .filter(item => item?.volumeInfo?.imageLinks)
+        .map(item => ({
+          item,
+          score: scoreCoverResult(
+            item.volumeInfo?.title,
+            (item.volumeInfo?.authors || []).join(" "),
+            title,
+            author
+          )
+        }))
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 10);
+
+      for (const candidate of ranked) {
+        if (candidate.score < 50) continue;
+
+        const cover = await coverFromGoogleVolume(candidate.item);
+        if (cover) {
+          return {
+            ...cover,
+            source: "Google Books — edição original localizada por título e autor"
+          };
+        }
+      }
+    } catch (error) {
+      console.warn(`Google Books search failed for ${title}:`, error.message);
+    }
+  }
+
+  return null;
+}
+
+async function coverFromOpenLibrarySearch(title, author) {
+  try {
+    const params = new URLSearchParams({
+      title,
+      author: author || "",
+      limit: "30",
+      fields: "cover_i,title,author_name"
+    });
+
+    const response = await fetch(
+      `https://openlibrary.org/search.json?${params.toString()}`,
+      {
+        headers: {
+          "Accept": "application/json",
+          "User-Agent": "BookShare-Original-Covers/6.0"
+        },
+        signal: AbortSignal.timeout(15000)
+      }
+    );
+
+    if (!response.ok) return null;
+
+    const data = await response.json();
+
+    const ranked = (Array.isArray(data.docs) ? data.docs : [])
+      .filter(item => item.cover_i)
+      .map(item => ({
+        item,
+        score: scoreCoverResult(
+          item.title,
+          (item.author_name || []).join(" "),
+          title,
+          author
+        )
+      }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 10);
+
+    for (const candidate of ranked) {
+      if (candidate.score < 45) continue;
+
+      for (const size of ["L", "M"]) {
+        const url =
+          `https://covers.openlibrary.org/b/id/${candidate.item.cover_i}-${size}.jpg?default=false`;
+
+        const image = await downloadVerifiedCover(url);
+
+        if (image) {
+          return {
+            ...image,
+            source: "Open Library — edição original localizada por título e autor"
+          };
+        }
+      }
+    }
+  } catch (error) {
+    console.warn(`Open Library search failed for ${title}:`, error.message);
+  }
+
+  return null;
+}
+
+async function resolveOfficialEditionCover(title, authorOverride = "") {
   const edition = editionForTitle(title);
   if (!edition) return null;
+
   const cacheKey = normalizeSearchText(title);
   if (bookCoverCache.has(cacheKey)) return bookCoverCache.get(cacheKey);
 
+  const author = edition.author || authorOverride || "";
   let cover = null;
+
+  // 1. ISBN exato da edição brasileira.
   if (edition.isbn13) {
     const byIsbn = await googleVolumeByIsbn(edition.isbn13);
     cover = await coverFromGoogleVolume(byIsbn);
-    if (!cover) cover = await coverFromOpenLibraryIsbn(edition.isbn13);
+
+    if (!cover) {
+      cover = await coverFromOpenLibraryIsbn(edition.isbn13);
+    }
   }
+
+  // 2. Volume exato já identificado.
   if (!cover && edition.googleVolumeId) {
-    cover = await coverFromGoogleVolume(await googleVolume(edition.googleVolumeId));
+    const exactVolume = await googleVolume(edition.googleVolumeId);
+    cover = await coverFromGoogleVolume(exactVolume);
   }
-  if (cover) {
-    const result = {
-      dataUri:`data:${cover.contentType};base64,${cover.buffer.toString("base64")}`,
-      contentType:cover.contentType,
-      buffer:cover.buffer,
-      source:`${cover.source}${edition.isbn13 ? ` • ISBN ${edition.isbn13}` : ""}`
-    };
-    bookCoverCache.set(cacheKey,result);
-    return result;
+
+  // 3. Outra edição original correspondente ao mesmo título e autor.
+  if (!cover) {
+    cover = await coverFromGoogleSearch(edition.title || title, author);
   }
-  return null;
+
+  if (!cover) {
+    cover = await coverFromOpenLibrarySearch(edition.title || title, author);
+  }
+
+  if (!cover) return null;
+
+  const result = {
+    dataUri: `data:${cover.contentType};base64,${cover.buffer.toString("base64")}`,
+    contentType: cover.contentType,
+    buffer: cover.buffer,
+    source: `${cover.source}${edition.isbn13 ? ` • ISBN ${edition.isbn13}` : ""}`
+  };
+
+  bookCoverCache.set(cacheKey, result);
+  return result;
 }
 
 function delay(milliseconds) { return new Promise(resolve => setTimeout(resolve,milliseconds)); }
@@ -551,7 +733,7 @@ async function syncBookCovers({ force = false } = {}) {
     const targets=result.rows.filter(book => {
       if (!editionForTitle(book.title)) return false;
       if (book.cover_source === "manual-upload") return false;
-      return force || book.cover_source !== "official-edition-v21" || !isDataImage(book.cover_url);
+      return force || book.cover_source !== "official-edition-v26" || !isDataImage(book.cover_url);
     });
     bookCoverSyncState.total=targets.length;
     let cursor=0;
@@ -560,9 +742,9 @@ async function syncBookCovers({ force = false } = {}) {
         const book=targets[cursor++];
         bookCoverSyncState.currentTitle=book.title;
         try {
-          const cover=await resolveOfficialEditionCover(book.title);
+          const cover=await resolveOfficialEditionCover(book.title, book.author);
           if (cover) {
-            await pool.query(`UPDATE books SET cover_url=$1,cover_source='official-edition-v21',cover_checked_at=NOW(),updated_at=NOW() WHERE id=$2`,[cover.dataUri,book.id]);
+            await pool.query(`UPDATE books SET cover_url=$1,cover_source='official-edition-v26',cover_checked_at=NOW(),updated_at=NOW() WHERE id=$2`,[cover.dataUri,book.id]);
             bookCoverSyncState.updated+=1;
           } else {
             await pool.query(`UPDATE books SET cover_source='official-not-found',cover_checked_at=NOW(),updated_at=NOW() WHERE id=$1`,[book.id]);
@@ -584,14 +766,14 @@ async function syncBookCovers({ force = false } = {}) {
 
 app.get("/api/public/book-cover", asyncRoute(async (req, res) => {
   const title=requiredText(req.query.title,"o título",180);
-  const bookResult=await pool.query(`SELECT id,title,cover_url,cover_source FROM books WHERE LOWER(title)=LOWER($1) LIMIT 1`,[title]);
+  const bookResult=await pool.query(`SELECT id,title,author,cover_url,cover_source FROM books WHERE LOWER(title)=LOWER($1) LIMIT 1`,[title]);
   const book=bookResult.rows[0];
   let parts=dataImageParts(book?.cover_url);
   if (!parts && editionForTitle(book?.title || title)) {
-    const cover=await resolveOfficialEditionCover(book?.title || title);
+    const cover=await resolveOfficialEditionCover(book?.title || title, book?.author || cleanText(req.query.author,160) || "");
     if (cover) {
       parts={contentType:cover.contentType,buffer:cover.buffer};
-      if (book?.id) await pool.query(`UPDATE books SET cover_url=$1,cover_source='official-edition-v21',cover_checked_at=NOW(),updated_at=NOW() WHERE id=$2`,[cover.dataUri,book.id]);
+      if (book?.id) await pool.query(`UPDATE books SET cover_url=$1,cover_source='official-edition-v26',cover_checked_at=NOW(),updated_at=NOW() WHERE id=$2`,[cover.dataUri,book.id]);
     }
   }
   if (parts) {
@@ -602,7 +784,7 @@ app.get("/api/public/book-cover", asyncRoute(async (req, res) => {
   }
   res.set("Content-Type","image/svg+xml; charset=utf-8");
   res.set("Cache-Control","public,max-age=600");
-  return res.send(`<svg xmlns="http://www.w3.org/2000/svg" width="420" height="640"><rect width="420" height="640" rx="28" fill="#f4f1e9"/><path d="M110 190c55-24 100-10 100-10v250s-45-12-100 12V190Zm200 0c-55-24-100-10-100-10v250s45-12 100 12V190Z" fill="#dcebe6" stroke="#176b63" stroke-width="9"/><path d="M210 180v250" stroke="#176b63" stroke-width="9"/><text x="210" y="520" text-anchor="middle" font-family="Arial" font-size="22" fill="#66736f">Capa sendo sincronizada</text></svg>`);
+  return res.send(`<svg xmlns="http://www.w3.org/2000/svg" width="420" height="640"><rect width="420" height="640" rx="28" fill="#f4f1e9"/><path d="M110 190c55-24 100-10 100-10v250s-45-12-100 12V190Zm200 0c-55-24-100-10-100-10v250s45-12 100 12V190Z" fill="#dcebe6" stroke="#176b63" stroke-width="9"/><path d="M210 180v250" stroke="#176b63" stroke-width="9"/><text x="210" y="520" text-anchor="middle" font-family="Arial" font-size="22" fill="#66736f">Capa original não localizada</text></svg>`);
 }));
 
 app.get("/api/public/book-covers/status", (_req, res) => {
@@ -2442,12 +2624,12 @@ async function start() {
     await ensureInitialUsers();
 
     app.listen(PORT, () => {
-      console.log(`BookShare API 5.0 online na porta ${PORT}.`);
+      console.log(`BookShare API 6.0 online na porta ${PORT}.`);
 
       setTimeout(() => {
-        syncBookCovers({ force: false })
-          .catch(error => console.error("Initial official cover sync failed:", error));
-      }, 2500);
+        syncBookCovers({ force: true })
+          .catch(error => console.error("Falha na sincronização das capas originais:", error));
+      }, 3000);
     });
   } catch (error) {
     console.error("Falha ao iniciar a API:", error);
