@@ -3267,7 +3267,17 @@ async function ensureRuntimeSchema() {
 
     `ALTER TABLE IF EXISTS books ADD COLUMN IF NOT EXISTS cover_source TEXT`,
 
-    `ALTER TABLE IF EXISTS books ADD COLUMN IF NOT EXISTS cover_checked_at TIMESTAMPTZ`
+    `ALTER TABLE IF EXISTS books ADD COLUMN IF NOT EXISTS cover_checked_at TIMESTAMPTZ`,
+
+    `CREATE INDEX IF NOT EXISTS users_school_id_idx ON users (school_id)`,
+
+    `CREATE INDEX IF NOT EXISTS students_school_id_idx ON students (school_id)`,
+
+    `CREATE INDEX IF NOT EXISTS classes_school_id_idx ON classes (school_id)`,
+
+    `CREATE INDEX IF NOT EXISTS books_school_id_idx ON books (school_id)`,
+
+    `CREATE INDEX IF NOT EXISTS books_cover_source_idx ON books (cover_source)`
 
   ];
 
@@ -4913,7 +4923,7 @@ app.put("/api/auth/change-password", authenticate, asyncRoute(async (req, res) =
 
  
 
-app.get("/api/notifications", authenticate, requireRole("librarian"), asyncRoute(async (_req, res) => {
+app.get("/api/notifications", authenticate, requireRole("librarian"), asyncRoute(async (req, res) => {
 
   const settings = await getSettings();
 
@@ -4953,11 +4963,13 @@ app.get("/api/notifications", authenticate, requireRole("librarian"), asyncRoute
 
         AND l.due_date <= CURRENT_DATE + $1::INT
 
+        AND ($2::UUID IS NULL OR s.school_id = $2::UUID)
+
       ORDER BY l.due_date ASC, s.full_name
 
       LIMIT 40
 
-    `, [dueSoonDays]),
+    `, [dueSoonDays, req.user.school_id || null]),
 
     pool.query(`
 
@@ -4979,11 +4991,13 @@ app.get("/api/notifications", authenticate, requireRole("librarian"), asyncRoute
 
       WHERE r.status = 'ready'
 
+        AND ($1::UUID IS NULL OR s.school_id = $1::UUID)
+
       ORDER BY r.expires_at NULLS LAST, r.created_at
 
       LIMIT 20
 
-    `)
+    `, [req.user.school_id || null])
 
   ]);
 
@@ -5685,13 +5699,13 @@ app.post("/api/classes", authenticate, requireRole("admin"), asyncRoute(async (r
 
     const result = await client.query(
 
-      `INSERT INTO classes (name, shift, school_year, teacher_name)
+      `INSERT INTO classes (name, shift, school_year, teacher_name, school_id)
 
-       VALUES ($1, $2, $3, $4)
+       VALUES ($1, $2, $3, $4, $5)
 
        RETURNING *`,
 
-      [name, shift, schoolYear, teacherName]
+      [name, shift, schoolYear, teacherName, req.user.school_id || null]
 
     );
 
@@ -6051,7 +6065,7 @@ app.post("/api/students", authenticate, requireRole("admin"), asyncRoute(async (
 
  
 
-    const classResult = await client.query("SELECT id FROM classes WHERE id = $1 AND active = TRUE", [classId]);
+    const classResult = await client.query("SELECT id, school_id FROM classes WHERE id = $1 AND active = TRUE", [classId]);
 
     if (!classResult.rows[0]) throw httpError(400, "Selecione uma turma ativa.");
 
@@ -6061,13 +6075,13 @@ app.post("/api/students", authenticate, requireRole("admin"), asyncRoute(async (
 
       `INSERT INTO students
 
-        (full_name, registration_number, class_id, roll_number, guardian_contact, photo_url, notes)
+        (full_name, registration_number, class_id, roll_number, guardian_contact, photo_url, notes, school_id)
 
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 
        RETURNING *`,
 
-      [fullName, registrationNumber, classId, rollNumber, guardianContact, photoUrl, notes]
+      [fullName, registrationNumber, classId, rollNumber, guardianContact, photoUrl, notes, classResult.rows[0].school_id || req.user.school_id || null]
 
     );
 
@@ -6537,13 +6551,13 @@ app.post("/api/books", authenticate, requireRole("admin"), asyncRoute(async (req
 
       `INSERT INTO books
 
-        (title, author, isbn, publisher, publication_year, category_id, shelf, description, cover_url, cover_source)
+        (title, author, isbn, publisher, publication_year, category_id, shelf, description, cover_url, cover_source, school_id)
 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 
        RETURNING *`,
 
-      [title, author, isbn, publisher, publicationYear, categoryId, shelf, description, coverUrl, coverUrl ? "manual-upload" : null]
+      [title, author, isbn, publisher, publicationYear, categoryId, shelf, description, coverUrl, coverUrl ? "manual-upload" : null, req.user.school_id || null]
 
     );
 
