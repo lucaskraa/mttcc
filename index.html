@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Literata:opsz,wght@7..72,600;7..72,700;7..72,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=30">
+  <link rel="stylesheet" href="style.css?v=31">
 </head>
 <body>
   <div id="app-loading" class="app-loading">
@@ -45,10 +45,99 @@
           acompanhar prazos e manter o acervo sempre organizado.
         </p>
 
-        <div class="auth-showcase__compact-notes" aria-label="Recursos do BookShare">
-          <span><b>Acervo</b><small>Livros e exemplares</small></span>
-          <span><b>Prazos</b><small>Devoluções e avisos</small></span>
-          <span><b>Acessos</b><small>Administração e balcão</small></span>
+        <div class="showcase-library showcase-library--calm" aria-label="Ilustração de uma biblioteca escolar organizada">
+          <div class="calm-library-visual">
+            <svg class="calm-library-illustration" viewBox="0 0 820 380" role="img" aria-labelledby="calm-library-title calm-library-description">
+              <title id="calm-library-title">Biblioteca escolar organizada</title>
+              <desc id="calm-library-description">Mesa de atendimento com livro aberto, ficha de empréstimo, estante e planta.</desc>
+
+              <defs>
+                <linearGradient id="calmWall" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#fbf8f0"/>
+                  <stop offset="1" stop-color="#e9f2ed"/>
+                </linearGradient>
+                <linearGradient id="calmDesk" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0" stop-color="#9c704a"/>
+                  <stop offset="1" stop-color="#765036"/>
+                </linearGradient>
+                <linearGradient id="calmBook" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#ffffff"/>
+                  <stop offset="1" stop-color="#efe9dd"/>
+                </linearGradient>
+                <filter id="calmShadow" x="-20%" y="-20%" width="140%" height="160%">
+                  <feDropShadow dx="0" dy="14" stdDeviation="14" flood-color="#153c35" flood-opacity=".16"/>
+                </filter>
+              </defs>
+
+              <rect x="5" y="5" width="810" height="370" rx="30" fill="url(#calmWall)"/>
+              <circle cx="690" cy="82" r="78" fill="#dcebe5" opacity=".72"/>
+              <circle cx="690" cy="82" r="48" fill="#f6d998" opacity=".52"/>
+
+              <g opacity=".4">
+                <path d="M66 66h232" stroke="#c7d7d0" stroke-width="2"/>
+                <path d="M66 94h180" stroke="#c7d7d0" stroke-width="2"/>
+                <path d="M66 122h214" stroke="#c7d7d0" stroke-width="2"/>
+              </g>
+
+              <g filter="url(#calmShadow)">
+                <rect x="78" y="72" width="278" height="150" rx="22" fill="#ffffff" opacity=".9"/>
+                <rect x="104" y="96" width="226" height="12" rx="6" fill="#dce7e2"/>
+
+                <g transform="translate(112 122)">
+                  <rect x="0" y="14" width="34" height="78" rx="5" fill="#1c6258"/>
+                  <rect x="42" y="0" width="42" height="92" rx="5" fill="#d3a75d"/>
+                  <rect x="92" y="24" width="31" height="68" rx="5" fill="#86b9aa"/>
+                  <rect x="131" y="8" width="38" height="84" rx="5" fill="#315b78"/>
+                  <rect x="177" y="28" width="29" height="64" rx="5" fill="#c9796f"/>
+
+                  <path d="M8 27h18M50 16h26M100 38h15M139 21h22M184 39h13"
+                        stroke="#ffffff" stroke-opacity=".55" stroke-width="4" stroke-linecap="round"/>
+                </g>
+              </g>
+
+              <g filter="url(#calmShadow)">
+                <rect x="460" y="66" width="232" height="142" rx="22" fill="#ffffff" opacity=".94"/>
+                <rect x="486" y="91" width="64" height="76" rx="10" fill="#e4f1ec"/>
+                <path d="M500 126l12 12 25-29" fill="none" stroke="#1f7568" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+                <rect x="570" y="94" width="92" height="10" rx="5" fill="#315f57" opacity=".82"/>
+                <rect x="570" y="119" width="70" height="8" rx="4" fill="#bdcbc5"/>
+                <rect x="570" y="141" width="82" height="8" rx="4" fill="#bdcbc5"/>
+                <rect x="570" y="163" width="52" height="8" rx="4" fill="#bdcbc5"/>
+              </g>
+
+              <rect x="46" y="274" width="728" height="56" rx="14" fill="url(#calmDesk)" filter="url(#calmShadow)"/>
+              <rect x="32" y="324" width="756" height="18" rx="9" fill="#5f402d"/>
+
+              <g transform="translate(270 210)" filter="url(#calmShadow)">
+                <path d="M0 18c62-18 108-10 137 14v98c-38-21-82-28-137-11V18Z"
+                      fill="url(#calmBook)" stroke="#d9d0c3" stroke-width="3"/>
+                <path d="M274 18c-62-18-108-10-137 14v98c38-21 82-28 137-11V18Z"
+                      fill="url(#calmBook)" stroke="#d9d0c3" stroke-width="3"/>
+                <path d="M137 32v98" stroke="#bba98e" stroke-width="3"/>
+                <path d="M28 54h78M28 74h88M28 94h66M168 54h78M168 74h88M168 94h66"
+                      stroke="#c8c0b5" stroke-width="3" stroke-linecap="round"/>
+              </g>
+
+              <g transform="translate(96 228)" filter="url(#calmShadow)">
+                <rect x="0" y="0" width="112" height="72" rx="14" fill="#f2d8a4"/>
+                <rect x="15" y="17" width="54" height="8" rx="4" fill="#7f643e" opacity=".75"/>
+                <rect x="15" y="35" width="76" height="7" rx="4" fill="#b49a72"/>
+                <rect x="15" y="51" width="43" height="7" rx="4" fill="#b49a72"/>
+                <circle cx="89" cy="24" r="12" fill="#1f7568"/>
+                <path d="M83 24l5 5 9-11" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </g>
+
+              <g transform="translate(650 196)">
+                <path d="M44 78c-7-38 4-68 33-90" fill="none" stroke="#3d806e" stroke-width="8" stroke-linecap="round"/>
+                <path d="M48 52c-30-8-42-27-36-55 27 5 43 22 36 55Z" fill="#77aa92"/>
+                <path d="M55 32c11-28 31-39 58-31-8 27-27 40-58 31Z" fill="#4e927d"/>
+                <path d="M46 66c-26 8-46 0-58-22 24-11 43-4 58 22Z" fill="#9bc3b1"/>
+                <path d="M70 59c24-4 41 7 49 30-23 6-40-3-49-30Z" fill="#6aa28c"/>
+                <path d="M18 82h68l-8 64H26l-8-64Z" fill="#cc9a4e"/>
+                <path d="M15 82h74" stroke="#a77534" stroke-width="7" stroke-linecap="round"/>
+              </g>
+            </svg>
+</div>
         </div>
 
 <div class="auth-benefits">
@@ -1624,6 +1713,6 @@
     </div>
   </dialog>
 
-  <script src="script.js?v=30"></script>
+  <script src="script.js?v=31"></script>
 </body>
 </html>
