@@ -14782,3 +14782,32 @@ body { background: #f2f1ed; color: var(--v8-ink); }
 .auth-library-panel__copy p { margin:0; color:#68737d!important; line-height:1.6; }
 
 @media (max-width:840px){.auth-library-panel{grid-template-columns:1fr}.auth-library-panel__copy{padding:0 8px 8px}}
+
+/* BOOKSHARE V36 — separação rígida dos perfis */
+[hidden] {
+  display: none !important;
+}
+
+.app-shell:not(.role-admin):not(.role-librarian) .admin-only,
+.app-shell:not(.role-admin):not(.role-librarian) .admin-only-nav,
+.app-shell:not(.role-admin):not(.role-librarian) .librarian-only,
+.app-shell:not(.role-admin):not(.role-librarian) .librarian-only-nav {
+  display: none !important;
+}
+
+.app-shell.role-admin .librarian-only,
+.app-shell.role-admin .librarian-only-nav {
+  display: none !important;
+}
+
+.app-shell.role-librarian .admin-only,
+.app-shell.role-librarian .admin-only-nav {
+  display: none !important;
+}
+
+.app-shell.role-admin .admin-only:not(.is-hidden),
+.app-shell.role-admin .admin-only-nav:not(.is-hidden),
+.app-shell.role-librarian .librarian-only:not(.is-hidden),
+.app-shell.role-librarian .librarian-only-nav:not(.is-hidden) {
+  visibility: visible;
+}
