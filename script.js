@@ -19,6 +19,9 @@ const state = {
   reservations: [],
   pending: [],
   users: [],
+  schools: [],
+  notifications: [],
+  notificationKeys: new Set(),
   activities: [],
   dashboard: null,
   reports: null,
@@ -45,8 +48,9 @@ const routeMeta = {
   turmas: ["Organização escolar", "Turmas"],
   relatorios: ["Análise", "Relatórios"],
   atividades: ["Auditoria", "Histórico de ações"],
-  usuarios: ["Administração", "Usuários"],
-  configuracoes: ["Administração", "Configurações"]
+  usuarios: ["Administração", "Funcionárias"],
+  escolas: ["Administração", "Escolas"],
+  configuracoes: ["Conta", "Meu perfil"]
 };
 
 const entityLabels = {
@@ -58,6 +62,7 @@ const entityLabels = {
   reservation: "Reserva",
   notice: "Aviso",
   user: "Usuário",
+  school: "Escola",
   settings: "Configurações",
   category: "Categoria"
 };
@@ -74,7 +79,8 @@ const actionLabels = {
   fulfill: "concluiu",
   ready: "marcou como disponível",
   status: "alterou a situação de",
-  password: "alterou a senha de"
+  password: "alterou a senha de",
+  delete: "excluiu"
 };
 
 const copyStatusLabels = {
@@ -109,6 +115,7 @@ const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 let searchTimer = null;
 let confirmResolver = null;
 let serviceClockTimer = null;
+let notificationPollingTimer = null;
 
 window.addEventListener("DOMContentLoaded", initializeApplication);
 
@@ -128,7 +135,7 @@ async function initializeApplication() {
 
   try {
     const response = await api("/auth/me");
-    state.user = response.user;
+    state.user = { ...state.user, ...response.user };
     showAppView();
     await loadCoreData();
     const initialRoute = location.hash.replace("#", "") || "dashboard";
@@ -176,6 +183,7 @@ function bindForms() {
   $("#reservation-form").addEventListener("submit", handleCreateReservation);
   $("#notice-form").addEventListener("submit", handleSaveNotice);
   $("#user-form").addEventListener("submit", handleCreateUser);
+  $("#school-form")?.addEventListener("submit", handleSaveSchool);
   $("#settings-form").addEventListener("submit", handleSaveSettings);
 }
 
@@ -212,6 +220,8 @@ function bindFilters() {
 
   bindInput("#user-search", renderUsers);
   bindInput("#user-role-filter", renderUsers, "change");
+  bindInput("#school-search", renderSchools);
+  bindInput("#school-status-filter", renderSchools, "change");
 
   bindInput("#service-student-search", handleServiceStudentSearch);
   bindInput("#return-search-input", handleReturnSearch);
@@ -332,6 +342,9 @@ async function dispatchAction(action, data) {
     "copy-reservation": () => copyReservationMessage(data.id),
     "toggle-user": () => toggleUser(data.id, data.active === "true"),
     "reset-user-password": () => resetUserPassword(data.id),
+    "delete-user": () => deleteUser(data.id),
+    "edit-school": () => editSchool(data.id),
+    "toggle-school": () => toggleSchool(data.id, data.active === "true"),
     "search-result": () => openSearchResult(data.type, data.id),
     "quick-return-result": () => prepareReturnLoan(data.id),
     "close-notification": closeNotificationPanel
@@ -439,6 +452,13 @@ function clearSession() {
   state.reservations = [];
   state.pending = [];
   state.users = [];
+  state.schools = [];
+  state.notifications = [];
+  state.notificationKeys = new Set();
+  if (notificationPollingTimer) {
+    clearInterval(notificationPollingTimer);
+    notificationPollingTimer = null;
+  }
   state.activities = [];
   state.reports = null;
 }
@@ -466,57 +486,94 @@ function configureUserInterface() {
   app.classList.toggle("role-admin", isAdmin);
   app.classList.toggle("role-librarian", !isAdmin);
 
-  $("#admin-navigation").classList.toggle("is-hidden", !isAdmin);
-  $$(".admin-only").forEach(element => element.classList.toggle("is-hidden", !isAdmin));
-  $$(".admin-only-nav").forEach(element => element.classList.toggle("is-hidden", !isAdmin));
-  $$(".librarian-only").forEach(element => element.classList.toggle("is-hidden", isAdmin));
-  $$("[data-settings-tab]").forEach(button => {
-    button.classList.toggle("is-hidden", !isAdmin && button.dataset.settingsTab !== "account");
+  $$(".admin-only, .admin-only-nav").forEach(element => {
+    element.classList.toggle("is-hidden", !isAdmin);
   });
-  $(".settings-form__footer")?.classList.toggle("is-hidden", !isAdmin);
-  switchSettingsTab(isAdmin ? "general" : "account");
+
+  $$(".librarian-only, .librarian-only-nav").forEach(element => {
+    element.classList.toggle("is-hidden", isAdmin);
+  });
+
+  $("#notifications-button")?.classList.toggle("is-hidden", isAdmin);
+  $("#notification-panel")?.classList.remove("is-open");
+
+  $$("[data-settings-tab]").forEach(button => {
+    button.classList.toggle(
+      "is-hidden",
+      button.dataset.settingsTab !== "account"
+    );
+  });
+
+  $(".settings-form__footer")?.classList.add("is-hidden");
+  switchSettingsTab("account");
 
   const role = isAdmin ? "Administrador do sistema" : "Bibliotecária";
   const roleDescription = isAdmin
-    ? "Controle do acervo, usuários, relatórios e configurações."
-    : "Atendimento, empréstimos, devoluções e acompanhamento de alunos.";
+    ? "Cadastros, escolas, livros e controle de contas."
+    : "Empréstimos, devoluções, reservas e avisos de prazo.";
 
   setAvatarElement($("#sidebar-avatar"), state.user);
   setAvatarElement($("#topbar-avatar"), state.user);
   setAvatarElement($("#profile-photo-preview"), state.user);
   if ($("#admin-hero-avatar")) setAvatarElement($("#admin-hero-avatar"), state.user);
   if ($("#librarian-hero-avatar")) setAvatarElement($("#librarian-hero-avatar"), state.user);
-  if ($("#admin-welcome-title") && isAdmin) $("#admin-welcome-title").textContent = `Central de ${firstName(state.user.name)}`;
 
   $("#sidebar-user-name").textContent = state.user.name;
   $("#topbar-user-name").textContent = state.user.name;
   if ($("#librarian-hero-name")) $("#librarian-hero-name").textContent = state.user.name;
   if ($("#admin-hero-name")) $("#admin-hero-name").textContent = state.user.name;
   if ($("#admin-hero-email")) $("#admin-hero-email").textContent = state.user.email || "";
-  if ($("#topbar-role-pill")) $("#topbar-role-pill").textContent = isAdmin ? "Admin" : "Balcão";
+
+  $("#topbar-role-pill").textContent = isAdmin ? "Administração" : "Balcão";
   $("#sidebar-user-role").textContent = role;
   $("#topbar-user-role").textContent = role;
   $("#profile-name-input").value = state.user.name || "";
   $("#profile-email-input").value = state.user.email || "";
+  if ($("#profile-phone-input")) $("#profile-phone-input").value = state.user.phone || "";
   $("#profile-role-icon").textContent = isAdmin ? "A" : "B";
   $("#profile-role-title").textContent = role;
   $("#profile-role-description").textContent = roleDescription;
+
+  if ($("#profile-school-name")) {
+    $("#profile-school-name").textContent = state.user.school_name || state.settings?.school_name || "Não vinculada";
+  }
+  if ($("#profile-job-title")) {
+    $("#profile-job-title").textContent = state.user.job_title || role;
+  }
+  if ($("#profile-phone")) {
+    $("#profile-phone").textContent = state.user.phone || "Não informado";
+  }
 }
 
 async function loadCoreData() {
   await Promise.all([
     loadSettings(),
     loadCategories(),
-    loadClasses()
+    loadClasses(),
+    loadBooks(),
+    loadStudents()
   ]);
 
-  await Promise.all([
-    loadBooks(),
-    loadStudents(),
-    loadLoans(),
-    loadReservations(),
-    loadPending()
-  ]);
+  if (state.user?.role === "admin") {
+    await Promise.all([
+      loadSchools(),
+      loadUsers()
+    ]);
+
+    state.loans = [];
+    state.reservations = [];
+    state.pending = [];
+    state.notifications = [];
+  } else {
+    await Promise.all([
+      loadLoans(),
+      loadReservations(),
+      loadPending(),
+      loadNotifications({ announce: false })
+    ]);
+
+    startNotificationPolling();
+  }
 
   updateAllSelectOptions();
   buildNotifications();
@@ -524,8 +581,11 @@ async function loadCoreData() {
 
 async function navigate(route, updateHash = true) {
   if (!routeMeta[route]) route = "dashboard";
-  const librarianBlockedRoutes = ["exemplares", "relatorios", "atividades", "usuarios"];
+  const librarianBlockedRoutes = ["exemplares", "relatorios", "atividades", "usuarios", "escolas"];
+  const adminBlockedRoutes = ["atendimento", "emprestimos", "reservas", "pendencias", "exemplares", "turmas", "relatorios", "atividades"];
+
   if (state.user?.role !== "admin" && librarianBlockedRoutes.includes(route)) route = "dashboard";
+  if (state.user?.role === "admin" && adminBlockedRoutes.includes(route)) route = "dashboard";
 
   state.currentRoute = route;
 
@@ -568,6 +628,7 @@ async function loadRouteData(route) {
       relatorios: loadReports,
       atividades: loadActivities,
       usuarios: loadUsers,
+      escolas: loadSchools,
       configuracoes: loadSettings
     };
 
@@ -612,6 +673,13 @@ function renderDashboard() {
 
   const adminTitle = $("#admin-welcome-title");
   if (adminTitle) adminTitle.textContent = `${greeting}, ${firstName(state.user.name)} — administração`;
+
+  if (state.user?.role === "admin" && dashboard.admin) {
+    $("#admin-total-staff").textContent = dashboard.admin.active_staff || 0;
+    $("#admin-total-students").textContent = dashboard.admin.active_students || 0;
+    $("#admin-total-schools").textContent = dashboard.admin.active_schools || 0;
+    $("#admin-total-books").textContent = dashboard.admin.active_books || 0;
+  }
 
   $("#librarian-due-today").textContent = dashboard.loans.due_today;
   $("#librarian-overdue").textContent = dashboard.loans.overdue;
@@ -1431,6 +1499,19 @@ function prepareReservationForBook(id) {
 }
 
 
+const INTERNAL_BOOKSHARE_COVERS = new Map([
+  ["guia de redacao enem", "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MjAiIGhlaWdodD0iNjQwIiB2aWV3Qm94PSIwIDAgNDIwIDY0MCI+CjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIHN0b3AtY29sb3I9IiMxNzNmMzkiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNkNmE4NWYiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz4KPHJlY3Qgd2lkdGg9IjQyMCIgaGVpZ2h0PSI2NDAiIHJ4PSIyNCIgZmlsbD0idXJsKCNnKSIvPjxyZWN0IHg9IjI1IiB5PSIyNSIgd2lkdGg9IjM3MCIgaGVpZ2h0PSI1OTAiIHJ4PSIxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9Ii4zIi8+CjxwYXRoIGQ9Ik0xMTAgMTQ1YzU3LTI0IDEwMC0xMyAxMDAtMTN2MTc1cy00My0xMi0xMDAgMTJWMTQ1Wm0yMDAgMGMtNTctMjQtMTAwLTEzLTEwMC0xM3YxNzVzNDMtMTIgMTAwIDEyVjE0NVoiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9Ii4xNCIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9Ii41NSIgc3Ryb2tlLXdpZHRoPSI1Ii8+CjxwYXRoIGQ9Ik0yMTAgMTMydjE3NiIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9Ii41NSIgc3Ryb2tlLXdpZHRoPSI1Ii8+Cjx0ZXh0IHg9IjQ2IiB5PSI2NSIgZmlsbD0id2hpdGUiIGZpbGwtb3BhY2l0eT0iLjgiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNiIgbGV0dGVyLXNwYWNpbmc9IjMiPkJPT0tTSEFSRSDigKIgTUFURVJJQUwgRVNDT0xBUjwvdGV4dD4KPHRleHQgeD0iNDYiIHk9IjM5MCIgZmlsbD0id2hpdGUiIGZvbnQtZmFtaWx5PSJHZW9yZ2lhIiBmb250LXdlaWdodD0iNzAwIiBmb250LXNpemU9IjM2Ij48dHNwYW4geD0iNDYiIGR5PSIwIj5HdWlhIGRlIFJlZGHDp8OjbyBFTkVNPC90c3Bhbj48L3RleHQ+Cjx0ZXh0IHg9IjQ2IiB5PSI1NzUiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9Ii44MiIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE4Ij5FcXVpcGUgUGVkYWfDs2dpY2EgQm9va1NoYXJlPC90ZXh0Pgo8L3N2Zz4="],
+  ["matematica essencial para o enem", "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MjAiIGhlaWdodD0iNjQwIiB2aWV3Qm94PSIwIDAgNDIwIDY0MCI+CjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIHN0b3AtY29sb3I9IiMyNDNiNTUiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM4M2I1YzgiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz4KPHJlY3Qgd2lkdGg9IjQyMCIgaGVpZ2h0PSI2NDAiIHJ4PSIyNCIgZmlsbD0idXJsKCNnKSIvPjxyZWN0IHg9IjI1IiB5PSIyNSIgd2lkdGg9IjM3MCIgaGVpZ2h0PSI1OTAiIHJ4PSIxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9Ii4zIi8+CjxwYXRoIGQ9Ik0xMTAgMTQ1YzU3LTI0IDEwMC0xMyAxMDAtMTN2MTc1cy00My0xMi0xMDAgMTJWMTQ1Wm0yMDAgMGMtNTctMjQtMTAwLTEzLTEwMC0xM3YxNzVzNDMtMTIgMTAwIDEyVjE0NVoiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9Ii4xNCIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9Ii41NSIgc3Ryb2tlLXdpZHRoPSI1Ii8+CjxwYXRoIGQ9Ik0yMTAgMTMydjE3NiIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9Ii41NSIgc3Ryb2tlLXdpZHRoPSI1Ii8+Cjx0ZXh0IHg9IjQ2IiB5PSI2NSIgZmlsbD0id2hpdGUiIGZpbGwtb3BhY2l0eT0iLjgiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNiIgbGV0dGVyLXNwYWNpbmc9IjMiPkJPT0tTSEFSRSDigKIgTUFURVJJQUwgRVNDT0xBUjwvdGV4dD4KPHRleHQgeD0iNDYiIHk9IjM5MCIgZmlsbD0id2hpdGUiIGZvbnQtZmFtaWx5PSJHZW9yZ2lhIiBmb250LXdlaWdodD0iNzAwIiBmb250LXNpemU9IjM2Ij48dHNwYW4geD0iNDYiIGR5PSIwIj5NYXRlbcOhdGljYSBFc3NlbmNpYWw8L3RzcGFuPjx0c3BhbiB4PSI0NiIgZHk9IjQ4Ij5wYXJhIG8gRU5FTTwvdHNwYW4+PC90ZXh0Pgo8dGV4dCB4PSI0NiIgeT0iNTc1IiBmaWxsPSJ3aGl0ZSIgZmlsbC1vcGFjaXR5PSIuODIiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCI+RXF1aXBlIFBlZGFnw7NnaWNhIEJvb2tTaGFyZTwvdGV4dD4KPC9zdmc+"],
+  ["ciencias da natureza em revisao", "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MjAiIGhlaWdodD0iNjQwIiB2aWV3Qm94PSIwIDAgNDIwIDY0MCI+CjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIHN0b3AtY29sb3I9IiM1MjNhNWMiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNkNmExYjQiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz4KPHJlY3Qgd2lkdGg9IjQyMCIgaGVpZ2h0PSI2NDAiIHJ4PSIyNCIgZmlsbD0idXJsKCNnKSIvPjxyZWN0IHg9IjI1IiB5PSIyNSIgd2lkdGg9IjM3MCIgaGVpZ2h0PSI1OTAiIHJ4PSIxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9Ii4zIi8+CjxwYXRoIGQ9Ik0xMTAgMTQ1YzU3LTI0IDEwMC0xMyAxMDAtMTN2MTc1cy00My0xMi0xMDAgMTJWMTQ1Wm0yMDAgMGMtNTctMjQtMTAwLTEzLTEwMC0xM3YxNzVzNDMtMTIgMTAwIDEyVjE0NVoiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9Ii4xNCIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9Ii41NSIgc3Ryb2tlLXdpZHRoPSI1Ii8+CjxwYXRoIGQ9Ik0yMTAgMTMydjE3NiIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9Ii41NSIgc3Ryb2tlLXdpZHRoPSI1Ii8+Cjx0ZXh0IHg9IjQ2IiB5PSI2NSIgZmlsbD0id2hpdGUiIGZpbGwtb3BhY2l0eT0iLjgiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNiIgbGV0dGVyLXNwYWNpbmc9IjMiPkJPT0tTSEFSRSDigKIgTUFURVJJQUwgRVNDT0xBUjwvdGV4dD4KPHRleHQgeD0iNDYiIHk9IjM5MCIgZmlsbD0id2hpdGUiIGZvbnQtZmFtaWx5PSJHZW9yZ2lhIiBmb250LXdlaWdodD0iNzAwIiBmb250LXNpemU9IjM2Ij48dHNwYW4geD0iNDYiIGR5PSIwIj5DacOqbmNpYXMgZGEgTmF0dXJlemE8L3RzcGFuPjx0c3BhbiB4PSI0NiIgZHk9IjQ4Ij5lbSBSZXZpc8OjbzwvdHNwYW4+PC90ZXh0Pgo8dGV4dCB4PSI0NiIgeT0iNTc1IiBmaWxsPSJ3aGl0ZSIgZmlsbC1vcGFjaXR5PSIuODIiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCI+RXF1aXBlIFBlZGFnw7NnaWNhIEJvb2tTaGFyZTwvdGV4dD4KPC9zdmc+"],
+  ["ciencias humanas em revisao", "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MjAiIGhlaWdodD0iNjQwIiB2aWV3Qm94PSIwIDAgNDIwIDY0MCI+CjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIHN0b3AtY29sb3I9IiM2ODQxMmYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNkOWIyN2MiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz4KPHJlY3Qgd2lkdGg9IjQyMCIgaGVpZ2h0PSI2NDAiIHJ4PSIyNCIgZmlsbD0idXJsKCNnKSIvPjxyZWN0IHg9IjI1IiB5PSIyNSIgd2lkdGg9IjM3MCIgaGVpZ2h0PSI1OTAiIHJ4PSIxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9Ii4zIi8+CjxwYXRoIGQ9Ik0xMTAgMTQ1YzU3LTI0IDEwMC0xMyAxMDAtMTN2MTc1cy00My0xMi0xMDAgMTJWMTQ1Wm0yMDAgMGMtNTctMjQtMTAwLTEzLTEwMC0xM3YxNzVzNDMtMTIgMTAwIDEyVjE0NVoiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9Ii4xNCIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9Ii41NSIgc3Ryb2tlLXdpZHRoPSI1Ii8+CjxwYXRoIGQ9Ik0yMTAgMTMydjE3NiIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9Ii41NSIgc3Ryb2tlLXdpZHRoPSI1Ii8+Cjx0ZXh0IHg9IjQ2IiB5PSI2NSIgZmlsbD0id2hpdGUiIGZpbGwtb3BhY2l0eT0iLjgiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNiIgbGV0dGVyLXNwYWNpbmc9IjMiPkJPT0tTSEFSRSDigKIgTUFURVJJQUwgRVNDT0xBUjwvdGV4dD4KPHRleHQgeD0iNDYiIHk9IjM5MCIgZmlsbD0id2hpdGUiIGZvbnQtZmFtaWx5PSJHZW9yZ2lhIiBmb250LXdlaWdodD0iNzAwIiBmb250LXNpemU9IjM2Ij48dHNwYW4geD0iNDYiIGR5PSIwIj5DacOqbmNpYXMgSHVtYW5hcyBlbTwvdHNwYW4+PHRzcGFuIHg9IjQ2IiBkeT0iNDgiPlJldmlzw6NvPC90c3Bhbj48L3RleHQ+Cjx0ZXh0IHg9IjQ2IiB5PSI1NzUiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9Ii44MiIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE4Ij5FcXVpcGUgUGVkYWfDs2dpY2EgQm9va1NoYXJlPC90ZXh0Pgo8L3N2Zz4="],
+  ["linguagens e literatura para vestibulares", "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MjAiIGhlaWdodD0iNjQwIiB2aWV3Qm94PSIwIDAgNDIwIDY0MCI+CjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIHN0b3AtY29sb3I9IiMyNTNiMmYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM5ZmMxYTUiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz4KPHJlY3Qgd2lkdGg9IjQyMCIgaGVpZ2h0PSI2NDAiIHJ4PSIyNCIgZmlsbD0idXJsKCNnKSIvPjxyZWN0IHg9IjI1IiB5PSIyNSIgd2lkdGg9IjM3MCIgaGVpZ2h0PSI1OTAiIHJ4PSIxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9Ii4zIi8+CjxwYXRoIGQ9Ik0xMTAgMTQ1YzU3LTI0IDEwMC0xMyAxMDAtMTN2MTc1cy00My0xMi0xMDAgMTJWMTQ1Wm0yMDAgMGMtNTctMjQtMTAwLTEzLTEwMC0xM3YxNzVzNDMtMTIgMTAwIDEyVjE0NVoiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9Ii4xNCIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9Ii41NSIgc3Ryb2tlLXdpZHRoPSI1Ii8+CjxwYXRoIGQ9Ik0yMTAgMTMydjE3NiIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9Ii41NSIgc3Ryb2tlLXdpZHRoPSI1Ii8+Cjx0ZXh0IHg9IjQ2IiB5PSI2NSIgZmlsbD0id2hpdGUiIGZpbGwtb3BhY2l0eT0iLjgiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNiIgbGV0dGVyLXNwYWNpbmc9IjMiPkJPT0tTSEFSRSDigKIgTUFURVJJQUwgRVNDT0xBUjwvdGV4dD4KPHRleHQgeD0iNDYiIHk9IjM5MCIgZmlsbD0id2hpdGUiIGZvbnQtZmFtaWx5PSJHZW9yZ2lhIiBmb250LXdlaWdodD0iNzAwIiBmb250LXNpemU9IjM2Ij48dHNwYW4geD0iNDYiIGR5PSIwIj5MaW5ndWFnZW5zIGU8L3RzcGFuPjx0c3BhbiB4PSI0NiIgZHk9IjQ4Ij5MaXRlcmF0dXJhIHBhcmE8L3RzcGFuPjx0c3BhbiB4PSI0NiIgZHk9IjQ4Ij5WZXN0aWJ1bGFyZXM8L3RzcGFuPjwvdGV4dD4KPHRleHQgeD0iNDYiIHk9IjU3NSIgZmlsbD0id2hpdGUiIGZpbGwtb3BhY2l0eT0iLjgyIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTgiPkVxdWlwZSBQZWRhZ8OzZ2ljYSBCb29rU2hhcmU8L3RleHQ+Cjwvc3ZnPg=="],
+  ["dicionario escolar da lingua portuguesa", "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MjAiIGhlaWdodD0iNjQwIiB2aWV3Qm94PSIwIDAgNDIwIDY0MCI+CjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIHN0b3AtY29sb3I9IiMxNzNmMzkiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNkNmE4NWYiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz4KPHJlY3Qgd2lkdGg9IjQyMCIgaGVpZ2h0PSI2NDAiIHJ4PSIyNCIgZmlsbD0idXJsKCNnKSIvPjxyZWN0IHg9IjI1IiB5PSIyNSIgd2lkdGg9IjM3MCIgaGVpZ2h0PSI1OTAiIHJ4PSIxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9Ii4zIi8+CjxwYXRoIGQ9Ik0xMTAgMTQ1YzU3LTI0IDEwMC0xMyAxMDAtMTN2MTc1cy00My0xMi0xMDAgMTJWMTQ1Wm0yMDAgMGMtNTctMjQtMTAwLTEzLTEwMC0xM3YxNzVzNDMtMTIgMTAwIDEyVjE0NVoiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9Ii4xNCIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9Ii41NSIgc3Ryb2tlLXdpZHRoPSI1Ii8+CjxwYXRoIGQ9Ik0yMTAgMTMydjE3NiIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9Ii41NSIgc3Ryb2tlLXdpZHRoPSI1Ii8+Cjx0ZXh0IHg9IjQ2IiB5PSI2NSIgZmlsbD0id2hpdGUiIGZpbGwtb3BhY2l0eT0iLjgiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNiIgbGV0dGVyLXNwYWNpbmc9IjMiPkJPT0tTSEFSRSDigKIgTUFURVJJQUwgRVNDT0xBUjwvdGV4dD4KPHRleHQgeD0iNDYiIHk9IjM5MCIgZmlsbD0id2hpdGUiIGZvbnQtZmFtaWx5PSJHZW9yZ2lhIiBmb250LXdlaWdodD0iNzAwIiBmb250LXNpemU9IjM2Ij48dHNwYW4geD0iNDYiIGR5PSIwIj5EaWNpb27DoXJpbyBFc2NvbGFyIGRhPC90c3Bhbj48dHNwYW4geD0iNDYiIGR5PSI0OCI+TMOtbmd1YSBQb3J0dWd1ZXNhPC90c3Bhbj48L3RleHQ+Cjx0ZXh0IHg9IjQ2IiB5PSI1NzUiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9Ii44MiIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE4Ij5FcXVpcGUgTGV4aWNvZ3LDoWZpY2EgQm9va1NoYXJlPC90ZXh0Pgo8L3N2Zz4="],
+  ["atlas geografico escolar", "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MjAiIGhlaWdodD0iNjQwIiB2aWV3Qm94PSIwIDAgNDIwIDY0MCI+CjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIHN0b3AtY29sb3I9IiMyNDNiNTUiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM4M2I1YzgiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz4KPHJlY3Qgd2lkdGg9IjQyMCIgaGVpZ2h0PSI2NDAiIHJ4PSIyNCIgZmlsbD0idXJsKCNnKSIvPjxyZWN0IHg9IjI1IiB5PSIyNSIgd2lkdGg9IjM3MCIgaGVpZ2h0PSI1OTAiIHJ4PSIxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9Ii4zIi8+CjxwYXRoIGQ9Ik0xMTAgMTQ1YzU3LTI0IDEwMC0xMyAxMDAtMTN2MTc1cy00My0xMi0xMDAgMTJWMTQ1Wm0yMDAgMGMtNTctMjQtMTAwLTEzLTEwMC0xM3YxNzVzNDMtMTIgMTAwIDEyVjE0NVoiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9Ii4xNCIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9Ii41NSIgc3Ryb2tlLXdpZHRoPSI1Ii8+CjxwYXRoIGQ9Ik0yMTAgMTMydjE3NiIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9Ii41NSIgc3Ryb2tlLXdpZHRoPSI1Ii8+Cjx0ZXh0IHg9IjQ2IiB5PSI2NSIgZmlsbD0id2hpdGUiIGZpbGwtb3BhY2l0eT0iLjgiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNiIgbGV0dGVyLXNwYWNpbmc9IjMiPkJPT0tTSEFSRSDigKIgTUFURVJJQUwgRVNDT0xBUjwvdGV4dD4KPHRleHQgeD0iNDYiIHk9IjM5MCIgZmlsbD0id2hpdGUiIGZvbnQtZmFtaWx5PSJHZW9yZ2lhIiBmb250LXdlaWdodD0iNzAwIiBmb250LXNpemU9IjM2Ij48dHNwYW4geD0iNDYiIGR5PSIwIj5BdGxhcyBHZW9ncsOhZmljbzwvdHNwYW4+PHRzcGFuIHg9IjQ2IiBkeT0iNDgiPkVzY29sYXI8L3RzcGFuPjwvdGV4dD4KPHRleHQgeD0iNDYiIHk9IjU3NSIgZmlsbD0id2hpdGUiIGZpbGwtb3BhY2l0eT0iLjgyIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTgiPkVxdWlwZSBHZW9ncsOhZmljYSBCb29rU2hhcmU8L3RleHQ+Cjwvc3ZnPg=="],
+  ["gramatica de consulta", "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MjAiIGhlaWdodD0iNjQwIiB2aWV3Qm94PSIwIDAgNDIwIDY0MCI+CjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIHN0b3AtY29sb3I9IiM1MjNhNWMiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNkNmExYjQiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz4KPHJlY3Qgd2lkdGg9IjQyMCIgaGVpZ2h0PSI2NDAiIHJ4PSIyNCIgZmlsbD0idXJsKCNnKSIvPjxyZWN0IHg9IjI1IiB5PSIyNSIgd2lkdGg9IjM3MCIgaGVpZ2h0PSI1OTAiIHJ4PSIxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9Ii4zIi8+CjxwYXRoIGQ9Ik0xMTAgMTQ1YzU3LTI0IDEwMC0xMyAxMDAtMTN2MTc1cy00My0xMi0xMDAgMTJWMTQ1Wm0yMDAgMGMtNTctMjQtMTAwLTEzLTEwMC0xM3YxNzVzNDMtMTIgMTAwIDEyVjE0NVoiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9Ii4xNCIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9Ii41NSIgc3Ryb2tlLXdpZHRoPSI1Ii8+CjxwYXRoIGQ9Ik0yMTAgMTMydjE3NiIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9Ii41NSIgc3Ryb2tlLXdpZHRoPSI1Ii8+Cjx0ZXh0IHg9IjQ2IiB5PSI2NSIgZmlsbD0id2hpdGUiIGZpbGwtb3BhY2l0eT0iLjgiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNiIgbGV0dGVyLXNwYWNpbmc9IjMiPkJPT0tTSEFSRSDigKIgTUFURVJJQUwgRVNDT0xBUjwvdGV4dD4KPHRleHQgeD0iNDYiIHk9IjM5MCIgZmlsbD0id2hpdGUiIGZvbnQtZmFtaWx5PSJHZW9yZ2lhIiBmb250LXdlaWdodD0iNzAwIiBmb250LXNpemU9IjM2Ij48dHNwYW4geD0iNDYiIGR5PSIwIj5HcmFtw6F0aWNhIGRlIENvbnN1bHRhPC90c3Bhbj48L3RleHQ+Cjx0ZXh0IHg9IjQ2IiB5PSI1NzUiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9Ii44MiIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE4Ij5FcXVpcGUgUGVkYWfDs2dpY2EgQm9va1NoYXJlPC90ZXh0Pgo8L3N2Zz4="],
+  ["enciclopedia de ciencias", "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MjAiIGhlaWdodD0iNjQwIiB2aWV3Qm94PSIwIDAgNDIwIDY0MCI+CjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIHN0b3AtY29sb3I9IiM2ODQxMmYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNkOWIyN2MiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz4KPHJlY3Qgd2lkdGg9IjQyMCIgaGVpZ2h0PSI2NDAiIHJ4PSIyNCIgZmlsbD0idXJsKCNnKSIvPjxyZWN0IHg9IjI1IiB5PSIyNSIgd2lkdGg9IjM3MCIgaGVpZ2h0PSI1OTAiIHJ4PSIxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9Ii4zIi8+CjxwYXRoIGQ9Ik0xMTAgMTQ1YzU3LTI0IDEwMC0xMyAxMDAtMTN2MTc1cy00My0xMi0xMDAgMTJWMTQ1Wm0yMDAgMGMtNTctMjQtMTAwLTEzLTEwMC0xM3YxNzVzNDMtMTIgMTAwIDEyVjE0NVoiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9Ii4xNCIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9Ii41NSIgc3Ryb2tlLXdpZHRoPSI1Ii8+CjxwYXRoIGQ9Ik0yMTAgMTMydjE3NiIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9Ii41NSIgc3Ryb2tlLXdpZHRoPSI1Ii8+Cjx0ZXh0IHg9IjQ2IiB5PSI2NSIgZmlsbD0id2hpdGUiIGZpbGwtb3BhY2l0eT0iLjgiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNiIgbGV0dGVyLXNwYWNpbmc9IjMiPkJPT0tTSEFSRSDigKIgTUFURVJJQUwgRVNDT0xBUjwvdGV4dD4KPHRleHQgeD0iNDYiIHk9IjM5MCIgZmlsbD0id2hpdGUiIGZvbnQtZmFtaWx5PSJHZW9yZ2lhIiBmb250LXdlaWdodD0iNzAwIiBmb250LXNpemU9IjM2Ij48dHNwYW4geD0iNDYiIGR5PSIwIj5FbmNpY2xvcMOpZGlhIGRlPC90c3Bhbj48dHNwYW4geD0iNDYiIGR5PSI0OCI+Q2nDqm5jaWFzPC90c3Bhbj48L3RleHQ+Cjx0ZXh0IHg9IjQ2IiB5PSI1NzUiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9Ii44MiIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE4Ij5FcXVpcGUgQ2llbnTDrWZpY2EgQm9va1NoYXJlPC90ZXh0Pgo8L3N2Zz4="],
+  ["dicionario portugues ingles", "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MjAiIGhlaWdodD0iNjQwIiB2aWV3Qm94PSIwIDAgNDIwIDY0MCI+CjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIHN0b3AtY29sb3I9IiMyNTNiMmYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM5ZmMxYTUiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz4KPHJlY3Qgd2lkdGg9IjQyMCIgaGVpZ2h0PSI2NDAiIHJ4PSIyNCIgZmlsbD0idXJsKCNnKSIvPjxyZWN0IHg9IjI1IiB5PSIyNSIgd2lkdGg9IjM3MCIgaGVpZ2h0PSI1OTAiIHJ4PSIxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9Ii4zIi8+CjxwYXRoIGQ9Ik0xMTAgMTQ1YzU3LTI0IDEwMC0xMyAxMDAtMTN2MTc1cy00My0xMi0xMDAgMTJWMTQ1Wm0yMDAgMGMtNTctMjQtMTAwLTEzLTEwMC0xM3YxNzVzNDMtMTIgMTAwIDEyVjE0NVoiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9Ii4xNCIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9Ii41NSIgc3Ryb2tlLXdpZHRoPSI1Ii8+CjxwYXRoIGQ9Ik0yMTAgMTMydjE3NiIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9Ii41NSIgc3Ryb2tlLXdpZHRoPSI1Ii8+Cjx0ZXh0IHg9IjQ2IiB5PSI2NSIgZmlsbD0id2hpdGUiIGZpbGwtb3BhY2l0eT0iLjgiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNiIgbGV0dGVyLXNwYWNpbmc9IjMiPkJPT0tTSEFSRSDigKIgTUFURVJJQUwgRVNDT0xBUjwvdGV4dD4KPHRleHQgeD0iNDYiIHk9IjM5MCIgZmlsbD0id2hpdGUiIGZvbnQtZmFtaWx5PSJHZW9yZ2lhIiBmb250LXdlaWdodD0iNzAwIiBmb250LXNpemU9IjM2Ij48dHNwYW4geD0iNDYiIGR5PSIwIj5EaWNpb27DoXJpbzwvdHNwYW4+PHRzcGFuIHg9IjQ2IiBkeT0iNDgiPlBvcnR1Z3XDqnPigJNJbmdsw6pzPC90c3Bhbj48L3RleHQ+Cjx0ZXh0IHg9IjQ2IiB5PSI1NzUiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9Ii44MiIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE4Ij5FcXVpcGUgTGV4aWNvZ3LDoWZpY2EgQm9va1NoYXJlPC90ZXh0Pgo8L3N2Zz4="]
+]);
+
 const BOOK_COVER_PLACEHOLDER =
   "data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22420%22%20height%3D%22640%22%20viewBox%3D%220%200%20420%20640%22%3E%3Crect%20width%3D%22420%22%20height%3D%22640%22%20rx%3D%2228%22%20fill%3D%22%23f4f1e9%22%2F%3E%3Crect%20x%3D%2262%22%20y%3D%2272%22%20width%3D%22296%22%20height%3D%22496%22%20rx%3D%2222%22%20fill%3D%22%23ffffff%22%20stroke%3D%22%23d7d2c7%22%20stroke-width%3D%225%22%2F%3E%3Cpath%20d%3D%22M132%20204c40-22%2078-19%2078-19v246s-38-4-78%2018V204Zm156%200c-40-22-78-19-78-19v246s38-4%2078%2018V204Z%22%20fill%3D%22none%22%20stroke%3D%22%23176b63%22%20stroke-width%3D%228%22%20stroke-linejoin%3D%22round%22%2F%3E%3Cpath%20d%3D%22M210%20186v246%22%20stroke%3D%22%23176b63%22%20stroke-width%3D%228%22%20stroke-linecap%3D%22round%22%2F%3E%3Ctext%20x%3D%22210%22%20y%3D%22504%22%20text-anchor%3D%22middle%22%20font-family%3D%22Arial%2Csans-serif%22%20font-size%3D%2220%22%20fill%3D%22%2366736f%22%3ECapa%20original%3C%2Ftext%3E%3Ctext%20x%3D%22210%22%20y%3D%22534%22%20text-anchor%3D%22middle%22%20font-family%3D%22Arial%2Csans-serif%22%20font-size%3D%2220%22%20fill%3D%22%2366736f%22%3En%C3%A3o%20localizada%3C%2Ftext%3E%3C%2Fsvg%3E";
 
@@ -1447,8 +1528,21 @@ function permanentCoverUrl(title, author = "") {
 function bookCoverUrl(item) {
   const title = item?.title || item?.book_title || "";
   const author = item?.author || item?.book_author || "";
+  const normalizedTitle = normalizeCoverTitle(title);
+  const internalCover = INTERNAL_BOOKSHARE_COVERS.get(normalizedTitle);
 
+  if (internalCover) return internalCover;
   return permanentCoverUrl(title, author);
+}
+
+function normalizeCoverTitle(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9 ]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function fallbackCoverUrl() {
@@ -2174,6 +2268,128 @@ function activityDescription(item) {
     : `Registro ${item.entity_id || "sem identificador"}`;
 }
 
+
+async function loadSchools() {
+  if (state.user?.role !== "admin") return;
+  const response = await api("/schools");
+  state.schools = response.schools || [];
+  renderSchools();
+  updateAllSelectOptions();
+}
+
+function renderSchools() {
+  const container = $("#schools-container");
+  if (!container || state.user?.role !== "admin") return;
+
+  const search = normalize($("#school-search")?.value || "");
+  const status = $("#school-status-filter")?.value || "";
+
+  const items = state.schools.filter(item => {
+    const searchable = normalize(`${item.name} ${item.code} ${item.address || ""}`);
+    const matchesStatus =
+      !status ||
+      (status === "active" && item.active) ||
+      (status === "inactive" && !item.active);
+
+    return (!search || searchable.includes(search)) && matchesStatus;
+  });
+
+  if (!items.length) {
+    container.innerHTML = emptyState("⌂", "Nenhuma escola encontrada", "Cadastre a primeira unidade escolar.");
+    return;
+  }
+
+  container.innerHTML = items.map(item => `
+    <article class="school-card">
+      <div class="school-card__head">
+        <span class="school-card__icon">⌂</span>
+        <div><strong>${escapeHTML(item.name)}</strong><span>${escapeHTML(item.code)}</span></div>
+        ${item.active ? statusBadge("Ativa", "success") : statusBadge("Arquivada", "danger")}
+      </div>
+      <div class="card-detail-list">
+        <div><span>Endereço</span><strong>${escapeHTML(item.address || "Não informado")}</strong></div>
+        <div><span>Contato</span><strong>${escapeHTML(item.contact_email || item.phone || "Não informado")}</strong></div>
+        <div><span>Funcionárias</span><strong>${item.staff_count || 0}</strong></div>
+        <div><span>Alunos</span><strong>${item.student_count || 0}</strong></div>
+      </div>
+      <div class="card-footer-actions">
+        <button class="button button--secondary button--compact" data-action="edit-school" data-id="${item.id}" type="button">Editar</button>
+        <button class="button button--ghost button--compact" data-action="toggle-school" data-id="${item.id}" data-active="${item.active}" type="button">${item.active ? "Arquivar" : "Reativar"}</button>
+      </div>
+    </article>
+  `).join("");
+}
+
+async function handleSaveSchool(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const payload = formToObject(form);
+  const id = payload.id;
+  delete payload.id;
+
+  const submit = form.querySelector('[type="submit"]');
+  setButtonLoading(submit, true, "Salvando...");
+
+  try {
+    await api(id ? `/schools/${id}` : "/schools", {
+      method: id ? "PUT" : "POST",
+      body: payload
+    });
+
+    form.reset();
+    closeModal("school-modal");
+    await loadSchools();
+    await loadDashboard();
+    toast("Escola salva", "A unidade foi atualizada com sucesso.");
+  } catch (error) {
+    toast("Não foi possível salvar", error.message, "error");
+  } finally {
+    setButtonLoading(submit, false);
+  }
+}
+
+function editSchool(id) {
+  const school = state.schools.find(item => item.id === id);
+  if (!school) return;
+
+  const form = $("#school-form");
+  form.elements.id.value = school.id;
+  form.elements.name.value = school.name || "";
+  form.elements.code.value = school.code || "";
+  form.elements.phone.value = school.phone || "";
+  form.elements.address.value = school.address || "";
+  form.elements.contact_email.value = school.contact_email || "";
+  $("#school-modal-title").textContent = "Editar escola";
+  openModal("school-modal");
+}
+
+async function toggleSchool(id, active) {
+  const school = state.schools.find(item => item.id === id);
+  const confirmed = await confirmAction({
+    title: active ? "Arquivar escola?" : "Reativar escola?",
+    message: active
+      ? `A unidade ${school?.name || ""} deixará de aceitar novos vínculos.`
+      : `A unidade ${school?.name || ""} voltará a ficar disponível.`,
+    acceptText: active ? "Arquivar" : "Reativar",
+    danger: active
+  });
+
+  if (!confirmed) return;
+
+  try {
+    await api(`/schools/${id}/status`, {
+      method: "PUT",
+      body: { active: !active }
+    });
+
+    await loadSchools();
+    await loadDashboard();
+    toast("Escola atualizada", active ? "A unidade foi arquivada." : "A unidade foi reativada.");
+  } catch (error) {
+    toast("Não foi possível atualizar", error.message, "error");
+  }
+}
+
 async function loadUsers() {
   if (state.user?.role !== "admin") return;
   const response = await api("/users");
@@ -2219,9 +2435,15 @@ function renderUsers() {
         <div><span>Criado em</span><strong>${formatDate(item.created_at)}</strong></div>
         <div><span>Perfil</span><strong>${item.role === "admin" ? "Administrador" : "Bibliotecária"}</strong></div>
       </div>
-      <div class="card-footer-actions">
-        <button class="button button--secondary button--compact" data-action="reset-user-password" data-id="${item.id}" type="button">Redefinir senha</button>
+      <div class="card-detail-list">
+        <div><span>Escola</span><strong>${escapeHTML(item.school_name || "Não vinculada")}</strong></div>
+        <div><span>Cargo</span><strong>${escapeHTML(item.job_title || (item.role === "admin" ? "Administrador" : "Bibliotecária"))}</strong></div>
+        <div><span>Telefone</span><strong>${escapeHTML(item.phone || "Não informado")}</strong></div>
+      </div>
+      <div class="card-footer-actions card-footer-actions--three">
+        <button class="button button--secondary button--compact" data-action="reset-user-password" data-id="${item.id}" type="button">Senha</button>
         <button class="button button--ghost button--compact" data-action="toggle-user" data-id="${item.id}" data-active="${item.active}" type="button">${item.active ? "Bloquear" : "Ativar"}</button>
+        <button class="button button--danger button--compact" data-action="delete-user" data-id="${item.id}" type="button">Excluir</button>
       </div>
     </article>
   `).join("");
@@ -2236,6 +2458,7 @@ async function handleCreateUser(event) {
 
   try {
     await api("/users", { method: "POST", body: payload });
+    form.reset();
     closeModal("user-modal");
     await loadUsers();
     toast("Usuário criado", "A conta já pode acessar o BookShare.");
@@ -2266,6 +2489,32 @@ async function toggleUser(id, active) {
     toast("Usuário atualizado", active ? "A conta foi bloqueada." : "A conta foi ativada.");
   } catch (error) {
     toast("Não foi possível atualizar", error.message, "error");
+  }
+}
+
+async function deleteUser(id) {
+  if (id === state.user.id) {
+    toast("Ação bloqueada", "Você não pode excluir sua própria conta.", "warning");
+    return;
+  }
+
+  const user = state.users.find(item => item.id === id);
+  const confirmed = await confirmAction({
+    title: "Excluir conta?",
+    message: `A conta de ${user?.name || "esta funcionária"} perderá o acesso e deixará de aparecer na equipe.`,
+    acceptText: "Excluir conta",
+    danger: true
+  });
+
+  if (!confirmed) return;
+
+  try {
+    await api(`/users/${id}`, { method: "DELETE" });
+    await loadUsers();
+    await loadDashboard();
+    toast("Conta excluída", "A funcionária não possui mais acesso ao BookShare.");
+  } catch (error) {
+    toast("Não foi possível excluir", error.message, "error");
   }
 }
 
@@ -2405,6 +2654,7 @@ async function handleSaveProfile() {
       method: "PUT",
       body: {
         name,
+        phone: $("#profile-phone-input")?.value.trim() || null,
         avatar_url: state.profileAvatarDraft ?? state.user.avatar_url ?? null
       }
     });
@@ -2833,56 +3083,71 @@ function hideGlobalSearchResults() {
   $(selectors.globalResults).classList.add("is-hidden");
 }
 
+async function loadNotifications({ announce = true } = {}) {
+  if (state.user?.role === "admin") {
+    state.notifications = [];
+    buildNotifications();
+    return;
+  }
+
+  try {
+    const response = await api("/notifications");
+    const nextItems = response.notifications || [];
+    const nextKeys = new Set(nextItems.map(item => item.key));
+
+    if (announce && state.notificationKeys.size > 0) {
+      const newItems = nextItems.filter(item => !state.notificationKeys.has(item.key));
+      if (newItems.length) {
+        toast(
+          "Novo aviso de prazo",
+          newItems[0].title,
+          newItems[0].type === "danger" ? "error" : "warning"
+        );
+      }
+    }
+
+    state.notifications = nextItems;
+    state.notificationKeys = nextKeys;
+    buildNotifications();
+  } catch (error) {
+    console.warn("Não foi possível atualizar notificações:", error.message);
+  }
+}
+
+function startNotificationPolling() {
+  if (notificationPollingTimer) clearInterval(notificationPollingTimer);
+
+  if (state.user?.role !== "librarian") return;
+
+  notificationPollingTimer = setInterval(() => {
+    loadNotifications({ announce: true });
+  }, 60000);
+}
+
 function buildNotifications() {
-  const items = [];
-
-  state.pending.slice(0, 8).forEach(item => items.push({
-    type: Number(item.overdue_days) >= 15 ? "danger" : "warning",
-    icon: "!",
-    title: `${item.student_name} está com livro atrasado`,
-    message: `${item.book_title} · ${item.overdue_days} dia(s) de atraso`,
-    time: item.last_notice_at ? `Último aviso ${formatRelativeTime(item.last_notice_at)}` : "Ainda não avisado",
-    route: "pendencias"
-  }));
-
-  state.reservations.filter(item => item.status === "ready").slice(0, 6).forEach(item => items.push({
-    type: "default",
-    icon: "◇",
-    title: "Reserva disponível para retirada",
-    message: `${item.student_name} · ${item.book_title}`,
-    time: item.expires_at ? `Válida até ${formatDate(item.expires_at)}` : "Prazo não informado",
-    route: "reservas"
-  }));
-
-  const dueSoonDays = Number(state.settings?.due_soon_days || 2);
-  state.loans
-    .filter(item => item.status === "active" && daysUntil(item.due_date) >= 0 && daysUntil(item.due_date) <= dueSoonDays)
-    .slice(0, 6)
-    .forEach(item => items.push({
-      type: "default",
-      icon: "⇄",
-      title: "Devolução próxima",
-      message: `${item.student_name} · ${item.book_title}`,
-      time: dueText(item.due_date),
-      route: "emprestimos"
-    }));
+  const items = state.user?.role === "librarian"
+    ? state.notifications
+    : [];
 
   const container = $("#notification-list");
+  if (!container) return;
+
   container.innerHTML = items.length ? items.map(item => `
     <button class="notification-item ${item.type === "danger" ? "notification-item--danger" : item.type === "warning" ? "notification-item--warning" : ""}" data-route="${item.route}" type="button">
-      <span class="notification-item__icon">${item.icon}</span>
+      <span class="notification-item__icon">${escapeHTML(item.icon || "!")}</span>
       <span>
         <strong>${escapeHTML(item.title)}</strong>
         <span>${escapeHTML(item.message)}</span>
-        <small>${escapeHTML(item.time)}</small>
+        <small>${escapeHTML(item.time || "")}</small>
       </span>
     </button>
-  `).join("") : emptyState("✓", "Tudo em ordem", "Nenhuma notificação importante no momento.");
+  `).join("") : emptyState("✓", "Tudo em ordem", "Nenhum prazo importante no momento.");
 
-  $("#notification-dot").classList.toggle("is-hidden", items.length === 0);
+  $("#notification-dot")?.classList.toggle("is-hidden", items.length === 0);
 }
 
 function updateNavigationCounters() {
+  if (state.user?.role === "admin") return;
   const pendingCount = state.pending.length;
   const reservationCount = state.reservations.filter(item => ["active", "ready"].includes(item.status)).length;
 
@@ -2915,7 +3180,7 @@ function closeSidebar() {
 }
 
 function openModal(id, trigger = null) {
-  const adminOnlyModals = ["book-modal", "copy-modal", "user-modal"];
+  const adminOnlyModals = ["book-modal", "copy-modal", "user-modal", "student-modal", "class-modal", "school-modal"];
   if (state.user?.role !== "admin" && adminOnlyModals.includes(id)) {
     toast("Acesso restrito", "Essa função pertence ao administrador do sistema.", "warning");
     return;
@@ -2961,6 +3226,7 @@ function closeModal(id) {
   }
   if (id === "student-modal") $("#student-modal-title").textContent = "Cadastrar aluno";
   if (id === "class-modal") $("#class-modal-title").textContent = "Cadastrar turma";
+  if (id === "school-modal") $("#school-modal-title").textContent = "Cadastrar escola";
 
   if (!$("dialog[open]")) document.body.classList.remove("modal-open");
   initializeDates();
@@ -3027,6 +3293,7 @@ function updateAllSelectOptions() {
   setSelectOptions("#student-class-filter", activeClasses, item => item.id, item => `${item.name} · ${item.school_year}`, "Todas as turmas");
   setSelectOptions("#loan-class-filter", activeClasses, item => item.id, item => `${item.name} · ${item.school_year}`, "Todas as turmas");
   setSelectOptions("#book-category-filter", state.categories, item => item.id, item => item.name, "Todas as categorias");
+  setSelectOptions("#user-school", state.schools.filter(item => item.active), item => item.id, item => item.name, "Selecione uma escola");
 
   const years = [...new Set(state.classes.map(item => String(item.school_year)))].sort((a, b) => b.localeCompare(a));
   setSelectOptions("#class-year-filter", years, item => item, item => item, "Todos os anos");
