@@ -23,7 +23,7 @@
 
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Literata:opsz,wght@7..72,600;7..72,700;7..72,800&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="style.css?v=35">
+  <link rel="stylesheet" href="style.css?v=36">
 
 </head>
 
@@ -125,11 +125,11 @@
 
           <div class="auth-library-panel__copy">
 
-            <span>CATÁLOGO ESCOLAR</span>
+            <span>ROTINA MAIS LEVE</span>
 
-            <strong>50 livros selecionados com capas reais.</strong>
+            <strong>Menos burocracia. Mais tempo para cuidar da biblioteca.</strong>
 
-            <p>Empréstimos, devoluções e acessos organizados em um só lugar.</p>
+            <p>Empréstimos, devoluções e organização do acervo em poucos cliques — pensado para facilitar o trabalho das equipes da rede pública.</p>
 
           </div>
 
@@ -377,7 +377,7 @@
 
           <span>＋</span>
 
-          Cadastrar funcionária
+          Cadastrar conta
 
         </button>
 
@@ -479,15 +479,7 @@
 
             <span class="nav-item__icon">♟</span>
 
-            <span>Funcionárias</span>
-
-          </button>
-
-          <button class="nav-item" data-route="alunos" type="button">
-
-            <span class="nav-item__icon">♙</span>
-
-            <span>Alunos</span>
+            <span>Contas da equipe</span>
 
           </button>
 
@@ -499,11 +491,53 @@
 
           </button>
 
+          <button class="nav-item" data-route="turmas" type="button">
+
+            <span class="nav-item__icon">▦</span>
+
+            <span>Turmas</span>
+
+          </button>
+
+          <button class="nav-item" data-route="alunos" type="button">
+
+            <span class="nav-item__icon">♙</span>
+
+            <span>Alunos</span>
+
+          </button>
+
           <button class="nav-item" data-route="livros" type="button">
 
             <span class="nav-item__icon">▤</span>
 
             <span>Livros</span>
+
+          </button>
+
+          <button class="nav-item" data-route="exemplares" type="button">
+
+            <span class="nav-item__icon">▥</span>
+
+            <span>Exemplares</span>
+
+          </button>
+
+          <p class="nav-group-label">Controle</p>
+
+          <button class="nav-item" data-route="relatorios" type="button">
+
+            <span class="nav-item__icon">◫</span>
+
+            <span>Relatórios</span>
+
+          </button>
+
+          <button class="nav-item" data-route="atividades" type="button">
+
+            <span class="nav-item__icon">◷</span>
+
+            <span>Histórico</span>
 
           </button>
 
@@ -747,7 +781,7 @@
 
                   <h2 id="admin-welcome-title">Painel administrativo</h2>
 
-                  <p id="admin-welcome-message">Cadastre funcionárias, alunos, escolas e livros em um painel administrativo simples e organizado.</p>
+                  <p id="admin-welcome-message">Gerencie contas, escolas, turmas, alunos, acervo e regras da biblioteca sem misturar tarefas administrativas com o atendimento do balcão.</p>
 
                   <small><strong id="admin-hero-name">Administrador</strong> · <span id="admin-hero-email">admin@bookshare.com</span></small>
 
@@ -767,7 +801,7 @@
 
             <div class="admin-overview__actions">
 
-              <button data-open-modal="user-modal" type="button"><span>＋</span><div><strong>Nova funcionária</strong><small>Criar acesso e vincular à escola.</small></div></button>
+              <button data-open-modal="user-modal" type="button"><span>＋</span><div><strong>Nova conta</strong><small>Criar acesso e vincular à escola.</small></div></button>
 
               <button data-open-modal="student-modal" type="button"><span>♙</span><div><strong>Novo aluno</strong><small>Registrar matrícula e turma.</small></div></button>
 
@@ -1811,11 +1845,11 @@
 
             <div>
 
-              <p class="page-description">Funcionárias autorizadas a trabalhar no balcão da biblioteca.</p>
+              <p class="page-description">Contas autorizadas para administração e atendimento da biblioteca.</p>
 
             </div>
 
-            <button class="button button--primary" data-open-modal="user-modal" type="button">＋ Cadastrar funcionária</button>
+            <button class="button button--primary" data-open-modal="user-modal" type="button">＋ Cadastrar conta</button>
 
           </div>
 
@@ -2219,7 +2253,7 @@
 
       <button class="admin-only" data-route="usuarios" type="button"><span>♟</span><small>Equipe</small></button>
 
-      <button class="admin-only mobile-navigation__main" data-open-modal="user-modal" type="button"><span>＋</span><small>Funcionária</small></button>
+      <button class="admin-only mobile-navigation__main" data-open-modal="user-modal" type="button"><span>＋</span><small>Conta</small></button>
 
       <button class="admin-only" data-route="escolas" type="button"><span>⌂</span><small>Escolas</small></button>
 
@@ -3041,9 +3075,9 @@
 
           <p class="eyebrow">Equipe da biblioteca</p>
 
-          <h2>Cadastrar funcionária</h2>
+          <h2>Cadastrar conta</h2>
 
-          <p>Crie o acesso e vincule a pessoa à escola correta.</p>
+          <p>Crie o acesso, escolha o perfil e vincule a pessoa à escola correta.</p>
 
         </div>
 
@@ -3283,7 +3317,7 @@
 
  
 
-  <script src="script.js?v=35"></script>
+  <script src="script.js?v=36"></script>
 
 </body>
 
