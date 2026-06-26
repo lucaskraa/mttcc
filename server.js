@@ -215,9 +215,22 @@ async function authenticate(req, res, next) {
     });
 
     const result = await pool.query(
-      `SELECT id, name, email, role, active, last_login_at, avatar_url
-       FROM users
-       WHERE id = $1`,
+      `SELECT
+         u.id,
+         u.name,
+         u.email,
+         u.role,
+         u.active,
+         u.last_login_at,
+         u.avatar_url,
+         u.phone,
+         u.job_title,
+         u.school_id,
+         s.name AS school_name
+       FROM users u
+       LEFT JOIN schools s ON s.id = u.school_id
+       WHERE u.id = $1
+         AND u.deleted_at IS NULL`,
       [payload.sub]
     );
 
@@ -318,21 +331,58 @@ async function createInventoryCodes(client, bookId, quantity, acquiredAt = null,
 
 async function ensureRuntimeSchema() {
   const migrations = [
-    `ALTER TABLE IF EXISTS users
-       ADD COLUMN IF NOT EXISTS avatar_url TEXT`,
-    `ALTER TABLE IF EXISTS students
-       ADD COLUMN IF NOT EXISTS photo_url TEXT`,
-    `ALTER TABLE IF EXISTS books
-       ADD COLUMN IF NOT EXISTS cover_url TEXT`,
-    `ALTER TABLE IF EXISTS books
-       ADD COLUMN IF NOT EXISTS cover_source TEXT`,
-    `ALTER TABLE IF EXISTS books
-       ADD COLUMN IF NOT EXISTS cover_checked_at TIMESTAMPTZ`
+    `CREATE TABLE IF NOT EXISTS schools (
+       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+       name VARCHAR(140) NOT NULL,
+       code VARCHAR(30) NOT NULL UNIQUE,
+       address VARCHAR(220),
+       contact_email VARCHAR(180),
+       phone VARCHAR(40),
+       active BOOLEAN NOT NULL DEFAULT TRUE,
+       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+     )`,
+    `ALTER TABLE IF EXISTS users ADD COLUMN IF NOT EXISTS avatar_url TEXT`,
+    `ALTER TABLE IF EXISTS users ADD COLUMN IF NOT EXISTS school_id UUID`,
+    `ALTER TABLE IF EXISTS users ADD COLUMN IF NOT EXISTS phone VARCHAR(40)`,
+    `ALTER TABLE IF EXISTS users ADD COLUMN IF NOT EXISTS job_title VARCHAR(80)`,
+    `ALTER TABLE IF EXISTS users ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ`,
+    `ALTER TABLE IF EXISTS students ADD COLUMN IF NOT EXISTS photo_url TEXT`,
+    `ALTER TABLE IF EXISTS students ADD COLUMN IF NOT EXISTS school_id UUID`,
+    `ALTER TABLE IF EXISTS classes ADD COLUMN IF NOT EXISTS school_id UUID`,
+    `ALTER TABLE IF EXISTS books ADD COLUMN IF NOT EXISTS school_id UUID`,
+    `ALTER TABLE IF EXISTS books ADD COLUMN IF NOT EXISTS cover_url TEXT`,
+    `ALTER TABLE IF EXISTS books ADD COLUMN IF NOT EXISTS cover_source TEXT`,
+    `ALTER TABLE IF EXISTS books ADD COLUMN IF NOT EXISTS cover_checked_at TIMESTAMPTZ`
   ];
 
   for (const statement of migrations) {
     await pool.query(statement);
   }
+
+  const settings = await getSettings();
+  const defaultSchool = await pool.query(`
+    INSERT INTO schools (name, code, contact_email, phone, active)
+    VALUES ($1, 'PRINCIPAL', $2, $3, TRUE)
+    ON CONFLICT (code)
+    DO UPDATE SET
+      name = EXCLUDED.name,
+      contact_email = COALESCE(EXCLUDED.contact_email, schools.contact_email),
+      phone = COALESCE(EXCLUDED.phone, schools.phone),
+      updated_at = NOW()
+    RETURNING id
+  `, [
+    settings.school_name || "Escola Principal",
+    settings.contact_email || null,
+    settings.contact_phone || null
+  ]);
+
+  const schoolId = defaultSchool.rows[0].id;
+
+  await pool.query(`UPDATE users SET school_id = $1 WHERE school_id IS NULL`, [schoolId]);
+  await pool.query(`UPDATE students SET school_id = $1 WHERE school_id IS NULL`, [schoolId]);
+  await pool.query(`UPDATE classes SET school_id = $1 WHERE school_id IS NULL`, [schoolId]);
+  await pool.query(`UPDATE books SET school_id = $1 WHERE school_id IS NULL`, [schoolId]);
 }
 
 async function ensureInitialUsers() {
@@ -939,9 +989,22 @@ app.post("/api/auth/login", asyncRoute(async (req, res) => {
   if (!password) throw httpError(400, "Informe a senha.");
 
   const result = await pool.query(
-    `SELECT id, name, email, password_hash, role, active, avatar_url
-     FROM users
-     WHERE email = $1`,
+    `SELECT
+       u.id,
+       u.name,
+       u.email,
+       u.password_hash,
+       u.role,
+       u.active,
+       u.avatar_url,
+       u.phone,
+       u.job_title,
+       u.school_id,
+       s.name AS school_name
+     FROM users u
+     LEFT JOIN schools s ON s.id = u.school_id
+     WHERE u.email = $1
+       AND u.deleted_at IS NULL`,
     [email]
   );
 
@@ -965,7 +1028,11 @@ app.post("/api/auth/login", asyncRoute(async (req, res) => {
       name: user.name,
       email: user.email,
       role: user.role,
-      avatar_url: user.avatar_url || null
+      avatar_url: user.avatar_url || null,
+      phone: user.phone || null,
+      job_title: user.job_title || null,
+      school_id: user.school_id || null,
+      school_name: user.school_name || null
     }
   });
 }));
@@ -977,6 +1044,7 @@ app.get("/api/auth/me", authenticate, asyncRoute(async (req, res) => {
 app.put("/api/auth/profile", authenticate, asyncRoute(async (req, res) => {
   const name = requiredText(req.body.name, "o nome", 120);
   const avatarUrl = cleanText(req.body.avatar_url);
+  const phone = cleanText(req.body.phone, 40);
 
   if (avatarUrl && (!avatarUrl.startsWith("data:image/") || avatarUrl.length > 2200000)) {
     throw httpError(400, "A foto enviada é inválida ou muito grande.");
@@ -989,10 +1057,11 @@ app.put("/api/auth/profile", authenticate, asyncRoute(async (req, res) => {
       UPDATE users
       SET name = $1,
           avatar_url = $2,
+          phone = $3,
           updated_at = NOW()
-      WHERE id = $3
-      RETURNING id, name, email, role, active, avatar_url, last_login_at
-    `, [name, avatarUrl, req.user.id]);
+      WHERE id = $4
+      RETURNING id, name, email, role, active, avatar_url, phone, job_title, school_id, last_login_at
+    `, [name, avatarUrl, phone, req.user.id]);
     await audit(client, req, "update", "user", req.user.id, { self_profile: true, name });
     await client.query("COMMIT");
     res.json({ user: result.rows[0] });
@@ -1039,6 +1108,101 @@ app.put("/api/auth/change-password", authenticate, asyncRoute(async (req, res) =
   }
 
   res.json({ message: "Senha alterada com sucesso." });
+}));
+
+
+app.get("/api/notifications", authenticate, requireRole("librarian"), asyncRoute(async (_req, res) => {
+  const settings = await getSettings();
+  const dueSoonDays = Number(settings.due_soon_days || 2);
+
+  const [loans, reservations] = await Promise.all([
+    pool.query(`
+      SELECT
+        l.id,
+        l.due_date,
+        CURRENT_DATE - l.due_date AS overdue_days,
+        s.full_name AS student_name,
+        b.title AS book_title,
+        c.name AS class_name
+      FROM loans l
+      JOIN students s ON s.id = l.student_id
+      LEFT JOIN classes c ON c.id = s.class_id
+      JOIN book_copies bc ON bc.id = l.copy_id
+      JOIN books b ON b.id = bc.book_id
+      WHERE l.status = 'active'
+        AND l.due_date <= CURRENT_DATE + $1::INT
+      ORDER BY l.due_date ASC, s.full_name
+      LIMIT 40
+    `, [dueSoonDays]),
+    pool.query(`
+      SELECT
+        r.id,
+        r.expires_at,
+        s.full_name AS student_name,
+        b.title AS book_title
+      FROM reservations r
+      JOIN students s ON s.id = r.student_id
+      JOIN books b ON b.id = r.book_id
+      WHERE r.status = 'ready'
+      ORDER BY r.expires_at NULLS LAST, r.created_at
+      LIMIT 20
+    `)
+  ]);
+
+  const items = [];
+
+  for (const item of loans.rows) {
+    const overdueDays = Number(item.overdue_days || 0);
+
+    if (overdueDays > 0) {
+      items.push({
+        key: `overdue:${item.id}:${item.due_date}`,
+        type: overdueDays >= 7 ? "danger" : "warning",
+        icon: "!",
+        title: `${item.student_name} está com devolução atrasada`,
+        message: `${item.book_title}${item.class_name ? ` · ${item.class_name}` : ""}`,
+        time: `${overdueDays} dia(s) de atraso`,
+        route: "pendencias"
+      });
+    } else if (overdueDays === 0) {
+      items.push({
+        key: `today:${item.id}:${item.due_date}`,
+        type: "warning",
+        icon: "◷",
+        title: "Devolução vence hoje",
+        message: `${item.student_name} · ${item.book_title}`,
+        time: "Prazo final de devolução",
+        route: "emprestimos"
+      });
+    } else {
+      items.push({
+        key: `soon:${item.id}:${item.due_date}`,
+        type: "default",
+        icon: "⇄",
+        title: "Devolução próxima",
+        message: `${item.student_name} · ${item.book_title}`,
+        time: `Vence em ${Math.abs(overdueDays)} dia(s)`,
+        route: "emprestimos"
+      });
+    }
+  }
+
+  for (const item of reservations.rows) {
+    items.push({
+      key: `reservation:${item.id}:${item.expires_at || ""}`,
+      type: "default",
+      icon: "◇",
+      title: "Reserva pronta para retirada",
+      message: `${item.student_name} · ${item.book_title}`,
+      time: item.expires_at ? `Retirar até ${item.expires_at}` : "Aguardando retirada",
+      route: "reservas"
+    });
+  }
+
+  res.json({
+    generated_at: new Date().toISOString(),
+    notifications: items
+  });
 }));
 
 app.get("/api/dashboard", authenticate, asyncRoute(async (_req, res) => {
@@ -1179,7 +1343,28 @@ app.get("/api/dashboard", authenticate, asyncRoute(async (_req, res) => {
     `)
   ]);
 
+  const [staffSummary, schoolSummary] = await Promise.all([
+    pool.query(`
+      SELECT COUNT(*)::INT AS active_staff
+      FROM users
+      WHERE active = TRUE
+        AND deleted_at IS NULL
+        AND role = 'librarian'
+    `),
+    pool.query(`
+      SELECT COUNT(*)::INT AS active_schools
+      FROM schools
+      WHERE active = TRUE
+    `)
+  ]);
+
   res.json({
+    admin: {
+      active_staff: staffSummary.rows[0].active_staff,
+      active_students: studentSummary.rows[0].active,
+      active_schools: schoolSummary.rows[0].active_schools,
+      active_books: bookSummary.rows[0].total_titles
+    },
     books: bookSummary.rows[0],
     loans: loanSummary.rows[0],
     students: studentSummary.rows[0],
@@ -1189,6 +1374,92 @@ app.get("/api/dashboard", authenticate, asyncRoute(async (_req, res) => {
     popular_books: popularBooks.rows,
     circulation: circulation.rows
   });
+}));
+
+
+app.get("/api/schools", authenticate, requireRole("admin"), asyncRoute(async (_req, res) => {
+  const result = await pool.query(`
+    SELECT
+      s.*,
+      COUNT(DISTINCT u.id) FILTER (WHERE u.deleted_at IS NULL AND u.active = TRUE)::INT AS staff_count,
+      COUNT(DISTINCT st.id) FILTER (WHERE st.active = TRUE)::INT AS student_count
+    FROM schools s
+    LEFT JOIN users u ON u.school_id = s.id
+    LEFT JOIN students st ON st.school_id = s.id
+    GROUP BY s.id
+    ORDER BY s.active DESC, s.name
+  `);
+
+  res.json({ schools: result.rows });
+}));
+
+app.post("/api/schools", authenticate, requireRole("admin"), asyncRoute(async (req, res) => {
+  const name = requiredText(req.body.name, "o nome da escola", 140);
+  const code = requiredText(req.body.code, "o código da escola", 30).toUpperCase();
+  const address = cleanText(req.body.address, 220);
+  const contactEmail = cleanText(req.body.contact_email, 180);
+  const phone = cleanText(req.body.phone, 40);
+
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const result = await client.query(`
+      INSERT INTO schools (name, code, address, contact_email, phone, active)
+      VALUES ($1, $2, $3, $4, $5, TRUE)
+      RETURNING *
+    `, [name, code, address, contactEmail, phone]);
+
+    await audit(client, req, "create", "school", result.rows[0].id, result.rows[0]);
+    await client.query("COMMIT");
+
+    res.status(201).json({ school: result.rows[0] });
+  } catch (error) {
+    await client.query("ROLLBACK");
+    if (error.code === "23505") throw httpError(409, "Já existe uma escola com esse código.");
+    throw error;
+  } finally {
+    client.release();
+  }
+}));
+
+app.put("/api/schools/:id", authenticate, requireRole("admin"), asyncRoute(async (req, res) => {
+  const name = requiredText(req.body.name, "o nome da escola", 140);
+  const code = requiredText(req.body.code, "o código da escola", 30).toUpperCase();
+  const address = cleanText(req.body.address, 220);
+  const contactEmail = cleanText(req.body.contact_email, 180);
+  const phone = cleanText(req.body.phone, 40);
+
+  const result = await pool.query(`
+    UPDATE schools
+    SET name = $1,
+        code = $2,
+        address = $3,
+        contact_email = $4,
+        phone = $5,
+        updated_at = NOW()
+    WHERE id = $6
+    RETURNING *
+  `, [name, code, address, contactEmail, phone, req.params.id]);
+
+  if (!result.rows[0]) throw httpError(404, "Escola não encontrada.");
+  res.json({ school: result.rows[0] });
+}));
+
+app.put("/api/schools/:id/status", authenticate, requireRole("admin"), asyncRoute(async (req, res) => {
+  const active = cleanBoolean(req.body.active);
+
+  const result = await pool.query(`
+    UPDATE schools
+    SET active = $1,
+        updated_at = NOW()
+    WHERE id = $2
+    RETURNING *
+  `, [active, req.params.id]);
+
+  if (!result.rows[0]) throw httpError(404, "Escola não encontrada.");
+  res.json({ school: result.rows[0] });
 }));
 
 app.get("/api/classes", authenticate, asyncRoute(async (_req, res) => {
@@ -1396,7 +1667,7 @@ app.get("/api/students/:id", authenticate, asyncRoute(async (req, res) => {
   });
 }));
 
-app.post("/api/students", authenticate, asyncRoute(async (req, res) => {
+app.post("/api/students", authenticate, requireRole("admin"), asyncRoute(async (req, res) => {
   const fullName = requiredText(req.body.full_name, "o nome do aluno", 160);
   const registrationNumber = requiredText(req.body.registration_number, "a matrícula", 40);
   const classId = requiredText(req.body.class_id, "a turma");
@@ -1432,7 +1703,7 @@ app.post("/api/students", authenticate, asyncRoute(async (req, res) => {
   }
 }));
 
-app.put("/api/students/:id", authenticate, asyncRoute(async (req, res) => {
+app.put("/api/students/:id", authenticate, requireRole("admin"), asyncRoute(async (req, res) => {
   const fullName = requiredText(req.body.full_name, "o nome do aluno", 160);
   const registrationNumber = requiredText(req.body.registration_number, "a matrícula", 40);
   const classId = requiredText(req.body.class_id, "a turma");
@@ -1471,7 +1742,7 @@ app.put("/api/students/:id", authenticate, asyncRoute(async (req, res) => {
   }
 }));
 
-app.delete("/api/students/:id", authenticate, asyncRoute(async (req, res) => {
+app.delete("/api/students/:id", authenticate, requireRole("admin"), asyncRoute(async (req, res) => {
   const activeLoan = await pool.query(
     "SELECT 1 FROM loans WHERE student_id = $1 AND status = 'active' LIMIT 1",
     [req.params.id]
@@ -1499,7 +1770,7 @@ app.delete("/api/students/:id", authenticate, asyncRoute(async (req, res) => {
   }
 }));
 
-app.put("/api/students/:id/status", authenticate, asyncRoute(async (req, res) => {
+app.put("/api/students/:id/status", authenticate, requireRole("admin"), asyncRoute(async (req, res) => {
   const active = cleanBoolean(req.body.active);
   const client = await pool.connect();
   try {
@@ -1944,7 +2215,7 @@ app.get("/api/loans/:id", authenticate, asyncRoute(async (req, res) => {
   res.json({ loan, notices: notices.rows });
 }));
 
-app.post("/api/loans", authenticate, asyncRoute(async (req, res) => {
+app.post("/api/loans", authenticate, requireRole("librarian"), asyncRoute(async (req, res) => {
   const studentId = requiredText(req.body.student_id, "o aluno");
   const bookId = requiredText(req.body.book_id, "o livro");
   const loanDate = cleanDate(req.body.loan_date, "a data do empréstimo", false);
@@ -2050,7 +2321,7 @@ app.post("/api/loans", authenticate, asyncRoute(async (req, res) => {
   }
 }));
 
-app.put("/api/loans/:id/return", authenticate, asyncRoute(async (req, res) => {
+app.put("/api/loans/:id/return", authenticate, requireRole("librarian"), asyncRoute(async (req, res) => {
   const condition = requiredText(req.body.condition, "a condição da devolução");
   const notes = cleanText(req.body.notes);
   if (!["normal", "damaged", "lost"].includes(condition)) throw httpError(400, "Condição de devolução inválida.");
@@ -2130,7 +2401,7 @@ app.put("/api/loans/:id/return", authenticate, asyncRoute(async (req, res) => {
   }
 }));
 
-app.put("/api/loans/:id/renew", authenticate, asyncRoute(async (req, res) => {
+app.put("/api/loans/:id/renew", authenticate, requireRole("librarian"), asyncRoute(async (req, res) => {
   const days = cleanInteger(req.body.days, { min: 1, max: 90, nullable: false });
   const client = await pool.connect();
 
@@ -2219,7 +2490,7 @@ app.get("/api/pending", authenticate, asyncRoute(async (_req, res) => {
   res.json({ pending: result.rows });
 }));
 
-app.post("/api/loans/:id/notices", authenticate, asyncRoute(async (req, res) => {
+app.post("/api/loans/:id/notices", authenticate, requireRole("librarian"), asyncRoute(async (req, res) => {
   const channel = requiredText(req.body.channel, "o canal utilizado", 80);
   const resultLabel = requiredText(req.body.result, "o resultado do contato", 100);
   const notes = cleanText(req.body.notes);
@@ -2296,7 +2567,7 @@ app.get("/api/reservations", authenticate, asyncRoute(async (_req, res) => {
   res.json({ reservations: result.rows });
 }));
 
-app.post("/api/reservations", authenticate, asyncRoute(async (req, res) => {
+app.post("/api/reservations", authenticate, requireRole("librarian"), asyncRoute(async (req, res) => {
   const studentId = requiredText(req.body.student_id, "o aluno");
   const bookId = requiredText(req.body.book_id, "o livro");
   const notes = cleanText(req.body.notes);
@@ -2350,7 +2621,7 @@ app.post("/api/reservations", authenticate, asyncRoute(async (req, res) => {
   }
 }));
 
-app.put("/api/reservations/:id/ready", authenticate, asyncRoute(async (req, res) => {
+app.put("/api/reservations/:id/ready", authenticate, requireRole("librarian"), asyncRoute(async (req, res) => {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
@@ -2413,7 +2684,7 @@ app.put("/api/reservations/:id/ready", authenticate, asyncRoute(async (req, res)
   }
 }));
 
-app.put("/api/reservations/:id/cancel", authenticate, asyncRoute(async (req, res) => {
+app.put("/api/reservations/:id/cancel", authenticate, requireRole("librarian"), asyncRoute(async (req, res) => {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
@@ -2549,12 +2820,19 @@ app.get("/api/users", authenticate, requireRole("admin"), asyncRoute(async (_req
       u.created_at,
       u.updated_at,
       u.avatar_url,
+      u.phone,
+      u.job_title,
+      u.school_id,
+      s.name AS school_name,
       COUNT(a.id)::INT AS action_count
     FROM users u
+    LEFT JOIN schools s ON s.id = u.school_id
     LEFT JOIN audit_logs a ON a.user_id = u.id
-    GROUP BY u.id
+    WHERE u.deleted_at IS NULL
+    GROUP BY u.id, s.name
     ORDER BY u.active DESC, u.role, u.name
   `);
+
   res.json({ users: result.rows });
 }));
 
@@ -2562,28 +2840,95 @@ app.post("/api/users", authenticate, requireRole("admin"), asyncRoute(async (req
   const name = requiredText(req.body.name, "o nome", 120);
   const email = cleanEmail(req.body.email);
   const password = String(req.body.password || "");
-  const role = requiredText(req.body.role, "o perfil");
+  const role = requiredText(req.body.role || "librarian", "o perfil");
+  const phone = cleanText(req.body.phone, 40);
+  const jobTitle = cleanText(req.body.job_title, 80) || (role === "admin" ? "Administrador" : "Bibliotecária");
+  const schoolId = cleanText(req.body.school_id, 60);
 
   if (password.length < 8) throw httpError(400, "A senha deve ter pelo menos 8 caracteres.");
   if (!["admin", "librarian"].includes(role)) throw httpError(400, "Perfil inválido.");
+
+  if (schoolId) {
+    const school = await pool.query(
+      "SELECT id FROM schools WHERE id = $1 AND active = TRUE",
+      [schoolId]
+    );
+    if (!school.rows[0]) throw httpError(400, "A escola selecionada não está disponível.");
+  }
 
   const passwordHash = await bcrypt.hash(password, 12);
   const client = await pool.connect();
 
   try {
     await client.query("BEGIN");
-    const result = await client.query(`
-      INSERT INTO users (name, email, password_hash, role, active)
-      VALUES ($1, $2, $3, $4, TRUE)
-      RETURNING id, name, email, role, active, created_at
-    `, [name, email, passwordHash, role]);
 
-    await audit(client, req, "create", "user", result.rows[0].id, { name, email, role });
+    const result = await client.query(`
+      INSERT INTO users
+        (name, email, password_hash, role, active, phone, job_title, school_id)
+      VALUES ($1, $2, $3, $4, TRUE, $5, $6, $7)
+      RETURNING id, name, email, role, active, phone, job_title, school_id, created_at
+    `, [name, email, passwordHash, role, phone, jobTitle, schoolId || null]);
+
+    await audit(client, req, "create", "user", result.rows[0].id, {
+      name,
+      email,
+      role,
+      school_id: schoolId || null
+    });
+
     await client.query("COMMIT");
     res.status(201).json({ user: result.rows[0] });
   } catch (error) {
     await client.query("ROLLBACK");
     if (error.code === "23505") throw httpError(409, "Já existe uma conta com esse e-mail.");
+    throw error;
+  } finally {
+    client.release();
+  }
+}));
+
+
+app.delete("/api/users/:id", authenticate, requireRole("admin"), asyncRoute(async (req, res) => {
+  if (req.params.id === req.user.id) {
+    throw httpError(400, "Você não pode excluir sua própria conta.");
+  }
+
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const current = await client.query(
+      `SELECT id, name, email
+       FROM users
+       WHERE id = $1
+         AND deleted_at IS NULL`,
+      [req.params.id]
+    );
+
+    if (!current.rows[0]) throw httpError(404, "Conta não encontrada.");
+
+    const deletedEmail =
+      `deleted-${req.params.id}-${Date.now()}@bookshare.invalid`;
+
+    await client.query(`
+      UPDATE users
+      SET active = FALSE,
+          deleted_at = NOW(),
+          email = $1,
+          updated_at = NOW()
+      WHERE id = $2
+    `, [deletedEmail, req.params.id]);
+
+    await audit(client, req, "delete", "user", req.params.id, {
+      name: current.rows[0].name,
+      email: current.rows[0].email
+    });
+
+    await client.query("COMMIT");
+    res.json({ message: "Conta excluída." });
+  } catch (error) {
+    await client.query("ROLLBACK");
     throw error;
   } finally {
     client.release();
@@ -2767,7 +3112,7 @@ async function start() {
     await clearUnverifiedBookCovers();
 
     app.listen(PORT, () => {
-      console.log(`BookShare API 7.0 online na porta ${PORT}.`);
+      console.log(`BookShare API 8.0 online na porta ${PORT}.`);
 
       setTimeout(() => {
         syncBookCovers({ force: true })
