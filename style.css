@@ -7371,3 +7371,22 @@ body { background: #f2f1ed; color: var(--v8-ink); }
     flex-direction: column !important;
   }
 }
+
+
+/* BOOKSHARE V35 — LOGIN LIMPO E 50 CAPAS REAIS */
+.auth-showcase__compact-notes { display: none !important; }
+.auth-library-panel {
+  width: min(100%, 790px); margin: 30px 0 34px; padding: 18px;
+  display: grid; grid-template-columns: minmax(260px,.95fr) minmax(240px,.75fr);
+  align-items: center; gap: 20px; color: #17243b;
+  background: rgba(255,253,248,.94); border: 1px solid rgba(23,63,58,.14);
+  border-radius: 26px; box-shadow: 0 24px 54px rgba(23,36,59,.12);
+}
+.auth-library-panel__visual { min-width: 0; overflow: hidden; border-radius: 20px; }
+.auth-library-panel__visual svg { width: 100%; height: auto; display: block; }
+.auth-library-panel__copy { min-width: 0; padding: 8px 14px 8px 0; }
+.auth-library-panel__copy span,.auth-library-panel__copy strong,.auth-library-panel__copy p { display:block; text-shadow:none!important; }
+.auth-library-panel__copy span { margin-bottom:10px; color:#187268!important; font-size:.72rem; font-weight:900; letter-spacing:.13em; }
+.auth-library-panel__copy strong { margin-bottom:12px; color:#17243b!important; font-family:"Literata",Georgia,serif; font-size:clamp(1.45rem,2.4vw,2.2rem); line-height:1.14; }
+.auth-library-panel__copy p { margin:0; color:#68737d!important; line-height:1.6; }
+@media (max-width:840px){.auth-library-panel{grid-template-columns:1fr}.auth-library-panel__copy{padding:0 8px 8px}}
