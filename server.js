@@ -27,6 +27,15 @@ const bookCoverSyncState = {
   finishedAt: null
 };
 
+const PERMANENT_COVER_CANDIDATES = new Map(
+  Object.entries({"Dom Casmurro":["https://books.google.com/books/content?id=qmE0EQAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.googleusercontent.com/books/content?id=qmE0EQAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.google.com/books/publisher/content?id=qmE0EQAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api"],"Memórias Póstumas de Brás Cubas":["https://books.google.com/books/content?id=qnyeEAAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.googleusercontent.com/books/content?id=qnyeEAAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.google.com/books/publisher/content?id=qnyeEAAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api"],"O Cortiço":["https://books.google.com/books/content?id=vQMREQAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.googleusercontent.com/books/content?id=vQMREQAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.google.com/books/publisher/content?id=vQMREQAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api"],"Vidas Secas":["https://books.google.com/books/content?id=OiNgEQAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.googleusercontent.com/books/content?id=OiNgEQAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.google.com/books/publisher/content?id=OiNgEQAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api"],"Capitães da Areia":["https://books.google.com/books/content?id=FDJ1_r4MCIEC&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.googleusercontent.com/books/content?id=FDJ1_r4MCIEC&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.google.com/books/publisher/content?id=FDJ1_r4MCIEC&printsec=frontcover&img=1&zoom=2&source=gbs_api"],"Crime e Castigo":["https://books.google.com/books/content?id=nO2MDwAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.googleusercontent.com/books/content?id=nO2MDwAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.google.com/books/publisher/content?id=nO2MDwAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api"],"Os Irmãos Karamázov":["https://books.google.com/books/content?id=8PIuEAAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.googleusercontent.com/books/content?id=8PIuEAAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.google.com/books/publisher/content?id=8PIuEAAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api"],"Guerra e Paz":["https://books.google.com/books/content?id=P1Q6DwAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.googleusercontent.com/books/content?id=P1Q6DwAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.google.com/books/publisher/content?id=P1Q6DwAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api"],"Anna Kariênina":["https://books.google.com/books/content?id=vitqBgAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.googleusercontent.com/books/content?id=vitqBgAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.google.com/books/publisher/content?id=vitqBgAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api"],"O Mestre e Margarida":["https://books.google.com/books/content?id=XU5HEQAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.googleusercontent.com/books/content?id=XU5HEQAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.google.com/books/publisher/content?id=XU5HEQAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api"],"O Pequeno Príncipe":["https://books.google.com/books/content?id=_NTSEAAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.googleusercontent.com/books/content?id=_NTSEAAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.google.com/books/publisher/content?id=_NTSEAAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api"],"Alice no País das Maravilhas":["https://books.google.com/books/content?id=X5K1EAAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.googleusercontent.com/books/content?id=X5K1EAAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.google.com/books/publisher/content?id=X5K1EAAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api"],"As Aventuras de Tom Sawyer":["https://books.google.com/books/content?id=nBg5EAAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.googleusercontent.com/books/content?id=nBg5EAAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.google.com/books/publisher/content?id=nBg5EAAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api"],"O Mágico de Oz":["https://books.google.com/books/content?id=59IJ34ms1HQC&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.googleusercontent.com/books/content?id=59IJ34ms1HQC&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.google.com/books/publisher/content?id=59IJ34ms1HQC&printsec=frontcover&img=1&zoom=2&source=gbs_api"],"A Ilha do Tesouro":["https://books.google.com/books/content?id=B9wXEAAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.googleusercontent.com/books/content?id=B9wXEAAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.google.com/books/publisher/content?id=B9wXEAAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api"],"Alguma Poesia":["https://covers.openlibrary.org/b/isbn/9786555874617-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9786555874617&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9786555874617.01.LZZZZZZZ.jpg"],"Mensagem":["https://books.google.com/books/content?id=0yyBEQAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.googleusercontent.com/books/content?id=0yyBEQAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.google.com/books/publisher/content?id=0yyBEQAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api"],"Antologia Poética":["https://books.google.com/books/content?id=0BFXAAAAYAAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.googleusercontent.com/books/content?id=0BFXAAAAYAAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.google.com/books/publisher/content?id=0BFXAAAAYAAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api"],"Romanceiro da Inconfidência":["https://books.google.com/books/content?id=POGGDwAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.googleusercontent.com/books/content?id=POGGDwAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.google.com/books/publisher/content?id=POGGDwAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api"],"Os Lusíadas":["https://books.google.com/books/content?id=19JjCAAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.googleusercontent.com/books/content?id=19JjCAAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.google.com/books/publisher/content?id=19JjCAAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api"],"Laços de Família":["https://books.google.com/books/content?id=ZxlOA83HZM0C&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.googleusercontent.com/books/content?id=ZxlOA83HZM0C&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.google.com/books/publisher/content?id=ZxlOA83HZM0C&printsec=frontcover&img=1&zoom=2&source=gbs_api"],"Morangos Mofados":["https://books.google.com/books/content?id=BwyvDwAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.googleusercontent.com/books/content?id=BwyvDwAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.google.com/books/publisher/content?id=BwyvDwAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api"],"Contos Novos":["https://books.google.com/books/content?id=kxD9EAAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.googleusercontent.com/books/content?id=kxD9EAAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.google.com/books/publisher/content?id=kxD9EAAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api"],"Primeiras Estórias":["https://books.google.com/books/content?id=ZH5rDQAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.googleusercontent.com/books/content?id=ZH5rDQAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.google.com/books/publisher/content?id=ZH5rDQAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api"],"O Alienista":["https://books.google.com/books/content?id=TTUFEQAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.googleusercontent.com/books/content?id=TTUFEQAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.google.com/books/publisher/content?id=TTUFEQAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api"],"Cosmos":["https://books.google.com/books/content?id=Cl06FjKX6doC&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.googleusercontent.com/books/content?id=Cl06FjKX6doC&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.google.com/books/publisher/content?id=Cl06FjKX6doC&printsec=frontcover&img=1&zoom=2&source=gbs_api"],"O Mundo Assombrado pelos Demônios":["https://books.google.com/books/content?id=D-tKAgAACAAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.googleusercontent.com/books/content?id=D-tKAgAACAAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.google.com/books/publisher/content?id=D-tKAgAACAAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api"],"A Origem das Espécies":["https://books.google.com/books/content?id=a4cgEQAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.googleusercontent.com/books/content?id=a4cgEQAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.google.com/books/publisher/content?id=a4cgEQAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api"],"Primavera Silenciosa":["https://books.google.com/books/content?id=PV3pDAAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.googleusercontent.com/books/content?id=PV3pDAAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.google.com/books/publisher/content?id=PV3pDAAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api"],"Breves Respostas para Grandes Questões":["https://books.google.com/books/content?id=tI9yDwAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.googleusercontent.com/books/content?id=tI9yDwAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.google.com/books/publisher/content?id=tI9yDwAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api"],"O Gene Egoísta":["https://books.google.com/books/content?id=GA0v1URr4_QC&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.googleusercontent.com/books/content?id=GA0v1URr4_QC&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.google.com/books/publisher/content?id=GA0v1URr4_QC&printsec=frontcover&img=1&zoom=2&source=gbs_api"],"A Dupla Hélice":["https://covers.openlibrary.org/b/isbn/9788537811740-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788537811740&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788537811740.01.LZZZZZZZ.jpg"],"O Imperador de Todos os Males":["https://covers.openlibrary.org/b/isbn/9788535920062-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788535920062&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788535920062.01.LZZZZZZZ.jpg"],"A Vida Maravilhosa":["https://covers.openlibrary.org/b/isbn/9788571641419-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788571641419&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788571641419.01.LZZZZZZZ.jpg"],"A Canção da Célula":["https://covers.openlibrary.org/b/isbn/9788535934724-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788535934724&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788535934724.01.LZZZZZZZ.jpg"],"Uma Breve História do Tempo":["https://books.google.com/books/content?id=igLOOwAACAAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.googleusercontent.com/books/content?id=igLOOwAACAAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.google.com/books/publisher/content?id=igLOOwAACAAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api"],"Seis Peças Fáceis":["https://covers.openlibrary.org/b/isbn/9788500004797-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788500004797&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788500004797.01.LZZZZZZZ.jpg"],"O Universo Numa Casca de Noz":["https://books.google.com/books/content?id=NXxVCwAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.googleusercontent.com/books/content?id=NXxVCwAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.google.com/books/publisher/content?id=NXxVCwAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api"],"Sete Breves Lições de Física":["https://books.google.com/books/content?id=BD0qDwAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.googleusercontent.com/books/content?id=BD0qDwAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.google.com/books/publisher/content?id=BD0qDwAAQBAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api"],"Física do Impossível":["https://covers.openlibrary.org/b/isbn/9788532525598-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788532525598&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788532525598.01.LZZZZZZZ.jpg"],"A Colher que Desaparece":["https://covers.openlibrary.org/b/isbn/9788537806937-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788537806937&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788537806937.01.LZZZZZZZ.jpg"],"Tio Tungstênio":["https://covers.openlibrary.org/b/isbn/9788535919820-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788535919820&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788535919820.01.LZZZZZZZ.jpg"],"Os Botões de Napoleão":["https://covers.openlibrary.org/b/isbn/9788571109247-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788571109247&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788571109247.01.LZZZZZZZ.jpg"],"A Tabela Periódica":["https://covers.openlibrary.org/b/isbn/9788535941975-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788535941975&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788535941975.01.LZZZZZZZ.jpg"],"O Homem que Calculava":["https://covers.openlibrary.org/b/isbn/9786555875911-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9786555875911&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9786555875911.01.LZZZZZZZ.jpg"],"O Último Teorema de Fermat":["https://covers.openlibrary.org/b/isbn/9788501923790-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788501923790&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788501923790.01.LZZZZZZZ.jpg"],"O Diabo dos Números":["https://covers.openlibrary.org/b/isbn/9788571647183-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788571647183&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788571647183.01.LZZZZZZZ.jpg"],"Alex no País dos Números":["https://covers.openlibrary.org/b/isbn/9788535918380-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788535918380&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788535918380.01.LZZZZZZZ.jpg"],"A Música dos Números Primos":["https://covers.openlibrary.org/b/isbn/9788537800379-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788537800379&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788537800379.01.LZZZZZZZ.jpg"],"1808":["https://covers.openlibrary.org/b/isbn/9788576653202-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788576653202&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788576653202.01.LZZZZZZZ.jpg"],"1822":["https://covers.openlibrary.org/b/isbn/9788525060648-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788525060648&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788525060648.01.LZZZZZZZ.jpg"],"Brasil: Uma Biografia":["https://covers.openlibrary.org/b/isbn/9788535925661-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788535925661&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788535925661.01.LZZZZZZZ.jpg"],"Sapiens":["https://covers.openlibrary.org/b/isbn/9786559213016-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9786559213016&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9786559213016.01.LZZZZZZZ.jpg"],"A Era dos Extremos":["https://covers.openlibrary.org/b/isbn/9788571644687-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788571644687&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788571644687.01.LZZZZZZZ.jpg"],"Por uma Outra Globalização":["https://covers.openlibrary.org/b/isbn/9786555871869-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9786555871869&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9786555871869.01.LZZZZZZZ.jpg"],"Geografia da Fome":["https://covers.openlibrary.org/b/isbn/9786556923390-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9786556923390&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9786556923390.01.LZZZZZZZ.jpg"],"Prisioneiros da Geografia":["https://covers.openlibrary.org/b/isbn/9788537817575-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788537817575&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788537817575.01.LZZZZZZZ.jpg"],"Armas, Germes e Aço":["https://covers.openlibrary.org/b/isbn/9788501110015-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788501110015&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788501110015.01.LZZZZZZZ.jpg"],"O Poder da Geografia":["https://covers.openlibrary.org/b/isbn/9786559790678-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9786559790678&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9786559790678.01.LZZZZZZZ.jpg"],"A República":["https://books.google.com/books/content?id=38n-zwEACAAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.googleusercontent.com/books/content?id=38n-zwEACAAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.google.com/books/publisher/content?id=38n-zwEACAAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api"],"Ética a Nicômaco":["https://covers.openlibrary.org/b/isbn/9788572838818-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788572838818&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788572838818.01.LZZZZZZZ.jpg"],"Discurso do Método":["https://covers.openlibrary.org/b/isbn/9788525410979-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788525410979&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788525410979.01.LZZZZZZZ.jpg"],"O Mundo de Sofia":["https://covers.openlibrary.org/b/isbn/9788535921892-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788535921892&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788535921892.01.LZZZZZZZ.jpg"],"Assim Falou Zaratustra":["https://covers.openlibrary.org/b/isbn/9788535930481-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788535930481&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788535930481.01.LZZZZZZZ.jpg"],"A Ética Protestante e o Espírito do Capitalismo":["https://covers.openlibrary.org/b/isbn/9788572329750-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788572329750&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788572329750.01.LZZZZZZZ.jpg"],"As Regras do Método Sociológico":["https://covers.openlibrary.org/b/isbn/9788572838061-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788572838061&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788572838061.01.LZZZZZZZ.jpg"],"Casa-Grande & Senzala":["https://covers.openlibrary.org/b/isbn/9788526008694-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788526008694&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788526008694.01.LZZZZZZZ.jpg"],"Modernidade Líquida":["https://covers.openlibrary.org/b/isbn/9788571105980-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788571105980&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788571105980.01.LZZZZZZZ.jpg"],"O Manifesto Comunista":["https://covers.openlibrary.org/b/isbn/9788563560360-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788563560360&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788563560360.01.LZZZZZZZ.jpg"],"A História da Arte":["https://covers.openlibrary.org/b/isbn/9788521611851-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788521611851&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788521611851.01.LZZZZZZZ.jpg"],"Modos de Ver":["https://covers.openlibrary.org/b/isbn/9786589733997-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9786589733997&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9786589733997.01.LZZZZZZZ.jpg"],"O Que É Arte?":["https://covers.openlibrary.org/b/isbn/9788511010466-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788511010466&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788511010466.01.LZZZZZZZ.jpg"],"Poética":["https://covers.openlibrary.org/b/isbn/9788573266054-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788573266054&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788573266054.01.LZZZZZZZ.jpg"],"A Câmara Clara":["https://covers.openlibrary.org/b/isbn/9788520942680-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788520942680&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788520942680.01.LZZZZZZZ.jpg"],"Os Inovadores":["https://covers.openlibrary.org/b/isbn/9786555601367-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9786555601367&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9786555601367.01.LZZZZZZZ.jpg"],"Código":["https://covers.openlibrary.org/b/isbn/9788582606315-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788582606315&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788582606315.01.LZZZZZZZ.jpg"],"Código Limpo":["https://covers.openlibrary.org/b/isbn/9788576082675-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788576082675&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788576082675.01.LZZZZZZZ.jpg"],"Algoritmos":["https://covers.openlibrary.org/b/isbn/9788535236996-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788535236996&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788535236996.01.LZZZZZZZ.jpg"],"Inteligência Artificial: Uma Abordagem Moderna":["https://covers.openlibrary.org/b/isbn/9788595158870-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788595158870&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788595158870.01.LZZZZZZZ.jpg"],"O Diário de Anne Frank":["https://covers.openlibrary.org/b/isbn/9788501044457-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788501044457&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788501044457.01.LZZZZZZZ.jpg"],"Longa Caminhada até a Liberdade":["https://covers.openlibrary.org/b/isbn/9786555200737-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9786555200737&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9786555200737.01.LZZZZZZZ.jpg"],"Steve Jobs":["https://covers.openlibrary.org/b/isbn/9788535919714-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788535919714&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788535919714.01.LZZZZZZZ.jpg"],"Minha História":["https://covers.openlibrary.org/b/isbn/9788547000646-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788547000646&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788547000646.01.LZZZZZZZ.jpg"],"Eu Sou Malala":["https://covers.openlibrary.org/b/isbn/9788535923438-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788535923438&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788535923438.01.LZZZZZZZ.jpg"],"Maus":["https://covers.openlibrary.org/b/isbn/9788535906288-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788535906288&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788535906288.01.LZZZZZZZ.jpg"],"Persépolis":["https://covers.openlibrary.org/b/isbn/9788535911626-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788535911626&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788535911626.01.LZZZZZZZ.jpg"],"Watchmen":["https://books.google.com/books/content?id=QkK2oAEACAAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.googleusercontent.com/books/content?id=QkK2oAEACAAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://books.google.com/books/publisher/content?id=QkK2oAEACAAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api"],"Turma da Mônica: Laços":["https://covers.openlibrary.org/b/isbn/9788565484572-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788565484572&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788565484572.01.LZZZZZZZ.jpg"],"Daytripper":["https://covers.openlibrary.org/b/isbn/9788573517712-L.jpg?default=false","https://books.google.com/books/content?vid=ISBN9788573517712&printsec=frontcover&img=1&zoom=2&source=gbs_api","https://images-na.ssl-images-amazon.com/images/P/9788573517712.01.LZZZZZZZ.jpg"]})
+    .map(([title, urls]) => [normalizeSearchText(title), urls])
+);
+
+const coverPlaceholderHashes = new Set();
+
+
+
 const OFFICIAL_EDITIONS = new Map(Object.entries({"Dom Casmurro":{"title":"Dom Casmurro","author":"Machado de Assis","isbn13":null,"googleVolumeId":"qmE0EQAAQBAJ"},"Memórias Póstumas de Brás Cubas":{"title":"Memórias Póstumas de Brás Cubas","author":"Machado de Assis","isbn13":null,"googleVolumeId":"qnyeEAAAQBAJ"},"O Cortiço":{"title":"O Cortiço","author":"Aluísio Azevedo","isbn13":null,"googleVolumeId":"vQMREQAAQBAJ"},"Vidas Secas":{"title":"Vidas Secas","author":"Graciliano Ramos","isbn13":null,"googleVolumeId":"OiNgEQAAQBAJ"},"Capitães da Areia":{"title":"Capitães da Areia","author":"Jorge Amado","isbn13":null,"googleVolumeId":"FDJ1_r4MCIEC"},"Crime e Castigo":{"title":"Crime e Castigo","author":"Fiódor Dostoiévski","isbn13":null,"googleVolumeId":"nO2MDwAAQBAJ"},"Os Irmãos Karamázov":{"title":"Os Irmãos Karamázov","author":"Fiódor Dostoiévski","isbn13":null,"googleVolumeId":"8PIuEAAAQBAJ"},"Guerra e Paz":{"title":"Guerra e Paz","author":"Liev Tolstói","isbn13":null,"googleVolumeId":"P1Q6DwAAQBAJ"},"Anna Kariênina":{"title":"Anna Kariênina","author":"Liev Tolstói","isbn13":null,"googleVolumeId":"vitqBgAAQBAJ"},"O Mestre e Margarida":{"title":"O Mestre e Margarida","author":"Mikhail Bulgákov","isbn13":null,"googleVolumeId":"XU5HEQAAQBAJ"},"O Pequeno Príncipe":{"title":"O Pequeno Príncipe","author":"Antoine de Saint-Exupéry","isbn13":null,"googleVolumeId":"_NTSEAAAQBAJ"},"Alice no País das Maravilhas":{"title":"Alice no País das Maravilhas","author":"Lewis Carroll","isbn13":null,"googleVolumeId":"X5K1EAAAQBAJ"},"As Aventuras de Tom Sawyer":{"title":"As Aventuras de Tom Sawyer","author":"Mark Twain","isbn13":null,"googleVolumeId":"nBg5EAAAQBAJ"},"O Mágico de Oz":{"title":"O Mágico de Oz","author":"L. Frank Baum","isbn13":null,"googleVolumeId":"59IJ34ms1HQC"},"A Ilha do Tesouro":{"title":"A Ilha do Tesouro","author":"Robert Louis Stevenson","isbn13":null,"googleVolumeId":"B9wXEAAAQBAJ"},"Alguma Poesia":{"title":"Alguma Poesia","author":"Carlos Drummond de Andrade","isbn13":"9786555874617","googleVolumeId":null},"Mensagem":{"title":"Mensagem","author":"Fernando Pessoa","isbn13":null,"googleVolumeId":"0yyBEQAAQBAJ"},"Antologia Poética":{"title":"Antologia Poética","author":"Vinicius de Moraes","isbn13":null,"googleVolumeId":"0BFXAAAAYAAJ"},"Romanceiro da Inconfidência":{"title":"Romanceiro da Inconfidência","author":"Cecília Meireles","isbn13":null,"googleVolumeId":"POGGDwAAQBAJ"},"Os Lusíadas":{"title":"Os Lusíadas","author":"Luís de Camões","isbn13":null,"googleVolumeId":"19JjCAAAQBAJ"},"Laços de Família":{"title":"Laços de Família","author":"Clarice Lispector","isbn13":null,"googleVolumeId":"ZxlOA83HZM0C"},"Morangos Mofados":{"title":"Morangos Mofados","author":"Caio Fernando Abreu","isbn13":null,"googleVolumeId":"BwyvDwAAQBAJ"},"Contos Novos":{"title":"Contos Novos","author":"Mário de Andrade","isbn13":null,"googleVolumeId":"kxD9EAAAQBAJ"},"Primeiras Estórias":{"title":"Primeiras Estórias","author":"João Guimarães Rosa","isbn13":null,"googleVolumeId":"ZH5rDQAAQBAJ"},"O Alienista":{"title":"O Alienista","author":"Machado de Assis","isbn13":null,"googleVolumeId":"TTUFEQAAQBAJ"},"Cosmos":{"title":"Cosmos","author":"Carl Sagan","isbn13":null,"googleVolumeId":"Cl06FjKX6doC"},"O Mundo Assombrado pelos Demônios":{"title":"O Mundo Assombrado pelos Demônios","author":"Carl Sagan","isbn13":null,"googleVolumeId":"D-tKAgAACAAJ"},"A Origem das Espécies":{"title":"A Origem das Espécies","author":"Charles Darwin","isbn13":null,"googleVolumeId":"a4cgEQAAQBAJ"},"Primavera Silenciosa":{"title":"Primavera Silenciosa","author":"Rachel Carson","isbn13":null,"googleVolumeId":"PV3pDAAAQBAJ"},"Breves Respostas para Grandes Questões":{"title":"Breves Respostas para Grandes Questões","author":"Stephen Hawking","isbn13":null,"googleVolumeId":"tI9yDwAAQBAJ"},"O Gene Egoísta":{"title":"O Gene Egoísta","author":"Richard Dawkins","isbn13":null,"googleVolumeId":"GA0v1URr4_QC"},"A Dupla Hélice":{"title":"A Dupla Hélice","author":"James D. Watson","isbn13":"9788537811740","googleVolumeId":null},"O Imperador de Todos os Males":{"title":"O Imperador de Todos os Males","author":"Siddhartha Mukherjee","isbn13":"9788535920062","googleVolumeId":null},"A Vida Maravilhosa":{"title":"A Vida Maravilhosa","author":"Stephen Jay Gould","isbn13":"9788571641419","googleVolumeId":null},"A Canção da Célula":{"title":"A Canção da Célula","author":"Siddhartha Mukherjee","isbn13":"9788535934724","googleVolumeId":null},"Uma Breve História do Tempo":{"title":"Uma Breve História do Tempo","author":"Stephen Hawking","isbn13":null,"googleVolumeId":"igLOOwAACAAJ"},"Seis Peças Fáceis":{"title":"Seis Peças Fáceis","author":"Richard Feynman","isbn13":"9788500004797","googleVolumeId":null},"O Universo Numa Casca de Noz":{"title":"O Universo Numa Casca de Noz","author":"Stephen Hawking","isbn13":null,"googleVolumeId":"NXxVCwAAQBAJ"},"Sete Breves Lições de Física":{"title":"Sete Breves Lições de Física","author":"Carlo Rovelli","isbn13":null,"googleVolumeId":"BD0qDwAAQBAJ"},"Física do Impossível":{"title":"Física do Impossível","author":"Michio Kaku","isbn13":"9788532525598","googleVolumeId":null},"A Colher que Desaparece":{"title":"A Colher que Desaparece","author":"Sam Kean","isbn13":"9788537806937","googleVolumeId":null},"Tio Tungstênio":{"title":"Tio Tungstênio","author":"Oliver Sacks","isbn13":"9788535919820","googleVolumeId":null},"Os Botões de Napoleão":{"title":"Os Botões de Napoleão","author":"Penny Le Couteur e Jay Burreson","isbn13":"9788571109247","googleVolumeId":null},"A Tabela Periódica":{"title":"A Tabela Periódica","author":"Primo Levi","isbn13":"9788535941975","googleVolumeId":null},"O Homem que Calculava":{"title":"O Homem que Calculava","author":"Malba Tahan","isbn13":"9786555875911","googleVolumeId":null},"O Último Teorema de Fermat":{"title":"O Último Teorema de Fermat","author":"Simon Singh","isbn13":"9788501923790","googleVolumeId":null},"O Diabo dos Números":{"title":"O Diabo dos Números","author":"Hans Magnus Enzensberger","isbn13":"9788571647183","googleVolumeId":null},"Alex no País dos Números":{"title":"Alex no País dos Números","author":"Alex Bellos","isbn13":"9788535918380","googleVolumeId":null},"A Música dos Números Primos":{"title":"A Música dos Números Primos","author":"Marcus du Sautoy","isbn13":"9788537800379","googleVolumeId":null},"1808":{"title":"1808","author":"Laurentino Gomes","isbn13":"9788576653202","googleVolumeId":null},"1822":{"title":"1822","author":"Laurentino Gomes","isbn13":"9788525060648","googleVolumeId":null},"Brasil: Uma Biografia":{"title":"Brasil: Uma Biografia","author":"Lilia Schwarcz e Heloisa Starling","isbn13":"9788535925661","googleVolumeId":null},"Sapiens":{"title":"Sapiens","author":"Yuval Noah Harari","isbn13":"9786559213016","googleVolumeId":null},"A Era dos Extremos":{"title":"A Era dos Extremos","author":"Eric Hobsbawm","isbn13":"9788571644687","googleVolumeId":null},"Por uma Outra Globalização":{"title":"Por uma Outra Globalização","author":"Milton Santos","isbn13":"9786555871869","googleVolumeId":null},"Geografia da Fome":{"title":"Geografia da Fome","author":"Josué de Castro","isbn13":"9786556923390","googleVolumeId":null},"Prisioneiros da Geografia":{"title":"Prisioneiros da Geografia","author":"Tim Marshall","isbn13":"9788537817575","googleVolumeId":null},"Armas, Germes e Aço":{"title":"Armas, Germes e Aço","author":"Jared Diamond","isbn13":"9788501110015","googleVolumeId":null},"O Poder da Geografia":{"title":"O Poder da Geografia","author":"Tim Marshall","isbn13":"9786559790678","googleVolumeId":null},"A República":{"title":"A República","author":"Platão","isbn13":null,"googleVolumeId":"38n-zwEACAAJ"},"Ética a Nicômaco":{"title":"Ética a Nicômaco","author":"Aristóteles","isbn13":"9788572838818","googleVolumeId":null},"Discurso do Método":{"title":"Discurso do Método","author":"René Descartes","isbn13":"9788525410979","googleVolumeId":null},"O Mundo de Sofia":{"title":"O Mundo de Sofia","author":"Jostein Gaarder","isbn13":"9788535921892","googleVolumeId":null},"Assim Falou Zaratustra":{"title":"Assim Falou Zaratustra","author":"Friedrich Nietzsche","isbn13":"9788535930481","googleVolumeId":null},"A Ética Protestante e o Espírito do Capitalismo":{"title":"A Ética Protestante e o Espírito do Capitalismo","author":"Max Weber","isbn13":"9788572329750","googleVolumeId":null},"As Regras do Método Sociológico":{"title":"As Regras do Método Sociológico","author":"Émile Durkheim","isbn13":"9788572838061","googleVolumeId":null},"Casa-Grande & Senzala":{"title":"Casa-Grande & Senzala","author":"Gilberto Freyre","isbn13":"9788526008694","googleVolumeId":null},"Modernidade Líquida":{"title":"Modernidade Líquida","author":"Zygmunt Bauman","isbn13":"9788571105980","googleVolumeId":null},"O Manifesto Comunista":{"title":"O Manifesto Comunista","author":"Karl Marx e Friedrich Engels","isbn13":"9788563560360","googleVolumeId":null},"A História da Arte":{"title":"A História da Arte","author":"E. H. Gombrich","isbn13":"9788521611851","googleVolumeId":null},"Modos de Ver":{"title":"Modos de Ver","author":"John Berger","isbn13":"9786589733997","googleVolumeId":null},"O Que É Arte?":{"title":"O Que É Arte?","author":"Jorge Coli","isbn13":"9788511010466","googleVolumeId":null},"Poética":{"title":"Poética","author":"Aristóteles","isbn13":"9788573266054","googleVolumeId":null},"A Câmara Clara":{"title":"A Câmara Clara","author":"Roland Barthes","isbn13":"9788520942680","googleVolumeId":null},"Os Inovadores":{"title":"Os Inovadores","author":"Walter Isaacson","isbn13":"9786555601367","googleVolumeId":null},"Código":{"title":"Código","author":"Charles Petzold","isbn13":"9788582606315","googleVolumeId":null},"Código Limpo":{"title":"Código Limpo","author":"Robert C. Martin","isbn13":"9788576082675","googleVolumeId":null},"Algoritmos":{"title":"Algoritmos","author":"Thomas Cormen e colaboradores","isbn13":"9788535236996","googleVolumeId":null},"Inteligência Artificial: Uma Abordagem Moderna":{"title":"Inteligência Artificial: Uma Abordagem Moderna","author":"Stuart Russell e Peter Norvig","isbn13":"9788595158870","googleVolumeId":null},"O Diário de Anne Frank":{"title":"O Diário de Anne Frank","author":"Anne Frank","isbn13":"9788501044457","googleVolumeId":null},"Longa Caminhada até a Liberdade":{"title":"Longa Caminhada até a Liberdade","author":"Nelson Mandela","isbn13":"9786555200737","googleVolumeId":null},"Steve Jobs":{"title":"Steve Jobs","author":"Walter Isaacson","isbn13":"9788535919714","googleVolumeId":null},"Minha História":{"title":"Minha História","author":"Michelle Obama","isbn13":"9788547000646","googleVolumeId":null},"Eu Sou Malala":{"title":"Eu Sou Malala","author":"Malala Yousafzai","isbn13":"9788535923438","googleVolumeId":null},"Maus":{"title":"Maus","author":"Art Spiegelman","isbn13":"9788535906288","googleVolumeId":null},"Persépolis":{"title":"Persépolis","author":"Marjane Satrapi","isbn13":"9788535911626","googleVolumeId":null},"Watchmen":{"title":"Watchmen","author":"Alan Moore e Dave Gibbons","isbn13":null,"googleVolumeId":"QkK2oAEACAAJ"},"Turma da Mônica: Laços":{"title":"Turma da Mônica: Laços","author":"Vitor e Lu Cafaggi","isbn13":"9788565484572","googleVolumeId":null},"Daytripper":{"title":"Daytripper","author":"Fábio Moon e Gabriel Bá","isbn13":"9788573517712","googleVolumeId":null}}).map(([title, edition]) => [normalizeSearchText(title), edition]));
 
 if (JWT_SECRET.length < 24) {
@@ -425,29 +434,113 @@ function imageDimensions(buffer, contentType) {
   return null;
 }
 
-async function downloadVerifiedCover(url) {
+function coverHash(buffer) {
+  return crypto.createHash("sha256").update(buffer).digest("hex");
+}
+
+function looksLikePlaceholderUrl(url) {
+  const value = String(url || "").toLowerCase();
+
+  return (
+    value.includes("no_cover") ||
+    value.includes("no-cover") ||
+    value.includes("nocover") ||
+    value.includes("image_not_available") ||
+    value.includes("image-not-available") ||
+    value.includes("googlebooks/images/no_cover") ||
+    value.includes("book-placeholder")
+  );
+}
+
+async function fetchRawCover(url) {
   if (!url) return null;
-  const safeUrl = String(url).replace(/^http:/i, "https:").replace("&edge=curl", "");
+
+  const safeUrl = String(url)
+    .replace(/^http:/i, "https:")
+    .replace("&edge=curl", "");
+
   try {
     const response = await fetch(safeUrl, {
       redirect: "follow",
       headers: {
         "Accept": "image/avif,image/webp,image/jpeg,image/png,image/*,*/*;q=0.8",
-        "User-Agent": "Mozilla/5.0 BookShare-Official-Covers/5.0"
+        "User-Agent": "Mozilla/5.0 BookShare-Permanent-Covers/7.0"
       },
-      signal: AbortSignal.timeout(15000)
+      signal: AbortSignal.timeout(18000)
     });
+
     if (!response.ok) return null;
-    const contentType = String(response.headers.get("content-type") || "").split(";")[0].toLowerCase();
-    if (!/^image\/(jpeg|jpg|png|webp)$/.test(contentType)) return null;
+
+    const finalUrl = String(response.url || safeUrl);
+    const contentType = String(
+      response.headers.get("content-type") || ""
+    ).split(";")[0].toLowerCase();
+
+    if (looksLikePlaceholderUrl(finalUrl)) return null;
+    if (!/^image\/(jpeg|jpg|png|webp|gif)$/.test(contentType)) return null;
+
     const buffer = Buffer.from(await response.arrayBuffer());
-    if (buffer.length < 4500 || buffer.length > 2_500_000) return null;
-    const dimensions = imageDimensions(buffer, contentType);
-    if (dimensions && (dimensions.width < 100 || dimensions.height < 140)) return null;
-    return { buffer, contentType: contentType.replace("image/jpg","image/jpeg"), sourceUrl: String(response.url || safeUrl) };
+
+    return {
+      buffer,
+      contentType: contentType.replace("image/jpg", "image/jpeg"),
+      sourceUrl: finalUrl
+    };
   } catch (_error) {
     return null;
   }
+}
+
+async function primeCoverPlaceholderHashes() {
+  const placeholderUrls = [
+    "https://books.google.com/googlebooks/images/no_cover_thumb.gif",
+    "https://books.google.com/books/content?vid=ISBN0000000000000&printsec=frontcover&img=1&zoom=2&source=gbs_api",
+    "https://books.google.com/books/content?id=BOOKSHARE_INVALID_VOLUME&printsec=frontcover&img=1&zoom=2&source=gbs_api"
+  ];
+
+  for (const url of placeholderUrls) {
+    const result = await fetchRawCover(url);
+
+    if (result?.buffer) {
+      coverPlaceholderHashes.add(coverHash(result.buffer));
+    }
+  }
+
+  console.log(
+    `Assinaturas de placeholders carregadas: ${coverPlaceholderHashes.size}.`
+  );
+}
+
+async function downloadVerifiedCover(url) {
+  const result = await fetchRawCover(url);
+  if (!result) return null;
+
+  const { buffer, contentType, sourceUrl } = result;
+
+  if (buffer.length < 6000 || buffer.length > 3_000_000) return null;
+  if (coverPlaceholderHashes.has(coverHash(buffer))) return null;
+
+  // GIFs externos são quase sempre placeholders de capa.
+  if (contentType === "image/gif") return null;
+
+  const dimensions = imageDimensions(buffer, contentType);
+
+  if (
+    dimensions &&
+    (
+      dimensions.width < 120 ||
+      dimensions.height < 170 ||
+      dimensions.height <= dimensions.width
+    )
+  ) {
+    return null;
+  }
+
+  return {
+    buffer,
+    contentType,
+    sourceUrl
+  };
 }
 
 function imageLinksFromVolume(volume) {
@@ -675,16 +768,39 @@ async function coverFromOpenLibrarySearch(title, author) {
 }
 
 async function resolveOfficialEditionCover(title, authorOverride = "") {
+  const normalizedTitle = normalizeSearchText(title);
   const edition = editionForTitle(title);
-  if (!edition) return null;
+  const cacheKey = `${normalizedTitle}::${normalizeSearchText(authorOverride)}`;
 
-  const cacheKey = normalizeSearchText(title);
   if (bookCoverCache.has(cacheKey)) return bookCoverCache.get(cacheKey);
+
+  const directCandidates =
+    PERMANENT_COVER_CANDIDATES.get(normalizedTitle) || [];
+
+  // 1. Links específicos da edição já definidos dentro do server.js.
+  for (const url of directCandidates) {
+    const image = await downloadVerifiedCover(url);
+
+    if (image) {
+      const result = {
+        dataUri:
+          `data:${image.contentType};base64,${image.buffer.toString("base64")}`,
+        contentType: image.contentType,
+        buffer: image.buffer,
+        source: "Lista fixa verificada V28"
+      };
+
+      bookCoverCache.set(cacheKey, result);
+      return result;
+    }
+  }
+
+  if (!edition) return null;
 
   const author = edition.author || authorOverride || "";
   let cover = null;
 
-  // 1. ISBN exato da edição brasileira.
+  // 2. ISBN exato da edição.
   if (edition.isbn13) {
     const byIsbn = await googleVolumeByIsbn(edition.isbn13);
     cover = await coverFromGoogleVolume(byIsbn);
@@ -694,28 +810,35 @@ async function resolveOfficialEditionCover(title, authorOverride = "") {
     }
   }
 
-  // 2. Volume exato já identificado.
+  // 3. Volume exato previamente identificado.
   if (!cover && edition.googleVolumeId) {
     const exactVolume = await googleVolume(edition.googleVolumeId);
     cover = await coverFromGoogleVolume(exactVolume);
   }
 
-  // 3. Outra edição original correspondente ao mesmo título e autor.
+  // 4. Busca exata por título e autor.
   if (!cover) {
-    cover = await coverFromGoogleSearch(edition.title || title, author);
+    cover = await coverFromGoogleSearch(
+      edition.title || title,
+      author
+    );
   }
 
   if (!cover) {
-    cover = await coverFromOpenLibrarySearch(edition.title || title, author);
+    cover = await coverFromOpenLibrarySearch(
+      edition.title || title,
+      author
+    );
   }
 
   if (!cover) return null;
 
   const result = {
-    dataUri: `data:${cover.contentType};base64,${cover.buffer.toString("base64")}`,
+    dataUri:
+      `data:${cover.contentType};base64,${cover.buffer.toString("base64")}`,
     contentType: cover.contentType,
     buffer: cover.buffer,
-    source: `${cover.source}${edition.isbn13 ? ` • ISBN ${edition.isbn13}` : ""}`
+    source: cover.source || "Edição original verificada V28"
   };
 
   bookCoverCache.set(cacheKey, result);
@@ -733,7 +856,7 @@ async function syncBookCovers({ force = false } = {}) {
     const targets=result.rows.filter(book => {
       if (!editionForTitle(book.title)) return false;
       if (book.cover_source === "manual-upload") return false;
-      return force || book.cover_source !== "official-edition-v26" || !isDataImage(book.cover_url);
+      return force || book.cover_source !== "verified-original-v28" || !isDataImage(book.cover_url);
     });
     bookCoverSyncState.total=targets.length;
     let cursor=0;
@@ -744,7 +867,7 @@ async function syncBookCovers({ force = false } = {}) {
         try {
           const cover=await resolveOfficialEditionCover(book.title, book.author);
           if (cover) {
-            await pool.query(`UPDATE books SET cover_url=$1,cover_source='official-edition-v26',cover_checked_at=NOW(),updated_at=NOW() WHERE id=$2`,[cover.dataUri,book.id]);
+            await pool.query(`UPDATE books SET cover_url=$1,cover_source='verified-original-v28',cover_checked_at=NOW(),updated_at=NOW() WHERE id=$2`,[cover.dataUri,book.id]);
             bookCoverSyncState.updated+=1;
           } else {
             await pool.query(`UPDATE books SET cover_source='official-not-found',cover_checked_at=NOW(),updated_at=NOW() WHERE id=$1`,[book.id]);
@@ -773,7 +896,7 @@ app.get("/api/public/book-cover", asyncRoute(async (req, res) => {
     const cover=await resolveOfficialEditionCover(book?.title || title, book?.author || cleanText(req.query.author,160) || "");
     if (cover) {
       parts={contentType:cover.contentType,buffer:cover.buffer};
-      if (book?.id) await pool.query(`UPDATE books SET cover_url=$1,cover_source='official-edition-v26',cover_checked_at=NOW(),updated_at=NOW() WHERE id=$2`,[cover.dataUri,book.id]);
+      if (book?.id) await pool.query(`UPDATE books SET cover_url=$1,cover_source='verified-original-v28',cover_checked_at=NOW(),updated_at=NOW() WHERE id=$2`,[cover.dataUri,book.id]);
     }
   }
   if (parts) {
@@ -2617,14 +2740,34 @@ app.use((error, _req, res, _next) => {
   });
 });
 
+
+async function clearUnverifiedBookCovers() {
+  const result = await pool.query(`
+    UPDATE books
+    SET cover_url = NULL,
+        cover_source = NULL,
+        cover_checked_at = NULL,
+        updated_at = NOW()
+    WHERE COALESCE(cover_source, '') <> 'manual-upload'
+      AND (
+        cover_url IS NOT NULL
+        OR cover_source IS NOT NULL
+      )
+  `);
+
+  console.log(`Capas antigas removidas para nova validação: ${result.rowCount}.`);
+}
+
 async function start() {
   try {
     await pool.query("SELECT 1");
     await ensureRuntimeSchema();
     await ensureInitialUsers();
+    await primeCoverPlaceholderHashes();
+    await clearUnverifiedBookCovers();
 
     app.listen(PORT, () => {
-      console.log(`BookShare API 6.0 online na porta ${PORT}.`);
+      console.log(`BookShare API 7.0 online na porta ${PORT}.`);
 
       setTimeout(() => {
         syncBookCovers({ force: true })
