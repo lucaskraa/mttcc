@@ -514,6 +514,62 @@ function imageDimensions(buffer, contentType) {
   return null;
 }
 
+
+function looksLikePlaceholderUrl(url) {
+  const value = String(url || "").toLowerCase();
+
+  return (
+    value.includes("no_cover") ||
+    value.includes("no-cover") ||
+    value.includes("nocover") ||
+    value.includes("image_not_available") ||
+    value.includes("image-not-available") ||
+    value.includes("googlebooks/images/no_cover") ||
+    value.includes("book-placeholder")
+  );
+}
+
+async function fetchRawCover(url) {
+  if (!url) return null;
+
+  const safeUrl = String(url)
+    .replace(/^http:/i, "https:")
+    .replace("&edge=curl", "");
+
+  try {
+    const response = await fetch(safeUrl, {
+      redirect: "follow",
+      headers: {
+        "Accept": "image/avif,image/webp,image/apng,image/jpeg,image/png,image/gif,image/*,*/*;q=0.8",
+        "User-Agent": "Mozilla/5.0 BookShare-Cover-Fetcher/9.1"
+      },
+      signal: AbortSignal.timeout(18000)
+    });
+
+    if (!response.ok) return null;
+
+    const finalUrl = String(response.url || safeUrl);
+    const contentType = String(
+      response.headers.get("content-type") || ""
+    ).split(";")[0].toLowerCase();
+
+    if (looksLikePlaceholderUrl(finalUrl)) return null;
+    if (!contentType.startsWith("image/")) return null;
+
+    const buffer = Buffer.from(await response.arrayBuffer());
+    if (!buffer.length) return null;
+
+    return {
+      buffer,
+      contentType,
+      sourceUrl: finalUrl
+    };
+  } catch (error) {
+    console.warn(`Falha ao baixar capa: ${safeUrl}`, error.message);
+    return null;
+  }
+}
+
 async function coverFingerprint(buffer) {
   return sharp(buffer, { failOn: "none" })
     .rotate()
@@ -558,10 +614,13 @@ async function primeCoverPlaceholderHashes() {
 }
 
 async function downloadVerifiedCover(url) {
+  if (looksLikePlaceholderUrl(url)) return null;
+
   const result = await fetchRawCover(url);
   if (!result) return null;
 
   const { buffer, sourceUrl } = result;
+  if (looksLikePlaceholderUrl(sourceUrl)) return null;
   if (buffer.length < 5000 || buffer.length > 8_000_000) return null;
 
   try {
@@ -3159,7 +3218,7 @@ async function start() {
     await clearUnverifiedBookCovers();
 
     app.listen(PORT, () => {
-      console.log(`BookShare API 9.0 online na porta ${PORT}.`);
+      console.log(`BookShare API 9.1 online na porta ${PORT}.`);
 
       setTimeout(() => {
         syncBookCovers({ force: true })
