@@ -9,6 +9,7 @@ const rateLimit = require("express-rate-limit");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
+const sharp = require("sharp");
 const { Pool } = require("pg");
 
 const app = express();
@@ -37,6 +38,34 @@ const coverPlaceholderHashes = new Set();
 
 
 const OFFICIAL_EDITIONS = new Map(Object.entries({"Dom Casmurro":{"title":"Dom Casmurro","author":"Machado de Assis","isbn13":null,"googleVolumeId":"qmE0EQAAQBAJ"},"Memórias Póstumas de Brás Cubas":{"title":"Memórias Póstumas de Brás Cubas","author":"Machado de Assis","isbn13":null,"googleVolumeId":"qnyeEAAAQBAJ"},"O Cortiço":{"title":"O Cortiço","author":"Aluísio Azevedo","isbn13":null,"googleVolumeId":"vQMREQAAQBAJ"},"Vidas Secas":{"title":"Vidas Secas","author":"Graciliano Ramos","isbn13":null,"googleVolumeId":"OiNgEQAAQBAJ"},"Capitães da Areia":{"title":"Capitães da Areia","author":"Jorge Amado","isbn13":null,"googleVolumeId":"FDJ1_r4MCIEC"},"Crime e Castigo":{"title":"Crime e Castigo","author":"Fiódor Dostoiévski","isbn13":null,"googleVolumeId":"nO2MDwAAQBAJ"},"Os Irmãos Karamázov":{"title":"Os Irmãos Karamázov","author":"Fiódor Dostoiévski","isbn13":null,"googleVolumeId":"8PIuEAAAQBAJ"},"Guerra e Paz":{"title":"Guerra e Paz","author":"Liev Tolstói","isbn13":null,"googleVolumeId":"P1Q6DwAAQBAJ"},"Anna Kariênina":{"title":"Anna Kariênina","author":"Liev Tolstói","isbn13":null,"googleVolumeId":"vitqBgAAQBAJ"},"O Mestre e Margarida":{"title":"O Mestre e Margarida","author":"Mikhail Bulgákov","isbn13":null,"googleVolumeId":"XU5HEQAAQBAJ"},"O Pequeno Príncipe":{"title":"O Pequeno Príncipe","author":"Antoine de Saint-Exupéry","isbn13":null,"googleVolumeId":"_NTSEAAAQBAJ"},"Alice no País das Maravilhas":{"title":"Alice no País das Maravilhas","author":"Lewis Carroll","isbn13":null,"googleVolumeId":"X5K1EAAAQBAJ"},"As Aventuras de Tom Sawyer":{"title":"As Aventuras de Tom Sawyer","author":"Mark Twain","isbn13":null,"googleVolumeId":"nBg5EAAAQBAJ"},"O Mágico de Oz":{"title":"O Mágico de Oz","author":"L. Frank Baum","isbn13":null,"googleVolumeId":"59IJ34ms1HQC"},"A Ilha do Tesouro":{"title":"A Ilha do Tesouro","author":"Robert Louis Stevenson","isbn13":null,"googleVolumeId":"B9wXEAAAQBAJ"},"Alguma Poesia":{"title":"Alguma Poesia","author":"Carlos Drummond de Andrade","isbn13":"9786555874617","googleVolumeId":null},"Mensagem":{"title":"Mensagem","author":"Fernando Pessoa","isbn13":null,"googleVolumeId":"0yyBEQAAQBAJ"},"Antologia Poética":{"title":"Antologia Poética","author":"Vinicius de Moraes","isbn13":null,"googleVolumeId":"0BFXAAAAYAAJ"},"Romanceiro da Inconfidência":{"title":"Romanceiro da Inconfidência","author":"Cecília Meireles","isbn13":null,"googleVolumeId":"POGGDwAAQBAJ"},"Os Lusíadas":{"title":"Os Lusíadas","author":"Luís de Camões","isbn13":null,"googleVolumeId":"19JjCAAAQBAJ"},"Laços de Família":{"title":"Laços de Família","author":"Clarice Lispector","isbn13":null,"googleVolumeId":"ZxlOA83HZM0C"},"Morangos Mofados":{"title":"Morangos Mofados","author":"Caio Fernando Abreu","isbn13":null,"googleVolumeId":"BwyvDwAAQBAJ"},"Contos Novos":{"title":"Contos Novos","author":"Mário de Andrade","isbn13":null,"googleVolumeId":"kxD9EAAAQBAJ"},"Primeiras Estórias":{"title":"Primeiras Estórias","author":"João Guimarães Rosa","isbn13":null,"googleVolumeId":"ZH5rDQAAQBAJ"},"O Alienista":{"title":"O Alienista","author":"Machado de Assis","isbn13":null,"googleVolumeId":"TTUFEQAAQBAJ"},"Cosmos":{"title":"Cosmos","author":"Carl Sagan","isbn13":null,"googleVolumeId":"Cl06FjKX6doC"},"O Mundo Assombrado pelos Demônios":{"title":"O Mundo Assombrado pelos Demônios","author":"Carl Sagan","isbn13":null,"googleVolumeId":"D-tKAgAACAAJ"},"A Origem das Espécies":{"title":"A Origem das Espécies","author":"Charles Darwin","isbn13":null,"googleVolumeId":"a4cgEQAAQBAJ"},"Primavera Silenciosa":{"title":"Primavera Silenciosa","author":"Rachel Carson","isbn13":null,"googleVolumeId":"PV3pDAAAQBAJ"},"Breves Respostas para Grandes Questões":{"title":"Breves Respostas para Grandes Questões","author":"Stephen Hawking","isbn13":null,"googleVolumeId":"tI9yDwAAQBAJ"},"O Gene Egoísta":{"title":"O Gene Egoísta","author":"Richard Dawkins","isbn13":null,"googleVolumeId":"GA0v1URr4_QC"},"A Dupla Hélice":{"title":"A Dupla Hélice","author":"James D. Watson","isbn13":"9788537811740","googleVolumeId":null},"O Imperador de Todos os Males":{"title":"O Imperador de Todos os Males","author":"Siddhartha Mukherjee","isbn13":"9788535920062","googleVolumeId":null},"A Vida Maravilhosa":{"title":"A Vida Maravilhosa","author":"Stephen Jay Gould","isbn13":"9788571641419","googleVolumeId":null},"A Canção da Célula":{"title":"A Canção da Célula","author":"Siddhartha Mukherjee","isbn13":"9788535934724","googleVolumeId":null},"Uma Breve História do Tempo":{"title":"Uma Breve História do Tempo","author":"Stephen Hawking","isbn13":null,"googleVolumeId":"igLOOwAACAAJ"},"Seis Peças Fáceis":{"title":"Seis Peças Fáceis","author":"Richard Feynman","isbn13":"9788500004797","googleVolumeId":null},"O Universo Numa Casca de Noz":{"title":"O Universo Numa Casca de Noz","author":"Stephen Hawking","isbn13":null,"googleVolumeId":"NXxVCwAAQBAJ"},"Sete Breves Lições de Física":{"title":"Sete Breves Lições de Física","author":"Carlo Rovelli","isbn13":null,"googleVolumeId":"BD0qDwAAQBAJ"},"Física do Impossível":{"title":"Física do Impossível","author":"Michio Kaku","isbn13":"9788532525598","googleVolumeId":null},"A Colher que Desaparece":{"title":"A Colher que Desaparece","author":"Sam Kean","isbn13":"9788537806937","googleVolumeId":null},"Tio Tungstênio":{"title":"Tio Tungstênio","author":"Oliver Sacks","isbn13":"9788535919820","googleVolumeId":null},"Os Botões de Napoleão":{"title":"Os Botões de Napoleão","author":"Penny Le Couteur e Jay Burreson","isbn13":"9788571109247","googleVolumeId":null},"A Tabela Periódica":{"title":"A Tabela Periódica","author":"Primo Levi","isbn13":"9788535941975","googleVolumeId":null},"O Homem que Calculava":{"title":"O Homem que Calculava","author":"Malba Tahan","isbn13":"9786555875911","googleVolumeId":null},"O Último Teorema de Fermat":{"title":"O Último Teorema de Fermat","author":"Simon Singh","isbn13":"9788501923790","googleVolumeId":null},"O Diabo dos Números":{"title":"O Diabo dos Números","author":"Hans Magnus Enzensberger","isbn13":"9788571647183","googleVolumeId":null},"Alex no País dos Números":{"title":"Alex no País dos Números","author":"Alex Bellos","isbn13":"9788535918380","googleVolumeId":null},"A Música dos Números Primos":{"title":"A Música dos Números Primos","author":"Marcus du Sautoy","isbn13":"9788537800379","googleVolumeId":null},"1808":{"title":"1808","author":"Laurentino Gomes","isbn13":"9788576653202","googleVolumeId":null},"1822":{"title":"1822","author":"Laurentino Gomes","isbn13":"9788525060648","googleVolumeId":null},"Brasil: Uma Biografia":{"title":"Brasil: Uma Biografia","author":"Lilia Schwarcz e Heloisa Starling","isbn13":"9788535925661","googleVolumeId":null},"Sapiens":{"title":"Sapiens","author":"Yuval Noah Harari","isbn13":"9786559213016","googleVolumeId":null},"A Era dos Extremos":{"title":"A Era dos Extremos","author":"Eric Hobsbawm","isbn13":"9788571644687","googleVolumeId":null},"Por uma Outra Globalização":{"title":"Por uma Outra Globalização","author":"Milton Santos","isbn13":"9786555871869","googleVolumeId":null},"Geografia da Fome":{"title":"Geografia da Fome","author":"Josué de Castro","isbn13":"9786556923390","googleVolumeId":null},"Prisioneiros da Geografia":{"title":"Prisioneiros da Geografia","author":"Tim Marshall","isbn13":"9788537817575","googleVolumeId":null},"Armas, Germes e Aço":{"title":"Armas, Germes e Aço","author":"Jared Diamond","isbn13":"9788501110015","googleVolumeId":null},"O Poder da Geografia":{"title":"O Poder da Geografia","author":"Tim Marshall","isbn13":"9786559790678","googleVolumeId":null},"A República":{"title":"A República","author":"Platão","isbn13":null,"googleVolumeId":"38n-zwEACAAJ"},"Ética a Nicômaco":{"title":"Ética a Nicômaco","author":"Aristóteles","isbn13":"9788572838818","googleVolumeId":null},"Discurso do Método":{"title":"Discurso do Método","author":"René Descartes","isbn13":"9788525410979","googleVolumeId":null},"O Mundo de Sofia":{"title":"O Mundo de Sofia","author":"Jostein Gaarder","isbn13":"9788535921892","googleVolumeId":null},"Assim Falou Zaratustra":{"title":"Assim Falou Zaratustra","author":"Friedrich Nietzsche","isbn13":"9788535930481","googleVolumeId":null},"A Ética Protestante e o Espírito do Capitalismo":{"title":"A Ética Protestante e o Espírito do Capitalismo","author":"Max Weber","isbn13":"9788572329750","googleVolumeId":null},"As Regras do Método Sociológico":{"title":"As Regras do Método Sociológico","author":"Émile Durkheim","isbn13":"9788572838061","googleVolumeId":null},"Casa-Grande & Senzala":{"title":"Casa-Grande & Senzala","author":"Gilberto Freyre","isbn13":"9788526008694","googleVolumeId":null},"Modernidade Líquida":{"title":"Modernidade Líquida","author":"Zygmunt Bauman","isbn13":"9788571105980","googleVolumeId":null},"O Manifesto Comunista":{"title":"O Manifesto Comunista","author":"Karl Marx e Friedrich Engels","isbn13":"9788563560360","googleVolumeId":null},"A História da Arte":{"title":"A História da Arte","author":"E. H. Gombrich","isbn13":"9788521611851","googleVolumeId":null},"Modos de Ver":{"title":"Modos de Ver","author":"John Berger","isbn13":"9786589733997","googleVolumeId":null},"O Que É Arte?":{"title":"O Que É Arte?","author":"Jorge Coli","isbn13":"9788511010466","googleVolumeId":null},"Poética":{"title":"Poética","author":"Aristóteles","isbn13":"9788573266054","googleVolumeId":null},"A Câmara Clara":{"title":"A Câmara Clara","author":"Roland Barthes","isbn13":"9788520942680","googleVolumeId":null},"Os Inovadores":{"title":"Os Inovadores","author":"Walter Isaacson","isbn13":"9786555601367","googleVolumeId":null},"Código":{"title":"Código","author":"Charles Petzold","isbn13":"9788582606315","googleVolumeId":null},"Código Limpo":{"title":"Código Limpo","author":"Robert C. Martin","isbn13":"9788576082675","googleVolumeId":null},"Algoritmos":{"title":"Algoritmos","author":"Thomas Cormen e colaboradores","isbn13":"9788535236996","googleVolumeId":null},"Inteligência Artificial: Uma Abordagem Moderna":{"title":"Inteligência Artificial: Uma Abordagem Moderna","author":"Stuart Russell e Peter Norvig","isbn13":"9788595158870","googleVolumeId":null},"O Diário de Anne Frank":{"title":"O Diário de Anne Frank","author":"Anne Frank","isbn13":"9788501044457","googleVolumeId":null},"Longa Caminhada até a Liberdade":{"title":"Longa Caminhada até a Liberdade","author":"Nelson Mandela","isbn13":"9786555200737","googleVolumeId":null},"Steve Jobs":{"title":"Steve Jobs","author":"Walter Isaacson","isbn13":"9788535919714","googleVolumeId":null},"Minha História":{"title":"Minha História","author":"Michelle Obama","isbn13":"9788547000646","googleVolumeId":null},"Eu Sou Malala":{"title":"Eu Sou Malala","author":"Malala Yousafzai","isbn13":"9788535923438","googleVolumeId":null},"Maus":{"title":"Maus","author":"Art Spiegelman","isbn13":"9788535906288","googleVolumeId":null},"Persépolis":{"title":"Persépolis","author":"Marjane Satrapi","isbn13":"9788535911626","googleVolumeId":null},"Watchmen":{"title":"Watchmen","author":"Alan Moore e Dave Gibbons","isbn13":null,"googleVolumeId":"QkK2oAEACAAJ"},"Turma da Mônica: Laços":{"title":"Turma da Mônica: Laços","author":"Vitor e Lu Cafaggi","isbn13":"9788565484572","googleVolumeId":null},"Daytripper":{"title":"Daytripper","author":"Fábio Moon e Gabriel Bá","isbn13":"9788573517712","googleVolumeId":null}}).map(([title, edition]) => [normalizeSearchText(title), edition]));
+
+
+const CATALOG_V30_EDITIONS = new Map(
+  Object.entries({
+    "1984": { title: "1984", author: "George Orwell", isbn13: "9788580864458", googleVolumeId: "5VD2SwmX7dAC" },
+    "A Revolução dos Bichos": { title: "A Revolução dos Bichos", author: "George Orwell", isbn13: "9788596042642", googleVolumeId: "EQftEAAAQBAJ" },
+    "Fahrenheit 451": { title: "Fahrenheit 451", author: "Ray Bradbury", isbn13: "9780345410016", googleVolumeId: "Ipq--vf0ZFkC" },
+    "O Hobbit": { title: "O Hobbit", author: "J.R.R. Tolkien", isbn13: "9788595085800", googleVolumeId: "2LeZDwAAQBAJ" },
+    "Quarto de Despejo": { title: "Quarto de Despejo", author: "Carolina Maria de Jesus", isbn13: "9788508196555", googleVolumeId: "xw0CzwEACAAJ" },
+    "A Hora da Estrela": { title: "A Hora da Estrela", author: "Clarice Lispector", isbn13: "9786555950236", googleVolumeId: "82UHEAAAQBAJ" },
+    "O Auto da Compadecida": { title: "O Auto da Compadecida", author: "Ariano Suassuna", isbn13: "9788520942833", googleVolumeId: "I0pWDwAAQBAJ" },
+    "Torto Arado": { title: "Torto Arado", author: "Itamar Vieira Junior", isbn13: "9786580309320", googleVolumeId: "CdOiDwAAQBAJ" },
+    "Frankenstein": { title: "Frankenstein", author: "Mary Shelley", isbn13: "9786552942555", googleVolumeId: "DsdzEQAAQBAJ" },
+    "Drácula": { title: "Drácula", author: "Bram Stoker", isbn13: "9788595201569", googleVolumeId: "XoqWEAAAQBAJ" }
+  }).map(([title, edition]) => [normalizeSearchText(title), edition])
+);
+
+for (const edition of CATALOG_V30_EDITIONS.values()) {
+  const titleKey = normalizeSearchText(edition.title);
+  const candidates = [
+    `https://books.google.com/books/content?id=${edition.googleVolumeId}&printsec=frontcover&img=1&zoom=3&source=gbs_api`,
+    `https://books.googleusercontent.com/books/content?id=${edition.googleVolumeId}&printsec=frontcover&img=1&zoom=3&source=gbs_api`,
+    `https://books.google.com/books/publisher/content?id=${edition.googleVolumeId}&printsec=frontcover&img=1&zoom=3&source=gbs_api`,
+    `https://covers.openlibrary.org/b/isbn/${edition.isbn13}-L.jpg?default=false`
+  ];
+
+  PERMANENT_COVER_CANDIDATES.set(titleKey, candidates);
+}
 
 if (JWT_SECRET.length < 24) {
   console.error("JWT_SECRET ausente ou curta. Configure uma chave segura no Render.");
@@ -443,7 +472,8 @@ function isDataImage(value) {
 }
 
 function editionForTitle(title) {
-  return OFFICIAL_EDITIONS.get(normalizeSearchText(title)) || null;
+  const key = normalizeSearchText(title);
+  return CATALOG_V30_EDITIONS.get(key) || OFFICIAL_EDITIONS.get(key) || null;
 }
 
 function dataImageParts(value) {
@@ -484,113 +514,104 @@ function imageDimensions(buffer, contentType) {
   return null;
 }
 
-function coverHash(buffer) {
-  return crypto.createHash("sha256").update(buffer).digest("hex");
+async function coverFingerprint(buffer) {
+  return sharp(buffer, { failOn: "none" })
+    .rotate()
+    .resize(32, 32, { fit: "fill" })
+    .greyscale()
+    .raw()
+    .toBuffer();
 }
 
-function looksLikePlaceholderUrl(url) {
-  const value = String(url || "").toLowerCase();
+function fingerprintDistance(first, second) {
+  if (!first || !second || first.length !== second.length) return Infinity;
 
-  return (
-    value.includes("no_cover") ||
-    value.includes("no-cover") ||
-    value.includes("nocover") ||
-    value.includes("image_not_available") ||
-    value.includes("image-not-available") ||
-    value.includes("googlebooks/images/no_cover") ||
-    value.includes("book-placeholder")
-  );
-}
-
-async function fetchRawCover(url) {
-  if (!url) return null;
-
-  const safeUrl = String(url)
-    .replace(/^http:/i, "https:")
-    .replace("&edge=curl", "");
-
-  try {
-    const response = await fetch(safeUrl, {
-      redirect: "follow",
-      headers: {
-        "Accept": "image/avif,image/webp,image/jpeg,image/png,image/*,*/*;q=0.8",
-        "User-Agent": "Mozilla/5.0 BookShare-Permanent-Covers/7.0"
-      },
-      signal: AbortSignal.timeout(18000)
-    });
-
-    if (!response.ok) return null;
-
-    const finalUrl = String(response.url || safeUrl);
-    const contentType = String(
-      response.headers.get("content-type") || ""
-    ).split(";")[0].toLowerCase();
-
-    if (looksLikePlaceholderUrl(finalUrl)) return null;
-    if (!/^image\/(jpeg|jpg|png|webp|gif)$/.test(contentType)) return null;
-
-    const buffer = Buffer.from(await response.arrayBuffer());
-
-    return {
-      buffer,
-      contentType: contentType.replace("image/jpg", "image/jpeg"),
-      sourceUrl: finalUrl
-    };
-  } catch (_error) {
-    return null;
+  let total = 0;
+  for (let index = 0; index < first.length; index += 1) {
+    total += Math.abs(first[index] - second[index]);
   }
+
+  return total / first.length;
 }
 
 async function primeCoverPlaceholderHashes() {
   const placeholderUrls = [
     "https://books.google.com/googlebooks/images/no_cover_thumb.gif",
+    "https://books.google.com/books/content?vid=ISBN0000000000000&printsec=frontcover&img=1&zoom=1&source=gbs_api",
     "https://books.google.com/books/content?vid=ISBN0000000000000&printsec=frontcover&img=1&zoom=2&source=gbs_api",
     "https://books.google.com/books/content?id=BOOKSHARE_INVALID_VOLUME&printsec=frontcover&img=1&zoom=2&source=gbs_api"
   ];
 
   for (const url of placeholderUrls) {
-    const result = await fetchRawCover(url);
+    const raw = await fetchRawCover(url);
+    if (!raw?.buffer) continue;
 
-    if (result?.buffer) {
-      coverPlaceholderHashes.add(coverHash(result.buffer));
+    try {
+      const fingerprint = await coverFingerprint(raw.buffer);
+      coverPlaceholderHashes.add(fingerprint.toString("base64"));
+    } catch (_error) {
+      // Ignora placeholders que o Sharp não conseguir abrir.
     }
   }
 
-  console.log(
-    `Assinaturas de placeholders carregadas: ${coverPlaceholderHashes.size}.`
-  );
+  console.log(`Assinaturas visuais de placeholders: ${coverPlaceholderHashes.size}.`);
 }
 
 async function downloadVerifiedCover(url) {
   const result = await fetchRawCover(url);
   if (!result) return null;
 
-  const { buffer, contentType, sourceUrl } = result;
+  const { buffer, sourceUrl } = result;
+  if (buffer.length < 5000 || buffer.length > 8_000_000) return null;
 
-  if (buffer.length < 6000 || buffer.length > 3_000_000) return null;
-  if (coverPlaceholderHashes.has(coverHash(buffer))) return null;
+  try {
+    const image = sharp(buffer, { failOn: "none" }).rotate();
+    const metadata = await image.metadata();
 
-  // GIFs externos são quase sempre placeholders de capa.
-  if (contentType === "image/gif") return null;
+    if (!metadata.width || !metadata.height) return null;
+    if (metadata.width < 100 || metadata.height < 140) return null;
+    if (metadata.height <= metadata.width * 1.02) return null;
 
-  const dimensions = imageDimensions(buffer, contentType);
+    const stats = await image.stats();
+    const averageMean = stats.channels
+      .slice(0, 3)
+      .reduce((sum, channel) => sum + channel.mean, 0) / Math.min(3, stats.channels.length);
+    const averageDeviation = stats.channels
+      .slice(0, 3)
+      .reduce((sum, channel) => sum + channel.stdev, 0) / Math.min(3, stats.channels.length);
 
-  if (
-    dimensions &&
-    (
-      dimensions.width < 120 ||
-      dimensions.height < 170 ||
-      dimensions.height <= dimensions.width
-    )
-  ) {
+    // Rejeita imagens praticamente vazias.
+    if (averageMean > 242 && averageDeviation < 9) return null;
+
+    const candidateFingerprint = await coverFingerprint(buffer);
+
+    for (const encoded of coverPlaceholderHashes) {
+      const placeholderFingerprint = Buffer.from(encoded, "base64");
+      if (fingerprintDistance(candidateFingerprint, placeholderFingerprint) < 8.5) {
+        return null;
+      }
+    }
+
+    const normalizedBuffer = await image
+      .resize({
+        width: 520,
+        height: 780,
+        fit: "inside",
+        withoutEnlargement: true,
+        background: { r: 246, g: 243, b: 236, alpha: 1 }
+      })
+      .flatten({ background: "#f6f3ec" })
+      .jpeg({ quality: 84, mozjpeg: true })
+      .toBuffer();
+
+    return {
+      buffer: normalizedBuffer,
+      contentType: "image/jpeg",
+      sourceUrl
+    };
+  } catch (_error) {
     return null;
   }
-
-  return {
-    buffer,
-    contentType,
-    sourceUrl
-  };
 }
 
 function imageLinksFromVolume(volume) {
@@ -906,7 +927,7 @@ async function syncBookCovers({ force = false } = {}) {
     const targets=result.rows.filter(book => {
       if (!editionForTitle(book.title)) return false;
       if (book.cover_source === "manual-upload") return false;
-      return force || book.cover_source !== "verified-original-v28" || !isDataImage(book.cover_url);
+      return force || book.cover_source !== "verified-original-v30" || !isDataImage(book.cover_url);
     });
     bookCoverSyncState.total=targets.length;
     let cursor=0;
@@ -917,7 +938,7 @@ async function syncBookCovers({ force = false } = {}) {
         try {
           const cover=await resolveOfficialEditionCover(book.title, book.author);
           if (cover) {
-            await pool.query(`UPDATE books SET cover_url=$1,cover_source='verified-original-v28',cover_checked_at=NOW(),updated_at=NOW() WHERE id=$2`,[cover.dataUri,book.id]);
+            await pool.query(`UPDATE books SET cover_url=$1,cover_source='verified-original-v30',cover_checked_at=NOW(),updated_at=NOW() WHERE id=$2`,[cover.dataUri,book.id]);
             bookCoverSyncState.updated+=1;
           } else {
             await pool.query(`UPDATE books SET cover_source='official-not-found',cover_checked_at=NOW(),updated_at=NOW() WHERE id=$1`,[book.id]);
@@ -946,7 +967,7 @@ app.get("/api/public/book-cover", asyncRoute(async (req, res) => {
     const cover=await resolveOfficialEditionCover(book?.title || title, book?.author || cleanText(req.query.author,160) || "");
     if (cover) {
       parts={contentType:cover.contentType,buffer:cover.buffer};
-      if (book?.id) await pool.query(`UPDATE books SET cover_url=$1,cover_source='verified-original-v28',cover_checked_at=NOW(),updated_at=NOW() WHERE id=$2`,[cover.dataUri,book.id]);
+      if (book?.id) await pool.query(`UPDATE books SET cover_url=$1,cover_source='verified-original-v30',cover_checked_at=NOW(),updated_at=NOW() WHERE id=$2`,[cover.dataUri,book.id]);
     }
   }
   if (parts) {
@@ -1833,7 +1854,12 @@ app.get("/api/books", authenticate, asyncRoute(async (_req, res) => {
       b.category_id,
       b.shelf,
       b.description,
-      b.cover_url,
+      CASE
+        WHEN b.cover_source = 'manual-upload' THEN b.cover_url
+        ELSE NULL
+      END AS cover_url,
+      b.cover_source,
+      b.cover_checked_at,
       b.active,
       b.created_at,
       b.updated_at,
@@ -3095,12 +3121,19 @@ async function clearUnverifiedBookCovers() {
         updated_at = NOW()
     WHERE COALESCE(cover_source, '') <> 'manual-upload'
       AND (
-        cover_url IS NOT NULL
-        OR cover_source IS NOT NULL
+        cover_url LIKE 'data:image/svg+xml%'
+        OR cover_url ILIKE '%image_not_available%'
+        OR cover_url ILIKE '%no_cover%'
+        OR cover_source IN (
+          'official-not-found',
+          'broken',
+          'not-found',
+          'fixed-original-v22'
+        )
       )
   `);
 
-  console.log(`Capas antigas removidas para nova validação: ${result.rowCount}.`);
+  console.log(`Capas antigas ou inválidas removidas: ${result.rowCount}.`);
 }
 
 async function start() {
@@ -3112,10 +3145,10 @@ async function start() {
     await clearUnverifiedBookCovers();
 
     app.listen(PORT, () => {
-      console.log(`BookShare API 8.0 online na porta ${PORT}.`);
+      console.log(`BookShare API 9.0 online na porta ${PORT}.`);
 
       setTimeout(() => {
-        syncBookCovers({ force: true })
+        syncBookCovers({ force: false })
           .catch(error => console.error("Falha na sincronização das capas originais:", error));
       }, 3000);
     });
